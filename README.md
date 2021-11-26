@@ -59,7 +59,7 @@ Further documentation on I-CeM, including how it was created and the variables i
 
 #### 2. 1851 Parish Boundary Data for England and Wales (ENGLAND AND WALES ONLY)
 `data/input/1851EngWalesParishandPlace` contains a shapefile (`.shp`) and associated files of 1851 Parish Boundary data for England and Wales.
-![1851EngWalesParishandPlace](data/documentation/1851EngWalesParishandPlace.png "1851EngWalesParishandPlace")
+![1851EngWalesParishandPlace](documentation/1851EngWalesParishandPlace.png "1851EngWalesParishandPlace")
 
 This boundary dataset can be linked to I-CeM using `UKDS_GIS_to_icem.xlsx` (see point 7 below) to create consistent parish geographies for England and Wales across the period 1851-1911.
 
