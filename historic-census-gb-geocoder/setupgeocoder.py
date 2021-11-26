@@ -306,7 +306,7 @@ class CensusGB_geocoder:
 		return census_file
 
 	def set_output_dir(self):
-		output_dir = 'data/{}'.format(str(self.census_year))
+		output_dir = 'output/{}'.format(str(self.census_year))
 		if os.path.exists(output_dir):
 			print('Output directory "{}" already exists'.format(output_dir))
 		else:
