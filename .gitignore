@@ -131,3 +131,6 @@ dmypy.json
 # Data folders
 /data
 /output
+
+# MacOS
+.DS_Store
