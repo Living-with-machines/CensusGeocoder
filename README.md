@@ -12,10 +12,10 @@ Edit the following lines in `historic_census_gb_geocoder.py` to specify the para
 
 Enter the census years you want to geocode in the year_list in the following format. When declaring the parameters to the `CensusGB_geocoder` class, the script will loop through the years provided in the year_list, so leave the 'year' value as it is. 'EW' means it will geocode the England and Wales census - this is the only option at this stage. The third parameter is the type of geocoding, either 'testing' or 'full'. 'Full' runs the geocoding across the full datasets, 'testing' runs it across a subset (it's much quicker!)
 
-```
->>> year_list = [1891,1901,1911]
+```python
+year_list = [1891,1901,1911]
 
->>> historic_census_gb_geocoder.CensusGB_geocoder(year,'EW','full') 
+historic_census_gb_geocoder.CensusGB_geocoder(year,'EW','full') 
 ```
 
 Activate the python virtual environment, using:
