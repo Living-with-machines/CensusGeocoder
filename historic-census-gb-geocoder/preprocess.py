@@ -233,7 +233,7 @@ def process_gb1900(gb1900_file,rsd_boundary,conparid,cen,rows_to_use):
 	gb1900['final_text'] = gb1900['final_text'].str.strip()
 
 	# Read in regex replacement dictionary to standardise street names e.g. 'HIGH ST.' TO 'HIGH STREET'
-	with open('data/lookup/street_standardisation.json') as f:
+	with open('data/input/street_standardisation.json') as f:
 		street_standardisation = json.load(f)
 
 	gb1900['final_text'] = gb1900['final_text'].replace(street_standardisation,regex=True)
@@ -276,7 +276,7 @@ def process_census(census_file,rsd_dictionary,par_id,cen,rows_to_use):
 	census = census.rename({'address_anonymised':'add_anon','safehaven_id':'sh_id'},axis=1)
 	# Make limited regex replacements to standardise street names
 
-	with open('data/lookup/icem_street_standardisation.json') as f:
+	with open('data/input/icem_street_standardisation.json') as f:
 		street_standardisation = json.load(f)
 	census['add_anon'] = census['add_anon'].replace(street_standardisation,regex=True)
 	census['add_anon'] = census['add_anon'].replace('^\\s*$',np.nan,regex=True)
