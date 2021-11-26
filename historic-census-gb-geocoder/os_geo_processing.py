@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import numpy as np
 import preprocess
-import geocode
+import recordcomparison
 
 class CensusGB_geocoder:
 	"""
@@ -433,10 +433,10 @@ class CensusGB_geocoder:
 			print(county)
 			census_subset = census[census['RegCnty'] == county].copy()
 			census_subset = preprocess.compute_tfidf(census_subset).copy()
-			gb1900_candidate_links = geocode.gb1900_candidate_links(census_subset,gb1900,self.conparid_alt,self.cen)
-			gb1900_linked, gb1900_duplicates = geocode.gb1900_compare(census_subset,gb1900,gb1900_candidate_links)
-			os_candidate_links = geocode.os_candidate_links(census_subset,segmented_os_roads,self.conparid_alt,self.cen)
-			os_linked, os_duplicates = geocode.os_compare(census_subset,segmented_os_roads,os_candidate_links,self.os_road_id)
+			gb1900_candidate_links = recordcomparison.gb1900_candidate_links(census_subset,gb1900,self.conparid_alt,self.cen)
+			gb1900_linked, gb1900_duplicates = recordcomparison.gb1900_compare(census_subset,gb1900,gb1900_candidate_links)
+			os_candidate_links = recordcomparison.os_candidate_links(census_subset,segmented_os_roads,self.conparid_alt,self.cen)
+			os_linked, os_duplicates = recordcomparison.os_compare(census_subset,segmented_os_roads,os_candidate_links,self.os_road_id)
 			
 			if os_linked.empty or gb1900_linked.empty: # Refine so that the script can run on one of these if the other is empty
 				print('No data in OS Open Roads or GB1900 for {}, skipping.'.format(county))
