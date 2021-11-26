@@ -1,6 +1,6 @@
 import pandas as pd
 import recordlinkage
-import string_comparison
+import utils
 
 def gb1900_candidate_links(census,gb1900,conparid,cen):
 
@@ -30,7 +30,7 @@ def gb1900_compare(census,gb1900,gb1900_candidate_links):
 	else:
 		gb1900_comparison = recordlinkage.Compare() # Set up comparison
 
-		gb1900_comparison.add(string_comparison.rapidfuzzy_wratio_comparer(left_on = 'add_anon',right_on = 'final_text', method='rapidfuzzy_wratio', label='rfuzz_score'))
+		gb1900_comparison.add(utils.rapidfuzzy_wratio_comparer(left_on = 'add_anon',right_on = 'final_text', method='rapidfuzzy_wratio', label='rfuzz_score'))
 
 		print('Computing gb1900 / census string comparison')
 
@@ -96,7 +96,7 @@ def os_compare(census,os,os_candidate_links,os_road_id):
 	else:
 		os_comparison = recordlinkage.Compare() # Set up comparison
 
-		os_comparison.add(string_comparison.rapidfuzzy_wratio_comparer(left_on = 'add_anon',right_on = 'name1', method='rapidfuzzy_wratio', label='rfuzz_score'))
+		os_comparison.add(utils.rapidfuzzy_wratio_comparer(left_on = 'add_anon',right_on = 'name1', method='rapidfuzzy_wratio', label='rfuzz_score'))
 
 		print('Computing os / census string comparison')
 
