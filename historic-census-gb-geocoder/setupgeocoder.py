@@ -122,7 +122,7 @@ class CensusGB_geocoder:
 			Path to RSD boundary shapefile
 
 		"""
-		rsd_shapefile_folder = 'data/rsd_boundary_data/'
+		rsd_shapefile_folder = 'data/input/rsd_boundary_data/'
 		for root, directories, files in os.walk(rsd_shapefile_folder):
 			for file in files:
 				if file == 'RSD_1851_1911_JR.shp':
@@ -140,7 +140,7 @@ class CensusGB_geocoder:
 			Path to RSD dictionary lookup file
 
 		"""
-		rsd_dictionary_folder = 'data/parish_dicts_encoding/'
+		rsd_dictionary_folder = 'data/input/parish_dicts_encoding/'
 		for root, directories, files in os.walk(rsd_dictionary_folder):
 			for file in files:
 				if str(self.census_year) in file and 'DICTIONARY_CODED' in file:
@@ -158,7 +158,7 @@ class CensusGB_geocoder:
 			Path to Parish shapefile
 
 		"""
-		parish_shapefile_folder = 'data/1851EngWalesParishandPlace/'
+		parish_shapefile_folder = 'data/input/1851EngWalesParishandPlace/'
 		for root, directories, files in os.walk(parish_shapefile_folder):
 			for file in files:
 				if '.shp' in file:
@@ -177,7 +177,7 @@ class CensusGB_geocoder:
 
 		"""
 		os_open_roads_filelist = []
-		os_open_roads_folder = 'data/oproad_essh_gb-2/data'
+		os_open_roads_folder = 'data/input/oproad_essh_gb-2/data'
 		for root, directories, files in os.walk(os_open_roads_folder):
 			for file in files:
 				if 'RoadLink.shp' in file:
@@ -274,7 +274,7 @@ class CensusGB_geocoder:
 		gb1900_data: str
 			Path to GB1900 dataset.
 		"""
-		gb1900_data = 'data/gb1900_gazetteer_complete_july_2018.csv'
+		gb1900_data = 'data/input/gb1900_gazetteer_complete_july_2018.csv'
 		return gb1900_data
 
 	def set_ukds_gis_to_icem_file(self):
@@ -286,7 +286,7 @@ class CensusGB_geocoder:
 		ukds_gis_to_icem_path: str
 			Path to lookup table file.
 		"""
-		ukds_gis_to_icem_path = 'data/UKDS_GIS_to_icem.xlsx'
+		ukds_gis_to_icem_path = 'data/input/UKDS_GIS_to_icem.xlsx'
 		return ukds_gis_to_icem_path
 
 	def set_census_file(self):
@@ -298,7 +298,7 @@ class CensusGB_geocoder:
 		census_file: str
 			Path to census file.
 		"""
-		census_folder = 'data/census_anonymisation_egress/'
+		census_folder = 'data/input/census_anonymisation_egress/'
 		for root, directories, files in os.walk(census_folder):
 			for file in files:
 				if str(self.census_year) in file and self.country in file:
@@ -306,7 +306,7 @@ class CensusGB_geocoder:
 		return census_file
 
 	def set_output_dir(self):
-		output_dir = 'output/{}'.format(str(self.census_year))
+		output_dir = 'data/output/{}'.format(str(self.census_year))
 		if os.path.exists(output_dir):
 			print('Output directory "{}" already exists'.format(output_dir))
 		else:
