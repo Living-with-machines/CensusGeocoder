@@ -1,5 +1,5 @@
 # Main script that combines other scripts
-import os_geo_processing
+import setupgeocoder
 from datetime import datetime
 
 year_list = [1891,1901,1911]
@@ -8,7 +8,7 @@ start = datetime.now()
 
 for year in year_list:
 	# Initiate census geocoder
-	census_geocoder = os_geo_processing.CensusGB_geocoder(year,'EW','full')
+	census_geocoder = setupgeocoder.CensusGB_geocoder(year,'EW','full')
 	print(vars(census_geocoder))
 
 	os_roads, gb1900, icem, census_counties = census_geocoder.preprocessing()
