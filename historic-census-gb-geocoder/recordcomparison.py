@@ -2,17 +2,30 @@ import pandas as pd
 import recordlinkage
 import utils
 
-def gb1900_candidate_links(census,gb1900,conparid,cen):
+def gb1900_candidate_links(census,gb1900,test_dict):
 
 	if census.empty:
 		print('No census data for this county')
 		gb1900_candidate_links = pd.DataFrame()
 	else:
 		gb1900_indexer = recordlinkage.Index()
-		gb1900_indexer.block(left_on = ['ConParID',cen],right_on = [conparid,cen])
+		blocking_fields_l = []
+		blocking_fields_r = []
+
+		if test_dict['country'] == 'scot':
+			blocking_fields_l.append('ParID')
+			blocking_fields_r.append(test_dict['scot_parish'])
+		elif test_dict['country'] == 'EW':
+			blocking_fields_l.append('ConParID')
+			blocking_fields_l.append(test_dict['cen'])
+			blocking_fields_r.append(test_dict['conparid_alt'])
+			blocking_fields_r.append(test_dict['cen'])
+
+
+		gb1900_indexer.block(left_on = blocking_fields_l,right_on = blocking_fields_r)
 		print('Creating candidate links between gb1900 and census')
 		gb1900_candidate_links = gb1900_indexer.index(census, gb1900)
-
+		print(gb1900_candidate_links) #remove after edits finished
 	return gb1900_candidate_links
 
 def gb1900_compare(census,gb1900,gb1900_candidate_links):
@@ -64,14 +77,26 @@ def gb1900_compare(census,gb1900,gb1900_candidate_links):
 
 
 #todo
-def os_candidate_links(census,segmented_os_roads,conparid,cen):
+def os_candidate_links(census,segmented_os_roads,test_dict):
 
 	if census.empty:
 		print('No census data for this county')
 		os_candidate_links = pd.DataFrame()
 	else:
 		os_indexer = recordlinkage.Index()
-		os_indexer.block(left_on = ['ConParID',cen],right_on = [conparid,cen])
+		blocking_fields_l = []
+		blocking_fields_r = []
+
+		if test_dict['country'] == 'scot':
+			blocking_fields_l.append('ParID')
+			blocking_fields_r.append(test_dict['scot_parish'])
+		elif test_dict['country'] == 'EW':
+			blocking_fields_l.append('ConParID')
+			blocking_fields_l.append(test_dict['cen'])
+			blocking_fields_r.append(test_dict['conparid_alt'])
+			blocking_fields_r.append(test_dict['cen'])
+
+		os_indexer.block(left_on = blocking_fields_l,right_on = blocking_fields_r)
 		print('Creating candidate links between os and census')
 		os_candidate_links = os_indexer.index(census, segmented_os_roads)
 
