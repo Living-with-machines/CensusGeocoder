@@ -621,60 +621,64 @@ class CensusGB_geocoder:
 				gb1900_duplicate_list.append(gb1900_duplicates) # Append duplicate matches to GB1900 for this county to a list of dfs
 
 		print('Creating DSH outputs')
-		dsh_all_output = pd.concat(dsh_output_list)
-		
-		print('Creating OS Duplicate matches outputs')
-		os_duplicates_all = pd.concat(os_duplicate_list)
-		os_duplicates_all = os_duplicates_all.explode('sh_id_list',ignore_index=True) # Explode the list of sh_ids
-		os_duplicates_all = os_duplicates_all.rename({'sh_id_list':'sh_id'},axis=1)
-		os_duplicates_all.to_csv(self.output_dir + '/os_duplicates.tsv',sep="\t",index=False)
+		if dsh_output_list == []:
+			print('No DSH outputs to create')
+			dsh_all_output = None
+		else:
+			dsh_all_output = pd.concat(dsh_output_list)
+			
+			print('Creating OS Duplicate matches outputs')
+			os_duplicates_all = pd.concat(os_duplicate_list)
+			os_duplicates_all = os_duplicates_all.explode('sh_id_list',ignore_index=True) # Explode the list of sh_ids
+			os_duplicates_all = os_duplicates_all.rename({'sh_id_list':'sh_id'},axis=1)
+			os_duplicates_all.to_csv(self.output_dir + '/os_duplicates.tsv',sep="\t",index=False)
 
-		print('Creating GB1900 Duplicate matches outputs')
-		gb1900_duplicates_all = pd.concat(gb1900_duplicate_list)
-		gb1900_duplicates_all = gb1900_duplicates_all.explode('sh_id_list',ignore_index=True) # Explode the list of sh_ids
-		gb1900_duplicates_all = gb1900_duplicates_all.rename({'sh_id_list':'sh_id'},axis=1)
-		gb1900_duplicates_all.to_csv(self.output_dir + '/gb1900_duplicates.tsv',sep="\t",index=False)
+			print('Creating GB1900 Duplicate matches outputs')
+			gb1900_duplicates_all = pd.concat(gb1900_duplicate_list)
+			gb1900_duplicates_all = gb1900_duplicates_all.explode('sh_id_list',ignore_index=True) # Explode the list of sh_ids
+			gb1900_duplicates_all = gb1900_duplicates_all.rename({'sh_id_list':'sh_id'},axis=1)
+			gb1900_duplicates_all.to_csv(self.output_dir + '/gb1900_duplicates.tsv',sep="\t",index=False)
 
-		gb1900_linked_people = dsh_all_output['pin_id'].notna() # Mask people linked to GB1900
-		os_linked_people = dsh_all_output[self.os_road_id].notna() # Mask people linked to OS Open Roads
+			gb1900_linked_people = dsh_all_output['pin_id'].notna() # Mask people linked to GB1900
+			os_linked_people = dsh_all_output[self.os_road_id].notna() # Mask people linked to OS Open Roads
 
-		census2 = census_output.assign(gb1900_linked=census_output['sh_id'].isin(dsh_all_output[gb1900_linked_people]['sh_id']),
-										os_linked=census_output['sh_id'].isin(dsh_all_output[os_linked_people]['sh_id']),
-										gb1900_dup=census_output['sh_id'].isin(gb1900_duplicates_all['sh_id']),
-										os_dup=census_output['sh_id'].isin(os_duplicates_all['sh_id']))
-
-
-		census2['no_possible_match'] = np.where((census2['gb1900_linked'] == False) & (census2['os_linked'] == False) & (census2['gb1900_dup'] == False) & (census2['os_dup'] == False),True,False)
-
-		dsh_all_output_final = pd.merge(left=dsh_all_output,right=census2,on='sh_id',how='left')
-		dsh_all_output_final.to_csv(self.output_dir + '/{}_dsh_output_combined.tsv'.format(self.census_year),sep="\t",index=False)
-
-		all_inds_num = len(census_output)
-		gb1900_linked_num = len(census2[census2['gb1900_linked'] == True])
-		os_linked_num = len(census2[census2['os_linked'] == True])
-		gb1900_dup_num = len(census2[census2['gb1900_dup'] == True])
-		os_dup_num = len(census2[census2['os_dup'] == True])
-		no_possible_match_num = len(census2[census2['no_possible_match'] == True])
+			census2 = census_output.assign(gb1900_linked=census_output['sh_id'].isin(dsh_all_output[gb1900_linked_people]['sh_id']),
+											os_linked=census_output['sh_id'].isin(dsh_all_output[os_linked_people]['sh_id']),
+											gb1900_dup=census_output['sh_id'].isin(gb1900_duplicates_all['sh_id']),
+											os_dup=census_output['sh_id'].isin(os_duplicates_all['sh_id']))
 
 
-		summary_dict = {'census_year':[self.census_year],
-						'all_inds_num':[all_inds_num],
-						'gb1900_linked_num':[gb1900_linked_num],
-						'os_linked_num':[os_linked_num],
-						'gb1900_dup_num':[gb1900_dup_num],
-						'os_dup_num':[os_dup_num],
-						'no_possible_match_num':[no_possible_match_num]}
+			census2['no_possible_match'] = np.where((census2['gb1900_linked'] == False) & (census2['os_linked'] == False) & (census2['gb1900_dup'] == False) & (census2['os_dup'] == False),True,False)
 
-		summary_df = pd.DataFrame(summary_dict)
+			dsh_all_output_final = pd.merge(left=dsh_all_output,right=census2,on='sh_id',how='left')
+			dsh_all_output_final.to_csv(self.output_dir + '/{}_dsh_output_combined.tsv'.format(self.census_year),sep="\t",index=False)
 
-		summary_df.to_csv(self.output_dir + '/{}_summary_stat.tsv'.format(self.census_year),sep="\t",index=False)
+			all_inds_num = len(census_output)
+			gb1900_linked_num = len(census2[census2['gb1900_linked'] == True])
+			os_linked_num = len(census2[census2['os_linked'] == True])
+			gb1900_dup_num = len(census2[census2['gb1900_dup'] == True])
+			os_dup_num = len(census2[census2['os_dup'] == True])
+			no_possible_match_num = len(census2[census2['no_possible_match'] == True])
 
 
-		# print('GB1900 linked: ',(len(census2[census2['gb1900_linked'] == True]) / all_inds) * 100)
-		# print('OS Open Roads linked: ',(len(census2[census2['os_linked'] == True]) / all_inds) * 100)
-		# print('GB1900 Duplicate Matches: ',(len(census2[census2['gb1900_dup'] == True]) / all_inds) * 100)
-		# print('OS Duplicate Matches: ',(len(census2[census2['os_dup'] == True]) / all_inds) * 100)
-		# print('No Possible Matches: ',(len(census2[census2['no_possible_match'] == True]) / all_inds) * 100)
+			summary_dict = {'census_year':[self.census_year],
+							'all_inds_num':[all_inds_num],
+							'gb1900_linked_num':[gb1900_linked_num],
+							'os_linked_num':[os_linked_num],
+							'gb1900_dup_num':[gb1900_dup_num],
+							'os_dup_num':[os_dup_num],
+							'no_possible_match_num':[no_possible_match_num]}
+
+			summary_df = pd.DataFrame(summary_dict)
+
+			summary_df.to_csv(self.output_dir + '/{}_summary_stat.tsv'.format(self.census_year),sep="\t",index=False)
+
+
+			# print('GB1900 linked: ',(len(census2[census2['gb1900_linked'] == True]) / all_inds) * 100)
+			# print('OS Open Roads linked: ',(len(census2[census2['os_linked'] == True]) / all_inds) * 100)
+			# print('GB1900 Duplicate Matches: ',(len(census2[census2['gb1900_dup'] == True]) / all_inds) * 100)
+			# print('OS Duplicate Matches: ',(len(census2[census2['os_dup'] == True]) / all_inds) * 100)
+			# print('No Possible Matches: ',(len(census2[census2['no_possible_match'] == True]) / all_inds) * 100)
 
 		return dsh_all_output
 
