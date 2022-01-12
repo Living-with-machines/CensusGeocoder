@@ -13,7 +13,7 @@ for key, value in geocode_parameters.items():
 
 		start = datetime.now()
 
-		country = key[:2]
+		country = key.split('_')[0]
 		census_year = int(key.split('_')[1])
 		type = value
 
