@@ -249,7 +249,8 @@ class CensusGB_geocoder:
 
 		"""
 		if self.country == 'EW':
-			cen = 'CEN_{}'.format(self.census_year)
+			# cen = 'CEN_{}'.format(self.census_year)
+			cen = f'CEN_{self.census_year}'
 		else:
 			cen = None
 		return cen
@@ -346,11 +347,14 @@ class CensusGB_geocoder:
 		return census_file
 
 	def set_output_dir(self):
-		output_dir = 'data/output/{0}/{1}'.format(str(self.census_year),self.country)
+		# output_dir = 'data/output/{0}/{1}'.format(str(self.census_year),self.country)
+		output_dir = f'data/output/{str(self.census_year)}/{self.country}'
 		if os.path.exists(output_dir):
-			print('Output directory "{}" already exists'.format(output_dir))
+			# print('Output directory "{}" already exists'.format(output_dir)
+			print(f'Output directory "{output_dir}" already exists')
 		else:
-			print('Created output directory "{}"'.format(output_dir))
+			# print('Created output directory "{}"'.format(output_dir))
+			print(f'Created output directory "{output_dir}"')
 			os.makedirs(output_dir)
 		return output_dir
 
@@ -457,9 +461,11 @@ class CensusGB_geocoder:
 		# gb1900_processed = preprocess.process_gb1900(self.gb1900_file,rsd_parish,self.conparid_alt,self.cen,self.row_limit)
 
 		#segmented_os_roads_prepped.to_file('data/{0}/{1}_os_roads.shp'.format(self.census_year,self.census_year)) # Possibly remove
-		segmented_os_roads_prepped.to_csv(self.output_dir + '/{}_os_roads.tsv'.format(self.census_year),sep="\t")
+		# segmented_os_roads_prepped.to_csv(self.output_dir + '/{}_os_roads.tsv'.format(self.census_year),sep="\t")
+		segmented_os_roads_prepped.to_csv(self.output_dir + f'/{self.census_year}_os_roads.tsv',sep="\t")
 		#gb1900_processed.to_file('data/{0}/{1}_gb1900.shp'.format(self.census_year,self.census_year)) #Possibly remove
 		gb1900_processed.to_csv(self.output_dir + '/{}_gb1900.tsv'.format(self.census_year),sep="\t")
+		gb1900_processed.to_csv(self.output_dir + f'/{self.census_year}_gb1900.tsv',sep="\t")
 
 		
 		icem_processed, census_counties = preprocess.process_census(self.census_file,rsd_dictionary_processed,self.par_id,self.cen,self.row_limit,self.test_dict)
@@ -597,7 +603,8 @@ class CensusGB_geocoder:
 			os_linked, os_duplicates = recordcomparison.os_compare(census_subset,segmented_os_roads,os_candidate_links,self.os_road_id)
 			
 			if os_linked.empty or gb1900_linked.empty: # Refine so that the script can run on one of these if the other is empty
-				print('No data in OS Open Roads or GB1900 for {}, skipping.'.format(county))
+				# print('No data in OS Open Roads or GB1900 for {}, skipping.'.format(county))
+				print(f'No data in OS Open Roads or GB1900 for {county}, skipping.')
 			else:
 				cols_to_use = gb1900_linked.columns.difference(os_linked.columns) #can remove - see description below for why
 				cols_to_use = cols_to_use.append(pd.Index(['unique_add_id','sh_id_list'])) #can remove - see description below for why
@@ -651,7 +658,8 @@ class CensusGB_geocoder:
 			census2['no_possible_match'] = np.where((census2['gb1900_linked'] == False) & (census2['os_linked'] == False) & (census2['gb1900_dup'] == False) & (census2['os_dup'] == False),True,False)
 
 			dsh_all_output_final = pd.merge(left=dsh_all_output,right=census2,on='sh_id',how='left')
-			dsh_all_output_final.to_csv(self.output_dir + '/{}_dsh_output_combined.tsv'.format(self.census_year),sep="\t",index=False)
+			# dsh_all_output_final.to_csv(self.output_dir + '/{}_dsh_output_combined.tsv'.format(self.census_year),sep="\t",index=False)
+			dsh_all_output_final.to_csv(self.output_dir + f'/{self.census_year}_dsh_output_combined.tsv',sep="\t",index=False)
 
 			all_inds_num = len(census_output)
 			gb1900_linked_num = len(census2[census2['gb1900_linked'] == True])
@@ -671,7 +679,8 @@ class CensusGB_geocoder:
 
 			summary_df = pd.DataFrame(summary_dict)
 
-			summary_df.to_csv(self.output_dir + '/{}_summary_stat.tsv'.format(self.census_year),sep="\t",index=False)
+			# summary_df.to_csv(self.output_dir + '/{}_summary_stat.tsv'.format(self.census_year),sep="\t",index=False)
+			summary_df.to_csv(self.output_dir + f'/{self.census_year}_summary_stat.tsv',sep="\t",index=False)
 
 
 			# print('GB1900 linked: ',(len(census2[census2['gb1900_linked'] == True]) / all_inds) * 100)
