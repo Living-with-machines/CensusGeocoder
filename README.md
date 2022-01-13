@@ -6,17 +6,29 @@ Geocode Historic Great British Census Data 1851-1911
 
 *I've added some details here that you wouldn't normally find in a section like this - can remove when made public.*
 
+### 1. Connect to VM
+
 Connect to the census-geocoder VM on Azure. Navigate to `/datadrive`. There should be a `data/` folder in this directory, which is connected via blobfuse to `--account-name censusplacelinking` `--container-name data`. There should also be a clone of the github repo `historic-census-gb-geocoder`. Make sure that's it's up-to-date and running off the `main` branch.
 
-Edit the following lines in `historic_census_gb_geocoder.py` to specify the parameters. *Could improve by specifying parameters via CLI.*
+To set the parameters of the geocoding script, you need to edit `data/historic-census-gb-geocoder-params.json`.
 
-Enter the census years you want to geocode in the year_list in the following format. When declaring the parameters to the `CensusGB_geocoder` class, the script will loop through the years provided in the year_list, so leave the 'year' value as it is. 'EW' means it will geocode the England and Wales census - this is the only option at this stage. The third parameter is the type of geocoding, either 'testing' or 'full'. 'Full' runs the geocoding across the full datasets, 'testing' runs it across a subset (it's much quicker!)
+The file will look something like this. Change "no" to either "testing" or "full" depending on if you want to run the geocoding script on the full datasets (e.g. all census entries, all OS Roads, and all GB1900) or if you want to just run it on a sample of those for testing purposes.
 
-```python
-year_list = [1891,1901,1911]
-
-historic_census_gb_geocoder.CensusGB_geocoder(year,'EW','full') 
+```json
+{"EW_1851":"no",
+"EW_1861":"no",
+"EW_1881":"no",
+"EW_1891":"no",
+"EW_1901":"no",
+"EW_1911":"no",
+"scot_1851":"no",
+"scot_1861":"no",
+"scot_1871":"no",
+"scot_1881":"no",
+"scot_1891":"no",
+"scot_1901":"testing"}
 ```
+### 2. Enter the following in the terminal
 
 Activate the python virtual environment, using:
 
@@ -24,10 +36,9 @@ Activate the python virtual environment, using:
 
 To run the script:
 
-`python3 /historic-census-gb-geocoder/historic-census-gb-geocoder/historic_census_gb_geocoder.py`
+`python3 historic-census-gb-geocoder/historic-census-gb-geocoder/historic_census_gb_geocoder.py`
 
-
-To allow the script to carry on running even after you've exited your session (but have left the VM on), use:
+Alternatively, to allow the script to carry on running even after you've exited your session (but have left the VM on), use instead:
 
 `nohup python3 /historic-census-gb-geocoder/historic-census-gb-geocoder/historic_census_gb_geocoder.py &`
 
@@ -115,9 +126,37 @@ The version of the GB1900 Gazetteer used in this repo is the 'COMPLETE GB1900 GA
 
 `icem_street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in I-CeM, e.g. Rd to Road. Also removes extra letters left at the start of the address strings after removing digits (to comply with safehaven rules). E.g. '68A High Street' leaves 'A High Street', which is then cleaned to 'High Street'.
 
-#### 10. Scotland Parish Boundary (SCOTLAND ONLY)
+#### 10. Scotland Parish Boundary data (SCOTLAND ONLY)
 
-*To be added - Files acquired but not yet processed and integrated*
+`scot_parish_boundary/` - contains two Scottish parish boundary files and a lookup table that links the boundary files to I-CeM.
+
+There are Scottish parish boundary datasets for pre- and post-1891 civil parishes. A detailed discussion of the dataset and changes to the boundaries of Scottish parishes, see [National Records of Scotland - Historic Civil Parishes pre-1891](https://www.nrscotland.gov.uk/statistics-and-data/geography/our-products/other-national-records-of-scotland-nrs-geographies-datasets/historic-civil-parishes-pre-1891) and [National Records of Scotland - Civil Parishes (post 1891)](https://www.nrscotland.gov.uk/statistics-and-data/geography/our-products/other-national-records-of-scotland-nrs-geographies-datasets/civil-parishes). For further information on the major boundary changes around 1891, see also [Genuki](https://www.genuki.org.uk/big/sct/shennan/boundaries).
+
+`scot_parish_boundary/CivilParish_pre1891/` - contains the shapefile and associated files for pre-1891 Scottish parish boundaries.
+
+`scot_parish_boundary/CivilParish1930` - contains the shapefile and associated files for post-1891 Scottish parish boundaries.
+
+Unlike the parish boundary datasets for England and Wales, there was no openly available lookup table that directly linked parish boundary data to I-CeM. Without a similar lookup table for Scotland, we would not be able to perform geo-blocking strategies required in the geo-coding script (e.g. only trying to match streets from the same parish across OS Open Roads/GB1900 and I-CeM).
+
+To link the Scottish parish boundary datasets to I-CeM, a lookup table has been created that associates each parish in the pre- and post-1891 boundary files with a corresponding parish in I-CeM. A separate lookup table for each census year has been produced - firstly, to use the most appropriate boundary dataset (pre or post 1891), and secondly, to link to parishes from each census year via the `ParID` variable (rather than rely on consistent parish geographies across census years - the `ConParID` variable).
+
+The structure of the lookup table is as follows:
+
+FIELD|VALUE
+--|--
+"name" / "JOIN_NAME_"|Parish name from boundary dataset; "name" for post-1891, "JOIN_NAME_" for pre-1891.
+ParID_link|ParID of corresponding parish in I-CeM
+Notes|Notes on how the link was made; "exact" = parish names matched exactly between the boundary dataset and I-CeM; see individual files for other match types.
+
+Scotland, 1901 example:
+
+name| ParID_link | notes
+-- | -- | --
+NEW CUMNOCK | 100595 | exact
+OLD CUMNOCK | 100597 | exact
+DAILLY | 100572 | exact
+SMALL ISLES | 100119 | exact
+
 
 ### Data Output
 
