@@ -2,7 +2,7 @@ import pandas as pd
 import recordlinkage
 import utils
 
-def gb1900_candidate_links(census,gb1900,test_dict):
+def gb1900_candidate_links(census,gb1900,field_dict):
 
 	if census.empty:
 		print('No census data for this county')
@@ -12,14 +12,14 @@ def gb1900_candidate_links(census,gb1900,test_dict):
 		blocking_fields_l = []
 		blocking_fields_r = []
 
-		if test_dict['country'] == 'scot':
+		if field_dict['country'] == 'scot':
 			blocking_fields_l.append('ParID')
-			blocking_fields_r.append(test_dict['scot_parish'])
-		elif test_dict['country'] == 'EW':
+			blocking_fields_r.append(field_dict['scot_parish'])
+		elif field_dict['country'] == 'EW':
 			blocking_fields_l.append('ConParID')
-			blocking_fields_l.append(test_dict['cen'])
-			blocking_fields_r.append(test_dict['conparid_alt'])
-			blocking_fields_r.append(test_dict['cen'])
+			blocking_fields_l.append(field_dict['cen'])
+			blocking_fields_r.append(field_dict['conparid'])
+			blocking_fields_r.append(field_dict['cen'])
 
 
 		gb1900_indexer.block(left_on = blocking_fields_l,right_on = blocking_fields_r)
@@ -77,7 +77,7 @@ def gb1900_compare(census,gb1900,gb1900_candidate_links):
 
 
 #todo
-def os_candidate_links(census,segmented_os_roads,test_dict):
+def os_candidate_links(census,segmented_os_roads,field_dict):
 
 	if census.empty:
 		print('No census data for this county')
@@ -87,14 +87,14 @@ def os_candidate_links(census,segmented_os_roads,test_dict):
 		blocking_fields_l = []
 		blocking_fields_r = []
 
-		if test_dict['country'] == 'scot':
+		if field_dict['country'] == 'scot':
 			blocking_fields_l.append('ParID')
-			blocking_fields_r.append(test_dict['scot_parish'])
-		elif test_dict['country'] == 'EW':
+			blocking_fields_r.append(field_dict['scot_parish'])
+		elif field_dict['country'] == 'EW':
 			blocking_fields_l.append('ConParID')
-			blocking_fields_l.append(test_dict['cen'])
-			blocking_fields_r.append(test_dict['conparid_alt'])
-			blocking_fields_r.append(test_dict['cen'])
+			blocking_fields_l.append(field_dict['cen'])
+			blocking_fields_r.append(field_dict['conparid'])
+			blocking_fields_r.append(field_dict['cen'])
 
 		os_indexer.block(left_on = blocking_fields_l,right_on = blocking_fields_r)
 		print('Creating candidate links between os and census')
@@ -102,7 +102,7 @@ def os_candidate_links(census,segmented_os_roads,test_dict):
 
 	return os_candidate_links
 
-def os_compare(census,os,os_candidate_links,os_road_id):
+def os_compare(census,os,os_candidate_links,field_dict):
 	"""
 	Performs fuzzy string matching between census addresses and road names in OS Open Road data.
 
@@ -140,7 +140,7 @@ def os_compare(census,os,os_candidate_links,os_road_id):
 
 			os_census_roads_output = pd.merge(census,os_comparison_results,left_index=True,right_on='unique_add_id')
 			cols_to_use = os_census_roads_output.columns.difference(os.columns)
-			os_census_roads_output = pd.merge(os, os_census_roads_output[cols_to_use],left_index=True,right_on=os_road_id)
+			os_census_roads_output = pd.merge(os, os_census_roads_output[cols_to_use],left_index=True,right_on=field_dict['os_road_id'])
 			os_census_roads_output = os_census_roads_output.reset_index()
 			os_census_roads_output = os_census_roads_output.sort_values(by='unique_add_id')
 

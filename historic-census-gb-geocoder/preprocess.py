@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 #gpd.options.use_pygeos = True
 
-def process_rsd_boundary_data(path_to_rsd_boundary_data,cen):
+def process_rsd_boundary_data(path_to_rsd_boundary_data,field_dict):
 	"""
 	Reads combined Parish / Registration Sub District (RSD) boundary data
 
@@ -33,26 +33,26 @@ def process_rsd_boundary_data(path_to_rsd_boundary_data,cen):
 
 		tmp_file = gpd.read_file(path_to_rsd_boundary_data,rows=1)
 		list_of_all_cols = tmp_file.columns.values.tolist()
-		cols_to_keep = [cen,'geometry']
+		cols_to_keep = [field_dict['cen'],'geometry']
 		unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
 
 		par_rsd_boundary = gpd.read_file(path_to_rsd_boundary_data,ignore_fields=unwanted_cols,crs='EPSG:27700')
 
 
 
-		par_rsd_boundary = par_rsd_boundary.dissolve(by=cen).reset_index()
+		par_rsd_boundary = par_rsd_boundary.dissolve(by=field_dict['cen']).reset_index()
 
 	else:
 		par_rsd_boundary = None
 
 	return par_rsd_boundary
 
-def read_gis_to_icem(gis_to_icem_path,conparid_alt):
-	list_of_cols = ['UKDS_ID',conparid_alt]
+def read_gis_to_icem(gis_to_icem_path,field_dict):
+	list_of_cols = ['UKDS_ID',field_dict['conparid']]
 	gis_to_icem = pd.read_excel(gis_to_icem_path,sheet_name='link',usecols=list_of_cols,na_values=".")
 	return gis_to_icem
 
-def process_parish_boundary_data(parish_shapefile,gis_to_icem,conparid_alt):
+def process_parish_boundary_data(parish_shapefile,gis_to_icem,field_dict):
 	print('Reading Parish Boundary Data')
 	tmp_file = gpd.read_file(parish_shapefile,rows=1)
 	list_of_all_cols = tmp_file.columns.values.tolist()
@@ -66,22 +66,22 @@ def process_parish_boundary_data(parish_shapefile,gis_to_icem,conparid_alt):
 	par_boundary['geometry'] = pg.set_precision(par_boundary['geometry'].values.data,0)
 
 	par_boundary_conparid = pd.merge(left=par_boundary,right=gis_to_icem,left_on='ID',right_on='UKDS_ID',how='left')
-	par_boundary_conparid = par_boundary_conparid.dissolve(by=conparid_alt).reset_index()
-	par_boundary_conparid = par_boundary_conparid[[conparid_alt,'geometry']]
+	par_boundary_conparid = par_boundary_conparid.dissolve(by=field_dict['conparid']).reset_index()
+	par_boundary_conparid = par_boundary_conparid[[field_dict['conparid'],'geometry']]
 
 	return par_boundary_conparid
 
-def join_parish_rsd_boundary(par_boundary,rsd_boundary,conparid_alt,cen):
+def join_parish_rsd_boundary(par_boundary,rsd_boundary,field_dict):
 	
 	print('Joining Parish Boundary and RSD Boundary')
 	#print(par_boundary['geometry'].is_valid.all())
 	#print(rsd_boundary['geometry'].is_valid.all())
 	par_rsd_boundary = gpd.overlay(par_boundary,rsd_boundary,how='intersection',keep_geom_type=True)
 
-	par_rsd_boundary = par_rsd_boundary.dropna(subset=[conparid_alt,cen]).copy()
-	par_rsd_boundary['new_id'] = par_rsd_boundary[conparid_alt].astype(str) + '_' + par_rsd_boundary[cen].astype(str)
+	par_rsd_boundary = par_rsd_boundary.dropna(subset=[field_dict['conparid'],field_dict['cen']]).copy()
+	par_rsd_boundary['new_id'] = par_rsd_boundary[field_dict['conparid']].astype(str) + '_' + par_rsd_boundary[field_dict['cen']].astype(str)
 	par_rsd_boundary = par_rsd_boundary.dissolve(by='new_id').reset_index()
-	print(par_rsd_boundary.info())
+	# print(par_rsd_boundary.info()) to delete
 	return par_rsd_boundary
 
 
@@ -120,7 +120,7 @@ def read_raw_os_data(os_open_roads_filelist,rows_to_use):
 	return os_open_road_data
 
 
-def segment_os_roads(os_open_roads,boundary_data,test_dict):
+def segment_os_roads(os_open_roads,boundary_data,field_dict):
 	"""
 		Segments OS Open Road Data by Parish/RSD Boundary by performing a union (geopandas overlay, how = "union") between the two datasets. The result provides road segments within each Parish/RSD Boundary, e.g. if a road runs through two Parish/RSD boundaries it will be split at the boundary and assigned the relevant ids for each segment in each Parish/RSD boundary. This allows for more accurate geo-coding of addresses because individuals can be linked to the street segment that lays within their Parish/RSD.
 
@@ -149,18 +149,18 @@ def segment_os_roads(os_open_roads,boundary_data,test_dict):
 
 	subset_fields = []
 
-	if test_dict['country'] == 'scot':
-		subset_fields.append(test_dict['scot_parish'])
-	elif test_dict['country'] == 'EW':
-		subset_fields.append(test_dict['conparid_alt'])
-		subset_fields.append(test_dict['cen'])
+	if field_dict['country'] == 'scot':
+		subset_fields.append(field_dict['scot_parish'])
+	elif field_dict['country'] == 'EW':
+		subset_fields.append(field_dict['conparid'])
+		subset_fields.append(field_dict['cen'])
 
 	segmented_roads = segmented_roads.dropna(subset=subset_fields).copy()
 	print(segmented_roads)
 	return segmented_roads
 
 
-def icem_linking_prep(segmented_roads,test_dict,name1='name1',nameTOID='nameTOID',new_id='new_id'):
+def icem_linking_prep(segmented_roads,field_dict,name1='name1',nameTOID='nameTOID',new_id='new_id'):
 	# TO DO add in output for roads that get dropped due to duplication
 	"""
 	Prepare the segmented OS Open Road Data for linking to I-CeM. Conducts the following steps:
@@ -189,11 +189,11 @@ def icem_linking_prep(segmented_roads,test_dict,name1='name1',nameTOID='nameTOID
 	segmented_roads[name1] = segmented_roads[name1].str.upper() # uppercase to match I-CeM addresses
 
 	# Create new road_id for each road segment per ConParID (one set of ids for 1851-1891; another for 1901-1911)
-	segmented_roads[test_dict['os_road_id']] = segmented_roads[nameTOID].astype(str)+'_'+segmented_roads[new_id].astype(str)
+	segmented_roads[field_dict['os_road_id']] = segmented_roads[nameTOID].astype(str)+'_'+segmented_roads[new_id].astype(str)
 
 	# Dissolve multiple segments of roads with the same road_id (e.g. where there are two line segments of the same road in a parish)
 	print('Dissolving on road_ids')
-	segmented_os_roads_to_icem_aggregated = segmented_roads.dissolve(by=test_dict['os_road_id'])
+	segmented_os_roads_to_icem_aggregated = segmented_roads.dissolve(by=field_dict['os_road_id'])
 	
 	# Ensure ids match the datatype int64 otherwise error produced when linking to ConParID in I-CeM
 	# Drop duplicate roads (roads with same name and same ConParID e.g. two roads with the same name in the same parish with currently no way to distinguish them)
@@ -204,18 +204,18 @@ def icem_linking_prep(segmented_roads,test_dict,name1='name1',nameTOID='nameTOID
 	#os_vector_data_01_11_duplicates = os_vector_data_01_11_duplicates.reset_index(drop=True)
 	#os_vector_data_01_11_duplicates.to_csv('data/outputs_new/os_vector_data_01_11_duplicates.txt','\t')
 	print(segmented_os_roads_to_icem_aggregated_deduplicated.info())
-	if test_dict['country'] == 'scot':
-		segmented_os_roads_to_icem_aggregated_deduplicated[test_dict['scot_parish']] = pd.to_numeric(segmented_os_roads_to_icem_aggregated_deduplicated[test_dict['scot_parish']], errors='coerce')
-	elif test_dict['country'] == 'EW':
-		segmented_os_roads_to_icem_aggregated_deduplicated[test_dict['cen']] = pd.to_numeric(segmented_os_roads_to_icem_aggregated_deduplicated[test_dict['cen']], errors='coerce')
-		segmented_os_roads_to_icem_aggregated_deduplicated[test_dict['conparid_alt']] = pd.to_numeric(segmented_os_roads_to_icem_aggregated_deduplicated[test_dict['conparid_alt']], errors='coerce')
+	if field_dict['country'] == 'scot':
+		segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['scot_parish']] = pd.to_numeric(segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['scot_parish']], errors='coerce')
+	elif field_dict['country'] == 'EW':
+		segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['cen']] = pd.to_numeric(segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['cen']], errors='coerce')
+		segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['conparid']] = pd.to_numeric(segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['conparid']], errors='coerce')
 
 	#segmented_os_roads_to_icem_aggregated_deduplicated = segmented_os_roads_to_icem_aggregated_deduplicated[['geometry','name1',conparid,cen,'new_id']]
 	print(segmented_os_roads_to_icem_aggregated_deduplicated) #remove once testing finished
 	return segmented_os_roads_to_icem_aggregated_deduplicated
 
 
-def process_gb1900(gb1900_file,boundary_data,test_dict,rows_to_use):
+def process_gb1900(gb1900_file,boundary_data,field_dict,rows_to_use):
 	# todo read gb1900, union of gb1900 and parish/rsd boundary data; drop null values
 	"""
 	Read gb1900 dataset. Subset 
@@ -261,11 +261,11 @@ def process_gb1900(gb1900_file,boundary_data,test_dict,rows_to_use):
 
 	subset_fields = []
 
-	if test_dict['country'] == 'scot':
-		subset_fields.append(test_dict['scot_parish'])
-	elif test_dict['country'] == 'EW':
-		subset_fields.append(test_dict['conparid_alt'])
-		subset_fields.append(test_dict['cen'])
+	if field_dict['country'] == 'scot':
+		subset_fields.append(field_dict['scot_parish'])
+	elif field_dict['country'] == 'EW':
+		subset_fields.append(field_dict['conparid'])
+		subset_fields.append(field_dict['cen'])
 
 	print(gb1900_to_icem)
 	gb1900_to_icem = gb1900_to_icem.dropna(subset=subset_fields).copy()
@@ -276,14 +276,14 @@ def process_gb1900(gb1900_file,boundary_data,test_dict,rows_to_use):
 	print(gb1900_filtered)
 	return gb1900_filtered
 
-def read_rsd_dictionary(rsd_dictionary,par_id,cen):
-	rsd_variables = [par_id,cen]
+def read_rsd_dictionary(rsd_dictionary,field_dict):
+	rsd_variables = [field_dict['parid_for_rsd_dict'],field_dict['cen']]
 
 	rsd_dict = pd.read_csv(rsd_dictionary,sep="\t",quoting=3,usecols=rsd_variables,encoding='utf-8')
 	return rsd_dict
 
 
-def process_census(census_file,rsd_dictionary,par_id,cen,rows_to_use,test_dict):
+def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
 	census_variables = ['safehaven_id','address_anonymised','ConParID','ParID','RegCnty']
 	# census_dtypes = {'ConParID':'int32','ParID':'int32'}
 	print('Reading census')
@@ -305,13 +305,13 @@ def process_census(census_file,rsd_dictionary,par_id,cen,rows_to_use,test_dict):
 	census['add_anon'] = census['add_anon'].str.strip()
 	census = census.dropna(subset=['add_anon']).copy()
 
-	if test_dict['country'] == 'EW':
-		census = pd.merge(left=census,right=rsd_dictionary,left_on='ParID',right_on=par_id,how='left')
-		census[cen] = pd.to_numeric(census[cen], errors='coerce')
+	if field_dict['country'] == 'EW':
+		census = pd.merge(left=census,right=rsd_dictionary,left_on='ParID',right_on=field_dict['parid_for_rsd_dict'],how='left')
+		census[field_dict['cen']] = pd.to_numeric(census[field_dict['cen']], errors='coerce')
 		# Create an id for each unique 'address' + ConParID + CEN_1901 combination
-		census['unique_add_id'] = census['add_anon'].astype(str)+'_'+census['ConParID'].astype(str) + '_' + census[cen].astype(str)
+		census['unique_add_id'] = census['add_anon'].astype(str)+'_'+census['ConParID'].astype(str) + '_' + census[field_dict['cen']].astype(str)
 		print('Merged with RSD dictionary')
-	elif test_dict['country'] == 'scot':
+	elif field_dict['country'] == 'scot':
 		census['unique_add_id'] = census['add_anon'].astype(str)+'_'+census['ParID'].astype(str)
 
 
@@ -319,11 +319,11 @@ def process_census(census_file,rsd_dictionary,par_id,cen,rows_to_use,test_dict):
 	
 	groupby_fields = ['unique_add_id','add_anon','RegCnty']
 	
-	if test_dict['country'] == 'scot':
+	if field_dict['country'] == 'scot':
 		groupby_fields.append('ParID')
-	elif test_dict['country'] == 'EW':
+	elif field_dict['country'] == 'EW':
 		groupby_fields.append('ConParID')
-		groupby_fields.append(test_dict['cen'])
+		groupby_fields.append(field_dict['cen'])
 
 
 	census_unique = census.groupby(groupby_fields)['sh_id'].apply(list).reset_index(name='sh_id_list')
@@ -371,10 +371,6 @@ def process_scot_parish_boundary_data(parish_shapefile,scot_parish_lkup,census_y
 	par_boundary = gpd.read_file(parish_shapefile,ignore_fields=unwanted_cols,crs='EPSG:27700')
 	par_boundary['name'] = par_boundary['name'].str.upper() # convert to uppercase to match scot parish lookup table
 
-	# Buffer to ensure valid geometries
-	# par_boundary['geometry'] = par_boundary['geometry'].buffer(0)
-	# Set precision of coordinates so overlay operations between parish boundary and rsd boundary work properly
-	# par_boundary['geometry'] = pg.set_precision(par_boundary['geometry'].values.data,0)
 	
 	par_boundary_parid = pd.merge(left=par_boundary,right=scot_parish_lkup,left_on=parish_field,right_on='name',how='left')
 	par_boundary_parid = par_boundary_parid.dissolve(by='ParID_link').reset_index()
