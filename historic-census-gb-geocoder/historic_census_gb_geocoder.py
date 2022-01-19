@@ -7,7 +7,7 @@ with open('data/historic-census-gb-geocoder-params.json') as f:
 	geocode_parameters = json.load(f)
 
 for key, value in geocode_parameters.items():
-	if value == 'no':
+	if value['type'] == 'no':
 		continue
 	else:
 
@@ -15,12 +15,12 @@ for key, value in geocode_parameters.items():
 
 		country = key.split('_')[0]
 		census_year = int(key.split('_')[1])
-		type = value
+		type = value['type']
 
 		census_geocoder = setupgeocoder.CensusGB_geocoder(census_year,country,type)
 		print(vars(census_geocoder))
 
-		os_roads, gb1900, icem, census_counties = census_geocoder.preprocessing()
+		os_roads, gb1900, icem, census_counties = census_geocoder.preprocessing(value['use_existing_files'])
 		dsh_output = census_geocoder.geocoding(icem,gb1900,os_roads,census_counties)
 
 		# Retain for testing purposes for now

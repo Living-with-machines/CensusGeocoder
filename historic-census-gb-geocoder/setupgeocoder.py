@@ -3,6 +3,7 @@ import os
 import numpy as np
 import preprocess
 import recordcomparison
+import geopandas as gpd
 
 class CensusGB_geocoder:
 	"""
@@ -394,7 +395,7 @@ class CensusGB_geocoder:
 
 
 
-	def preprocessing(self):
+	def preprocessing(self,user_input):
 
 
 
@@ -466,20 +467,32 @@ class CensusGB_geocoder:
 		os_roads_processed_outputfile = self.output_dir + f'/os_roads_{self.census_year}_{self.country}_{self.type}.tsv'
 		gb1900_processed_outputfile = self.output_dir + f'/gb1900_{self.census_year}_{self.country}_{self.type}.tsv'
 		icem_processed_outputfile = self.output_dir + f'/icem_processed_{self.census_year}_{self.country}_{self.type}.tsv'
-		census_counties_outputfile = self.output_dir + f'/census_counties_{self.census_year}_{self.country}_{self.type}.tsv'
+		census_counties_outputfile = self.output_dir + f'/census_counties_{self.census_year}_{self.country}_{self.type}.txt'
 
 		os_roads_processed_outputfile_exists = os.path.exists(os_roads_processed_outputfile)
 		gb1900_processed_outputfile_exists = os.path.exists(gb1900_processed_outputfile)
 		icem_processed_outputfile_exists = os.path.exists(icem_processed_outputfile)
 		census_counties_outputfile_exists = os.path.exists(census_counties_outputfile)
 
-		if os_roads_processed_outputfile_exists and gb1900_processed_outputfile_exists and icem_processed_outputfile_exists and census_counties_outputfile_exists:
-			print('Reading prepared files')
+		if os_roads_processed_outputfile_exists and gb1900_processed_outputfile_exists and icem_processed_outputfile_exists and census_counties_outputfile_exists and user_input == 'yes':
+			print('Pre-processed files already exist, reading pre-processed files')
+
+			segmented_os_roads_prepped = pd.read_csv(os_roads_processed_outputfile,sep="\t",index_col=self.field_dict['os_road_id'])
+			segmented_os_roads_prepped = gpd.GeoDataFrame(segmented_os_roads_prepped, geometry=gpd.GeoSeries.from_wkt(segmented_os_roads_prepped['geometry']),crs='EPSG:27700')
+			gb1900_processed = pd.read_csv(gb1900_processed_outputfile,sep="\t",index_col='pin_id')
+			gb1900_processed = gpd.GeoDataFrame(gb1900_processed, geometry=gpd.GeoSeries.from_wkt(gb1900_processed['geometry']),crs='EPSG:27700')
+			icem_processed = pd.read_csv(icem_processed_outputfile,sep="\t",index_col='unique_add_id')
+			print(icem_processed)
+			census_counties = []
+
+
+			with open(census_counties_outputfile,'r') as f:
+				for line in f:
+					census_counties.append(str(line).strip('\n'))
+				print(census_counties)
 
 			# Add code that reads the files.
 		else:
-
-
 			if self.country == 'EW':
 				processed = preprocess.process_rsd_boundary_data(self.rsd_shapefile_path,self.field_dict)
 				ukds_link = preprocess.read_gis_to_icem(self.ukds_gis_to_icem_path,self.field_dict)
@@ -505,7 +518,10 @@ class CensusGB_geocoder:
 			segmented_os_roads_prepped.to_csv(os_roads_processed_outputfile,sep="\t") # OS Roads
 			gb1900_processed.to_csv(gb1900_processed_outputfile,sep="\t") # GB1900
 			icem_processed.to_csv(icem_processed_outputfile,sep="\t") # I-CeM Processed
-			census_counties.to_csv(census_counties_outputfile,sep="\t") # Census counties
+			with open (census_counties_outputfile,'w') as f:
+				for county in census_counties:
+					f.write(str(county) +"\n")
+				# print(census_counties,file=f) # Census counties
 
 		return segmented_os_roads_prepped,gb1900_processed, icem_processed, census_counties
 
@@ -534,7 +550,6 @@ class CensusGB_geocoder:
 
 		census_output = census[['sh_id_list']].explode('sh_id_list',ignore_index=True)
 		census_output = census_output.rename({'sh_id_list':'sh_id'},axis=1)
-		print(census_output)
 
 		for county in census_counties:
 			print(county)
