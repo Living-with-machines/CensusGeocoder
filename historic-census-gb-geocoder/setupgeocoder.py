@@ -372,7 +372,7 @@ class CensusGB_geocoder:
 
 	def set_output_dir(self):
 		# output_dir = 'data/output/{0}/{1}'.format(str(self.census_year),self.country)
-		output_dir = f'data/output/{str(self.census_year)}/{self.country}'
+		output_dir = f'data/output/{str(self.census_year)}/{self.country}/{self.type}'
 		if os.path.exists(output_dir):
 			# print('Output directory "{}" already exists'.format(output_dir)
 			print(f'Output directory "{output_dir}" already exists')
@@ -485,10 +485,10 @@ class CensusGB_geocoder:
 
 
 		# Output processed files
-		segmented_os_roads_prepped.to_csv(self.output_dir + f'/{self.census_year}_os_roads.tsv',sep="\t") # OS Roads
-		gb1900_processed.to_csv(self.output_dir + f'/{self.census_year}_gb1900.tsv',sep="\t") # GB1900
-		icem_processed.to_csv(self.output_dir + f'/{self.census_year}_icem_processed.tsv',sep="\t") # I-CeM Processed
-		census_counties.to_csv(self.output_dir + f'/{self.census_year}_census_counties.tsv',sep="\t") # Census counties
+		segmented_os_roads_prepped.to_csv(self.output_dir + f'/os_roads_{self.census_year}_{self.country}_{self.type}.tsv',sep="\t") # OS Roads
+		gb1900_processed.to_csv(self.output_dir + f'/gb1900_{self.census_year}_{self.country}_{self.type}.tsv',sep="\t") # GB1900
+		icem_processed.to_csv(self.output_dir + f'/icem_processed_{self.census_year}_{self.country}_{self.type}.tsv',sep="\t") # I-CeM Processed
+		census_counties.to_csv(self.output_dir + f'/census_counties_{self.census_year}_{self.country}_{self.type}.tsv',sep="\t") # Census counties
 
 		return segmented_os_roads_prepped,gb1900_processed, icem_processed, census_counties
 
