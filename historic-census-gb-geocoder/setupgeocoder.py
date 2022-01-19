@@ -1,4 +1,3 @@
-
 import pandas as pd
 import os
 import numpy as np
@@ -125,8 +124,8 @@ class CensusGB_geocoder:
 		self.gb1900_file = self.set_gb1900_file()
 		self.census_file = self.set_census_file()
 		self.row_limit = self.set_row_limit()
-		self.output_dir = self.set_output_dir()# add to documentation
-		self.field_dict = self.create_field_dict() # add to documentation
+		self.output_dir = self.set_output_dir()
+		self.field_dict = self.create_field_dict()
 
 		"""
 		ENGLAND & WALES SPECIFIC VARIABLES
