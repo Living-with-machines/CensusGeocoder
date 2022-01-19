@@ -31,7 +31,7 @@ class CensusGB_geocoder:
 		The number of rows of the OS Open Road and census file to read. If `type` parameter is 'full', then `row_limit` is None, which results in the full files being read. If `type` parameter is 'testing', then `row_limit` is 15,000. By limiting the number of rows of data read from the OS Open Road dataset and the census file, the script will run much quicker for testing purposes.
 
 	output_dir: str
-		The path to the folder in the `data/ouput` directory where all outputs from the geo-coding script are stored. E.g. `data/output/1901/scot`.
+		The path to the folder in the `data/ouput` directory where all outputs from the geo-coding script are stored. E.g. `data/output/1901/SCOT`.
 
 	field_dict: dict
 		Dictionary containing the column or field names for the various datasets used as part of the geo-coding script. Contains the following keys: "country", "cen", "conparid", "conparid_alt", "os_road_id", "scot_parish", "parid_for_rsd_dict". The values for each key are set in the below E&W and Scotland specific variables.
@@ -481,19 +481,14 @@ class CensusGB_geocoder:
 		gb1900_processed = preprocess.process_gb1900(self.gb1900_file,parish_data_processed,self.field_dict,self.row_limit)
 
 
-		# segmented_os_roads = preprocess.segment_os_roads(os_open_roads,parish_data_processed,self.cen,self.conparid_alt)
-		# segmented_os_roads_prepped = preprocess.icem_linking_prep(segmented_os_roads,self.os_road_id,self.cen,self.conparid_alt)
-		# gb1900_processed = preprocess.process_gb1900(self.gb1900_file,rsd_parish,self.conparid_alt,self.cen,self.row_limit)
-
-		#segmented_os_roads_prepped.to_file('data/{0}/{1}_os_roads.shp'.format(self.census_year,self.census_year)) # Possibly remove
-		# segmented_os_roads_prepped.to_csv(self.output_dir + '/{}_os_roads.tsv'.format(self.census_year),sep="\t")
-		segmented_os_roads_prepped.to_csv(self.output_dir + f'/{self.census_year}_os_roads.tsv',sep="\t")
-		#gb1900_processed.to_file('data/{0}/{1}_gb1900.shp'.format(self.census_year,self.census_year)) #Possibly remove
-		gb1900_processed.to_csv(self.output_dir + '/{}_gb1900.tsv'.format(self.census_year),sep="\t")
-		gb1900_processed.to_csv(self.output_dir + f'/{self.census_year}_gb1900.tsv',sep="\t")
-
-		
 		icem_processed, census_counties = preprocess.process_census(self.census_file,rsd_dictionary_processed,self.row_limit,self.field_dict)
+
+
+		# Output processed files
+		segmented_os_roads_prepped.to_csv(self.output_dir + f'/{self.census_year}_os_roads.tsv',sep="\t") # OS Roads
+		gb1900_processed.to_csv(self.output_dir + f'/{self.census_year}_gb1900.tsv',sep="\t") # GB1900
+		icem_processed.to_csv(self.output_dir + f'/{self.census_year}_icem_processed.tsv',sep="\t") # I-CeM Processed
+		census_counties.to_csv(self.output_dir + f'/{self.census_year}_census_counties.tsv',sep="\t") # Census counties
 
 		return segmented_os_roads_prepped,gb1900_processed, icem_processed, census_counties
 
