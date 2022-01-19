@@ -40,7 +40,7 @@ To run the script:
 
 Alternatively, to allow the script to carry on running even after you've exited your session (but have left the VM on), use instead:
 
-`nohup python3 /historic-census-gb-geocoder/historic-census-gb-geocoder/historic_census_gb_geocoder.py &`
+`nohup python3 -u /historic-census-gb-geocoder/historic-census-gb-geocoder/historic_census_gb_geocoder.py &`
 
 This will write the print statements to `nohup.out` in the `/datadrive` folder. You can view the progress by entering:
 
