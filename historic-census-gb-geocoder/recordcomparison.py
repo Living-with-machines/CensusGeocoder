@@ -25,7 +25,7 @@ def gb1900_candidate_links(census,gb1900,field_dict):
 		gb1900_indexer.block(left_on = blocking_fields_l,right_on = blocking_fields_r)
 		print('Creating candidate links between gb1900 and census')
 		gb1900_candidate_links = gb1900_indexer.index(census, gb1900)
-		print(gb1900_candidate_links) #remove after edits finished
+		# print(gb1900_candidate_links) #remove after edits finished
 	return gb1900_candidate_links
 
 def gb1900_compare(census,gb1900,gb1900_candidate_links):
