@@ -463,32 +463,49 @@ class CensusGB_geocoder:
 			Unique, sorted list of the names of Census Registration Counties in census file.
 
 		"""
-		if self.country == 'EW':
-			processed = preprocess.process_rsd_boundary_data(self.rsd_shapefile_path,self.field_dict)
-			ukds_link = preprocess.read_gis_to_icem(self.ukds_gis_to_icem_path,self.field_dict)
-			parish = preprocess.process_parish_boundary_data(self.parish_shapefile_path,ukds_link,self.field_dict)
-			parish_data_processed = preprocess.join_parish_rsd_boundary(parish,processed,self.field_dict)
-			rsd_dictionary_processed = preprocess.read_rsd_dictionary(self.rsd_dictionary_path,self.field_dict)
-		elif self.country == 'scot':
-			scot_parish_link = preprocess.scot_parish_lookup(self.scot_parish_lkup_file,self.census_year)
-			parish_data_processed = preprocess.process_scot_parish_boundary_data(self.parish_shapefile_path,scot_parish_link,self.census_year)
-			rsd_dictionary_processed = None
+		os_roads_processed_outputfile = self.output_dir + f'/os_roads_{self.census_year}_{self.country}_{self.type}.tsv'
+		gb1900_processed_outputfile = self.output_dir + f'/gb1900_{self.census_year}_{self.country}_{self.type}.tsv'
+		icem_processed_outputfile = self.output_dir + f'/icem_processed_{self.census_year}_{self.country}_{self.type}.tsv'
+		census_counties_outputfile = self.output_dir + f'/census_counties_{self.census_year}_{self.country}_{self.type}.tsv'
 
-		os_open_roads = preprocess.read_raw_os_data(self.os_open_roads_filelist,self.row_limit)
+		os_roads_processed_outputfile_exists = os.path.exists(os_roads_processed_outputfile)
+		gb1900_processed_outputfile_exists = os.path.exists(gb1900_processed_outputfile)
+		icem_processed_outputfile_exists = os.path.exists(icem_processed_outputfile)
+		census_counties_outputfile_exists = os.path.exists(census_counties_outputfile)
 
-		segmented_os_roads = preprocess.segment_os_roads(os_open_roads,parish_data_processed,self.field_dict)
-		segmented_os_roads_prepped = preprocess.icem_linking_prep(segmented_os_roads,self.field_dict)
-		gb1900_processed = preprocess.process_gb1900(self.gb1900_file,parish_data_processed,self.field_dict,self.row_limit)
+		if os_roads_processed_outputfile_exists and gb1900_processed_outputfile_exists and icem_processed_outputfile_exists and census_counties_outputfile_exists:
+			print('Reading prepared files')
 
-
-		icem_processed, census_counties = preprocess.process_census(self.census_file,rsd_dictionary_processed,self.row_limit,self.field_dict)
+			# Add code that reads the files.
+		else:
 
 
-		# Output processed files
-		segmented_os_roads_prepped.to_csv(self.output_dir + f'/os_roads_{self.census_year}_{self.country}_{self.type}.tsv',sep="\t") # OS Roads
-		gb1900_processed.to_csv(self.output_dir + f'/gb1900_{self.census_year}_{self.country}_{self.type}.tsv',sep="\t") # GB1900
-		icem_processed.to_csv(self.output_dir + f'/icem_processed_{self.census_year}_{self.country}_{self.type}.tsv',sep="\t") # I-CeM Processed
-		census_counties.to_csv(self.output_dir + f'/census_counties_{self.census_year}_{self.country}_{self.type}.tsv',sep="\t") # Census counties
+			if self.country == 'EW':
+				processed = preprocess.process_rsd_boundary_data(self.rsd_shapefile_path,self.field_dict)
+				ukds_link = preprocess.read_gis_to_icem(self.ukds_gis_to_icem_path,self.field_dict)
+				parish = preprocess.process_parish_boundary_data(self.parish_shapefile_path,ukds_link,self.field_dict)
+				parish_data_processed = preprocess.join_parish_rsd_boundary(parish,processed,self.field_dict)
+				rsd_dictionary_processed = preprocess.read_rsd_dictionary(self.rsd_dictionary_path,self.field_dict)
+			elif self.country == 'scot':
+				scot_parish_link = preprocess.scot_parish_lookup(self.scot_parish_lkup_file,self.census_year)
+				parish_data_processed = preprocess.process_scot_parish_boundary_data(self.parish_shapefile_path,scot_parish_link,self.census_year)
+				rsd_dictionary_processed = None
+
+			os_open_roads = preprocess.read_raw_os_data(self.os_open_roads_filelist,self.row_limit)
+
+			segmented_os_roads = preprocess.segment_os_roads(os_open_roads,parish_data_processed,self.field_dict)
+			segmented_os_roads_prepped = preprocess.icem_linking_prep(segmented_os_roads,self.field_dict)
+			gb1900_processed = preprocess.process_gb1900(self.gb1900_file,parish_data_processed,self.field_dict,self.row_limit)
+
+
+			icem_processed, census_counties = preprocess.process_census(self.census_file,rsd_dictionary_processed,self.row_limit,self.field_dict)
+
+
+			# Output processed files
+			segmented_os_roads_prepped.to_csv(os_roads_processed_outputfile,sep="\t") # OS Roads
+			gb1900_processed.to_csv(gb1900_processed_outputfile,sep="\t") # GB1900
+			icem_processed.to_csv(icem_processed_outputfile,sep="\t") # I-CeM Processed
+			census_counties.to_csv(census_counties_outputfile,sep="\t") # Census counties
 
 		return segmented_os_roads_prepped,gb1900_processed, icem_processed, census_counties
 
