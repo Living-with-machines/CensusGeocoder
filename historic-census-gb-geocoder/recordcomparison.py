@@ -3,6 +3,25 @@ import recordlinkage
 import utils
 
 def gb1900_candidate_links(census,gb1900,field_dict):
+	"""
+	Create candidate links based on geo-blocking to pass to the string comparison function. Returns a pandas.MultiIndex of two records, one from the census and one from gb1900.
+
+	Parameters
+	----------
+	census: pandas.Dataframe
+		A pandas dataframe containing census data.
+
+	gb1900: geopandas.Geodataframe
+		A geopandas dataframe containing gb1900 data.
+
+	field_dict: dictionary
+		Dictionary with field values.
+
+	Returns
+	-------
+	pandas.MultiIndex
+		A pandas MultiIndex of two records, one from the census and one from gb1900.
+	"""
 
 	if census.empty:
 		print('No census data for this county')
@@ -12,7 +31,7 @@ def gb1900_candidate_links(census,gb1900,field_dict):
 		blocking_fields_l = []
 		blocking_fields_r = []
 
-		if field_dict['country'] == 'scot':
+		if field_dict['country'] == 'SCOT':
 			blocking_fields_l.append('ParID')
 			blocking_fields_r.append(field_dict['scot_parish'])
 		elif field_dict['country'] == 'EW':
@@ -30,11 +49,26 @@ def gb1900_candidate_links(census,gb1900,field_dict):
 
 def gb1900_compare(census,gb1900,gb1900_candidate_links):
 	"""
-	Performs fuzzy string matching between census addresses and labels in GB1900 data.
+	Performs fuzzy string matching between candidate links identified between gb1900 and census. Selects best batch using a combination of fuzzy string matching score and tf-idf weighting. Candidate links with more than one strong match are stored in a duplicates table. Returns matches and duplicate matches.
 
 	Parameters
 	----------
-	This
+	census: pandas.Dataframe
+		A pandas dataframe containing census data.
+
+	gb1900: geopandas.Geodataframe
+		A geopandas dataframe containing gb1900 data.
+
+	gb1900_candidate_links: pandas.MultiIndex
+		A pandas MultiIndex of two records, one from the census and one from gb1900.
+
+	Returns
+	-------
+	pandas.Dataframe
+		A pandas dataframe of high-quality matches between gb1900 and census.
+	pandas.Dataframe
+		A pandas dataframe of duplicate matches between gb1900 and census (where there are more than 2 or more matches of high quality and there needs to be disambiguation)
+
 	"""
 	if gb1900_candidate_links.empty:
 		print('no candidate links to compare')
@@ -76,8 +110,27 @@ def gb1900_compare(census,gb1900,gb1900_candidate_links):
 	return gb1900_census_roads_output_filtered_deduplicated, gb1900_census_roads_output_filtered_duplicates
 
 
-#todo
+
 def os_candidate_links(census,segmented_os_roads,field_dict):
+	"""
+	Create candidate links based on geo-blocking to pass to the string comparison function. Returns a pandas.MultiIndex of two records, one from the census and one from OS Roads.
+
+	Parameters
+	----------
+	census: pandas.Dataframe
+		A pandas dataframe containing census data.
+
+	segemented_os_roads: geopandas.Geodataframe
+		A geopandas dataframe containing OS Roads data.
+
+	field_dict: dictionary
+		Dictionary with field values.
+
+	Returns
+	-------
+	pandas.MultiIndex
+		A pandas MultiIndex of two records, one from the census and one from OS Roads Data.
+	"""
 
 	if census.empty:
 		print('No census data for this county')
@@ -87,7 +140,7 @@ def os_candidate_links(census,segmented_os_roads,field_dict):
 		blocking_fields_l = []
 		blocking_fields_r = []
 
-		if field_dict['country'] == 'scot':
+		if field_dict['country'] == 'SCOT':
 			blocking_fields_l.append('ParID')
 			blocking_fields_r.append(field_dict['scot_parish'])
 		elif field_dict['country'] == 'EW':
@@ -104,14 +157,28 @@ def os_candidate_links(census,segmented_os_roads,field_dict):
 
 def os_compare(census,os,os_candidate_links,field_dict):
 	"""
-	Performs fuzzy string matching between census addresses and road names in OS Open Road data.
+	Performs fuzzy string matching between candidate links identified between OS Roads and census. Selects best batch using a combination of fuzzy string matching score and tf-idf weighting. Candidate links with more than one strong match are stored in a duplicates table. Returns matches and duplicate matches.
 
 	Parameters
 	----------
-	This
+	census: pandas.Dataframe
+		A pandas dataframe containing census data.
+
+	os: geopandas.Geodataframe
+		A geopandas dataframe containing OS Roads data.
+
+	os_candidate_links: pandas.MultiIndex
+		A pandas MultiIndex of two records, one from the census and one from OS Roads data.
+
+	field_dict: dictionary
+		Dictionary with field values.
 
 	Returns
 	-------
+	pandas.Dataframe
+		A pandas dataframe of high-quality matches between OS Roads and census.
+	pandas.Dataframe
+		A pandas dataframe of duplicate matches between OS Roads and census (where there are more than 2 or more matches of high quality and there needs to be disambiguation)
 
 	"""
 	if os_candidate_links.empty:

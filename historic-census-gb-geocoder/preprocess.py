@@ -122,7 +122,7 @@ def read_raw_os_data(os_open_roads_filelist,rows_to_use):
 
 def segment_os_roads(os_open_roads,boundary_data,field_dict):
 	"""
-		Segments OS Open Road Data by Parish/RSD Boundary by performing a union (geopandas overlay, how = "union") between the two datasets. The result provides road segments within each Parish/RSD Boundary, e.g. if a road runs through two Parish/RSD boundaries it will be split at the boundary and assigned the relevant ids for each segment in each Parish/RSD boundary. This allows for more accurate geo-coding of addresses because individuals can be linked to the street segment that lays within their Parish/RSD.
+		Segments OS Open Road Data by processed parish boundary data. For England and Wales this is Parish/RSD Boundary and for Scotland it's just parish boundary data. Segments by performing a union (geopandas overlay, how = "union") between the two datasets. The result provides road segments within each Parish/RSD Boundary, e.g. if a road runs through two Parish/RSD boundaries it will be split at the boundary and assigned the relevant ids for each segment in each Parish/RSD boundary. This allows for more accurate geo-coding of addresses because individuals can be linked to the street segment that lays within their Parish/RSD.
 
 		Parameters
 		----------
@@ -134,28 +134,21 @@ def segment_os_roads(os_open_roads,boundary_data,field_dict):
 		Returns
 		-------
 		geopandas.GeoDataFrame
-			A geopandas geodataframe containing the OS Open Road data with attributes from the Parish/RSD boundary dataset.
+			A geopandas geodataframe containing the OS Open Road data with attributes from the processed parish boundary dataset.
 		"""
 	print('Segmenting OS Open Roads with Parish/RSD Boundary data')
 	os_open_roads = os_open_roads.set_crs('epsg:27700')
-	# if os.path.exists('data/1881/1881_os_roads.tsv'): # Needs editing now that the .shp doesn't exist
-	# 	print('Reading not conducting Segmentation')
-	# 	segmented_roads_df = pd.read_csv('data/1881/1881_os_roads.tsv',sep="\t")
-	# 	segmented_roads_df['geometry'] = gpd.GeoSeries.from_wkt(segmented_roads_df['geometry'])
-	# 	segmented_roads = gpd.GeoDataFrame(segmented_roads_df,geometry='geometry',crs='EPSG:27700')
-		#segmented_roads = segmented_roads.rename({'conparid_5':'conparid_51-91'},axis=1)
-	# else:
 	segmented_roads = gpd.overlay(os_open_roads,boundary_data,how="union",keep_geom_type=True)
 
 	subset_fields = []
 
-	if field_dict['country'] == 'scot':
+	if field_dict['country'] == 'SCOT':
 		subset_fields.append(field_dict['scot_parish'])
 	elif field_dict['country'] == 'EW':
 		subset_fields.append(field_dict['conparid'])
 		subset_fields.append(field_dict['cen'])
 
-	segmented_roads = segmented_roads.dropna(subset=subset_fields).copy()
+	segmented_roads = segmented_roads.dropna(subset=subset_fields).copy() # Drop roads outside country (i.e. with no associated parish info from the union)
 	print(segmented_roads)
 	return segmented_roads
 
@@ -165,7 +158,7 @@ def icem_linking_prep(segmented_roads,field_dict,name1='name1',nameTOID='nameTOI
 	"""
 	Prepare the segmented OS Open Road Data for linking to I-CeM. Conducts the following steps:
 	1. Converts road names to uppercase, to match uppercase of ICeM addresses.
-	2. Creates new ids for each road segment per Parish/RSD
+	2. Creates new ids for each road segment per parish boundary or for England and Wales per Parish/RSD boundary
 	3. Dissolves on this new id so that roads with multiple segments in the same Parish/RSD are one geography
 
 	Parameters
@@ -204,7 +197,7 @@ def icem_linking_prep(segmented_roads,field_dict,name1='name1',nameTOID='nameTOI
 	#os_vector_data_01_11_duplicates = os_vector_data_01_11_duplicates.reset_index(drop=True)
 	#os_vector_data_01_11_duplicates.to_csv('data/outputs_new/os_vector_data_01_11_duplicates.txt','\t')
 	print(segmented_os_roads_to_icem_aggregated_deduplicated.info())
-	if field_dict['country'] == 'scot':
+	if field_dict['country'] == 'SCOT':
 		segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['scot_parish']] = pd.to_numeric(segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['scot_parish']], errors='coerce')
 	elif field_dict['country'] == 'EW':
 		segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['cen']] = pd.to_numeric(segmented_os_roads_to_icem_aggregated_deduplicated[field_dict['cen']], errors='coerce')
@@ -216,9 +209,8 @@ def icem_linking_prep(segmented_roads,field_dict,name1='name1',nameTOID='nameTOI
 
 
 def process_gb1900(gb1900_file,boundary_data,field_dict,rows_to_use):
-	# todo read gb1900, union of gb1900 and parish/rsd boundary data; drop null values
 	"""
-	Read gb1900 dataset. Subset 
+	Read gb1900 dataset. Subset by labels longer than 5 characters to filter out entries that probably aren't roads to speed up later record comparison.
 
 	Parameters
 	----------
@@ -236,8 +228,7 @@ def process_gb1900(gb1900_file,boundary_data,field_dict,rows_to_use):
 
 	gb1900_variables = ['pin_id','final_text','osgb_east','osgb_north']
 	gb1900 = pd.read_csv(gb1900_file,sep=',',encoding='utf-16',usecols=gb1900_variables,nrows=rows_to_use)
-	print(gb1900)
-	print(boundary_data)
+
 	gb1900 = gb1900[gb1900['final_text'].str.len()>5]
 
 	# Convert gb1900 final_text field to uppercase (to match uppercase of I-CeM data)
@@ -261,7 +252,7 @@ def process_gb1900(gb1900_file,boundary_data,field_dict,rows_to_use):
 
 	subset_fields = []
 
-	if field_dict['country'] == 'scot':
+	if field_dict['country'] == 'SCOT':
 		subset_fields.append(field_dict['scot_parish'])
 	elif field_dict['country'] == 'EW':
 		subset_fields.append(field_dict['conparid'])
@@ -277,6 +268,23 @@ def process_gb1900(gb1900_file,boundary_data,field_dict,rows_to_use):
 	return gb1900_filtered
 
 def read_rsd_dictionary(rsd_dictionary,field_dict):
+	"""
+	Read the RSD Dictionary lookup file for the appropriate census year.
+
+	Parameters
+	----------
+	rsd_dictionary: str
+		Path to rsd dictionary file.
+	
+	field_dict: dictionary
+		Dictionary with field values.
+
+	Returns
+	-------
+	pandas.DataFrame
+		A pandas dataframe containing the RSD Dictionary lookup table.
+	"""
+
 	rsd_variables = [field_dict['parid_for_rsd_dict'],field_dict['cen']]
 
 	rsd_dict = pd.read_csv(rsd_dictionary,sep="\t",quoting=3,usecols=rsd_variables,encoding='utf-8')
@@ -284,20 +292,40 @@ def read_rsd_dictionary(rsd_dictionary,field_dict):
 
 
 def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
+
+	"""
+	Read the census file and prepare it for subsquent geo-coding steps.
+
+	Parameters
+	----------
+	census_file: str
+		Path to census file.
+
+	rows_to_use: int or None
+		The rows to read from the dataset as specified by the type of geo-coding, either 'full' or 'testing' in parameters json.
+	
+	field_dict: dictionary
+		Dictionary with field values.
+
+	Returns
+	-------
+	pandas.DataFrame
+		A pandas dataframe containing the processed census data aggregated to unique addresses.
+
+	list
+		A sorted list of census counties.
+	"""
+
 	census_variables = ['safehaven_id','address_anonymised','ConParID','ParID','RegCnty']
-	# census_dtypes = {'ConParID':'int32','ParID':'int32'}
 	print('Reading census')
 	census = pd.read_csv(census_file,sep="\t",quoting=3,encoding = "latin-1",na_values=".",usecols=census_variables,nrows=rows_to_use)
 	print('Successfully read census')
 
 	census['ConParID'] = pd.to_numeric(census['ConParID'], errors='coerce')
 
+	census = census.rename({'address_anonymised':'add_anon','safehaven_id':'sh_id'},axis=1) # This isn't necessary now as output is tsv not .shp so field names don't have to be under 10 characters long.
 
-	#TODO
-	# Rename fields so they are <10 chars ready for output to shapefile
-	census = census.rename({'address_anonymised':'add_anon','safehaven_id':'sh_id'},axis=1)
 	# Make limited regex replacements to standardise street names
-
 	with open('data/input/icem_street_standardisation.json') as f:
 		street_standardisation = json.load(f)
 	census['add_anon'] = census['add_anon'].replace(street_standardisation,regex=True)
@@ -311,7 +339,7 @@ def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
 		# Create an id for each unique 'address' + ConParID + CEN_1901 combination
 		census['unique_add_id'] = census['add_anon'].astype(str)+'_'+census['ConParID'].astype(str) + '_' + census[field_dict['cen']].astype(str)
 		print('Merged with RSD dictionary')
-	elif field_dict['country'] == 'scot':
+	elif field_dict['country'] == 'SCOT':
 		census['unique_add_id'] = census['add_anon'].astype(str)+'_'+census['ParID'].astype(str)
 
 
@@ -319,7 +347,7 @@ def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
 	
 	groupby_fields = ['unique_add_id','add_anon','RegCnty']
 	
-	if field_dict['country'] == 'scot':
+	if field_dict['country'] == 'SCOT':
 		groupby_fields.append('ParID')
 	elif field_dict['country'] == 'EW':
 		groupby_fields.append('ConParID')
@@ -347,7 +375,7 @@ def scot_parish_lookup(scot_parish_lkup_path,census_year):
 	Returns
 	-------
 	pandas.DataFrame
-		A pandas dataframe containing the Scotland Parish names and corresponding ParID.
+		A pandas dataframe containing the Scotland parish boundary lookup table.
 	"""
 	list_of_cols = ['name','ParID_link']
 	sheet = str(census_year)
@@ -355,6 +383,27 @@ def scot_parish_lookup(scot_parish_lkup_path,census_year):
 	return scot_parish_lookup
 
 def process_scot_parish_boundary_data(parish_shapefile,scot_parish_lkup,census_year):
+
+	"""
+	Link Scotland Parish Boundary dataset to I-CeM ParID by linking the boundary dataset to the parish lookup table.
+
+	Parameters
+	----------
+	parish_shapefile: geopandas.GeoDataFrame
+		A geopandas dataframe containing the information and geometries of Scotland parish boundaries.
+
+	scot_parish_lkup: pandas.Dataframe
+		A pandas dataframe containing data that links the parishes in the parish boundary dataset with the `ParID` column in I-CeM.
+
+	census_year: int
+		The census year.
+
+	Returns
+	-------
+	geopandas.GeoDataFrame
+		A geopandas dataframe containing the Scotland parish boundary geometries with associated `ParID` values for linking to I-CeM.
+	"""
+
 	print('Reading Parish Boundary Data')
 	tmp_file = gpd.read_file(parish_shapefile,rows=1)
 	list_of_all_cols = tmp_file.columns.values.tolist()
@@ -379,25 +428,20 @@ def process_scot_parish_boundary_data(parish_shapefile,scot_parish_lkup,census_y
 	print(par_boundary_parid) #remove once edits are done
 	return par_boundary_parid
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def compute_tfidf(census):
+	"""
+	Compute TF-IDF scores to assess how common road names are. These scores are used to weight the string comparisons so that common road names have to reach a higher matching threshold to be classed as a match.
+
+	Parameters
+	----------
+	census: pandas.dataframe
+		A pandas dataframe containing census data.
+
+	Returns
+	-------
+	pandas.DataFrame
+		A pandas dataframe containing census data with two additional columns with tf-idf weighting data.
+	"""
 	try:
 		tfidf_vectorizer = TfidfVectorizer(norm='l2',use_idf=True,lowercase=False) # default is norm l2
 		tfidf_sparse = tfidf_vectorizer.fit_transform(census['add_anon'])

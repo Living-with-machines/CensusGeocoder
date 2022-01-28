@@ -3,6 +3,10 @@ from recordlinkage.base import BaseCompareFeature
 import numpy as np
 from recordlinkage.utils import fillna as _fillna
 
+"""
+Edited version of string comparison method from the recordlinkage package - I've adjusted it so that the string algorithm uses rapidfuzz not fuzzywuzzy.
+"""
+
 
 class rapidfuzzy_wratio_comparer(BaseCompareFeature):
 
