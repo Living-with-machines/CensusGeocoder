@@ -15,18 +15,19 @@ To set the parameters of the geocoding script, you need to edit `data/historic-c
 The file will look something like this. Change "no" to either "testing" or "full" depending on if you want to run the geocoding script on the full datasets (e.g. all census entries, all OS Roads, and all GB1900) or if you want to just run it on a sample of those for testing purposes.
 
 ```json
-{"EW_1851":"no",
-"EW_1861":"no",
-"EW_1881":"no",
-"EW_1891":"no",
-"EW_1901":"no",
-"EW_1911":"no",
-"scot_1851":"no",
-"scot_1861":"no",
-"scot_1871":"no",
-"scot_1881":"no",
-"scot_1891":"no",
-"scot_1901":"testing"}
+{"EW_1851":{"type":"full","use_existing_files":"yes"},
+"EW_1861":{"type":"full","use_existing_files":"yes"},
+"EW_1881":{"type":"full","use_existing_files":"yes"},
+"EW_1891":{"type":"full","use_existing_files":"yes"},
+"EW_1901":{"type":"full","use_existing_files":"yes"},
+"EW_1911":{"type":"full","use_existing_files":"yes"},
+"SCOT_1851":{"type":"full","use_existing_files":"yes"},
+"SCOT_1861":{"type":"full","use_existing_files":"yes"},
+"SCOT_1871":{"type":"full","use_existing_files":"yes"},
+"SCOT_1881":{"type":"full","use_existing_files":"yes"},
+"SCOT_1891":{"type":"full","use_existing_files":"yes"},
+"SCOT_1901":{"type":"full","use_existing_files":"yes"}}
+
 ```
 ### 2. Enter the following in the terminal
 
