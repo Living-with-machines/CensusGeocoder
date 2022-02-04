@@ -3,10 +3,13 @@ import setupgeocoder
 from datetime import datetime
 import json
 
-with open('data/historic-census-gb-geocoder-params.json') as f:
+with open('../inputs/historic-census-gb-geocoder-params.json') as f:
 	geocode_parameters = json.load(f)
 
-for key, value in geocode_parameters.items():
+input_data_path = geocode_parameters["input_data_path"]
+output_data_path = geocode_parameters["output_data_path"]
+
+for key, value in geocode_parameters["geocoding"].items():
 	if value['type'] == 'no':
 		continue
 	else:
@@ -15,9 +18,9 @@ for key, value in geocode_parameters.items():
 
 			country = key.split('_')[0]
 			census_year = int(key.split('_')[1])
-			type = value['type']
+			parse_option = value['type']
 
-			census_geocoder = setupgeocoder.CensusGB_geocoder(census_year,country,type)
+			census_geocoder = setupgeocoder.CensusGB_geocoder(census_year,country,parse_option,input_data_path,output_data_path)
 			print(vars(census_geocoder))
 
 			os_roads, gb1900, icem, census_counties = census_geocoder.preprocessing(value['use_existing_files'])

@@ -1,0 +1,6 @@
+{
+	"\\sST\\.$|\\sST$":" STREET",
+	"\\sRD\\.$|\\sRD$":" ROAD",
+	"\\sPL\\.$|\\sPL$":" PLACE",
+	"[^A-Z\\s]":""
+}
