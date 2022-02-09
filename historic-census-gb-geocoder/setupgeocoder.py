@@ -100,7 +100,7 @@ class CensusGB_geocoder:
 
 	"""
 
-	def __init__(self,census_year,country_input,parse_option,input_data_path,output_data_path):
+	def __init__(self,census_year,country_input,parse_option,input_data_path,output_data_path,reuse_data):
 
 		"""
 		Parameters
@@ -115,6 +115,8 @@ class CensusGB_geocoder:
 			Specify the path to the `data/` folder, where the datasets needed to perform the geocoding are stored.
 		output_data_path: str
 			Specify the path to the outputs folder, where the outputs are stored.
+		reuse_data: str
+			If value is 'yes' and the source data has already been preprocessed, reuse preprocessed data. If value is 'no', preprocess data.
 		"""
 
 		"""
@@ -125,6 +127,7 @@ class CensusGB_geocoder:
 		self.parse_option = parse_option
 		self.input_data_path = input_data_path
 		self.output_data_path = output_data_path
+		self.reuse_data = reuse_data
 
 		"""
 		GENERAL VARIABLES
@@ -161,6 +164,9 @@ class CensusGB_geocoder:
 
 		"""
 		rsd_shapefile_path = None
+		if self.reuse_data == 'yes':
+			return rsd_shapefile_path
+
 		if self.country == 'EW':
 			rsd_shapefile_folder = self.input_data_path + 'data/input/rsd_boundary_data/'
 			for root, directories, files in os.walk(rsd_shapefile_folder):
@@ -181,6 +187,9 @@ class CensusGB_geocoder:
 
 		"""
 		rsd_dictionary_path = None
+		if self.reuse_data == 'yes':
+			return rsd_dictionary_path
+
 		if self.country == 'EW':
 			rsd_dictionary_folder = self.input_data_path + 'data/input/parish_dicts_encoding/'
 			for root, directories, files in os.walk(rsd_dictionary_folder):
@@ -200,6 +209,10 @@ class CensusGB_geocoder:
 			Path to Parish shapefile
 
 		"""
+		parish_shapefile_path = None
+		if self.reuse_data == 'yes':
+			return parish_shapefile_path
+
 		if self.country == 'EW':
 			parish_shapefile_path = self.input_data_path + 'data/input/1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp'
 		else:
@@ -222,6 +235,9 @@ class CensusGB_geocoder:
 
 		"""
 		os_open_roads_filelist = []
+		if self.reuse_data == 'yes':
+			return os_open_roads_filelist
+
 		os_open_roads_folder = self.input_data_path + 'data/input/oproad_essh_gb-2/data'
 		for root, directories, files in os.walk(os_open_roads_folder):
 			for file in files:
@@ -321,6 +337,10 @@ class CensusGB_geocoder:
 		gb1900_data: str
 			Path to GB1900 dataset.
 		"""
+		gb1900_data = None
+		if self.reuse_data == 'yes':
+			return gb1900_data
+
 		gb1900_data = self.input_data_path + 'data/input/gb1900_gazetteer_complete_july_2018.csv'
 		return gb1900_data
 
@@ -333,10 +353,13 @@ class CensusGB_geocoder:
 		ukds_gis_to_icem_path: str
 			Path to lookup table file.
 		"""
+		ukds_gis_to_icem_path = None
+		if self.reuse_data == 'yes':
+			return ukds_gis_to_icem_path
+		
 		if self.country == 'EW':
 			ukds_gis_to_icem_path = self.input_data_path + 'data/input/UKDS_GIS_to_icem.xlsx'
-		else:
-			ukds_gis_to_icem_path = None
+			
 		return ukds_gis_to_icem_path
 
 	def set_scot_parish_lookup_file(self):
@@ -348,10 +371,13 @@ class CensusGB_geocoder:
 		scot_parish_lkup_path: str
 			Path to lookup table file.
 		"""
+		scot_parish_lkup_path = None
+		if self.reuse_data == 'yes':
+			return scot_parish_lkup_path
+
 		if self.country == 'SCOT':
 			scot_parish_lkup_path = self.input_data_path + 'data/input/scot_parish_boundary/scotboundarylinking.xlsx'
-		else:
-			scot_parish_lkup_path = None
+			
 		return scot_parish_lkup_path
 
 	def set_census_file(self):
@@ -363,6 +389,10 @@ class CensusGB_geocoder:
 		census_file: str
 			Path to census file.
 		"""
+		census_file = None
+		if self.reuse_data == 'yes':
+			return census_file
+
 		census_folder = self.input_data_path + 'data/input/census_anonymisation_egress/'
 		for root, directories, files in os.walk(census_folder):
 			for file in files:
@@ -402,7 +432,7 @@ class CensusGB_geocoder:
 		field_dict['parid_for_rsd_dict'] = self.set_parid_for_rsd_dict()
 		return field_dict
 
-	def preprocessing(self,user_input):
+	def preprocessing(self):
 
 		"""
 		Checks for existing pre-processed files, if these exist, it reads the files and moves to the geo-coding phase. If pre-processed files don't exist, it pre-processes input files, returning OS Open Road data, GB1900, a processed version of the census, a census subset only including unique addresses, and a list of census counties. It writes full versions of processed OS Open Road Data, GB1900, and processed census data, as well as a subset of the census data only including unique addresses and a list of census counties.
@@ -601,7 +631,10 @@ class CensusGB_geocoder:
 
 		# Read or process OS Roads
 
-		os_road_cols = [self.field_dict['os_road_id'],self.field_dict['conparid'],self.field_dict['cen'],'name1'] #NEEDS SCOTLAND VARIANT ADDING
+		if self.country == 'EW':
+			os_road_cols = [self.field_dict['os_road_id'],self.field_dict['conparid'],self.field_dict['cen'],'name1']
+		else:
+			os_road_cols = [self.field_dict['os_road_id'],self.field_dict['scot_parish'],'name1']
 
 
 		# 			blocking_fields_l.append('ParID')
@@ -610,10 +643,10 @@ class CensusGB_geocoder:
 		# 	blocking_fields_l.append('ConParID')
 		# 	blocking_fields_l.append(field_dict['cen'])
 
-		if os_roads_processed_outputfile_exists and user_input == 'yes':
+		if os_roads_processed_outputfile_exists and self.reuse_data == 'yes':
 			print('Pre-processed OS roads files already exist, reading pre-processed files')
 			segmented_os_roads_prepped = pd.read_csv(os_roads_processed_outputfile,sep="\t",index_col=self.field_dict['os_road_id'],usecols=os_road_cols)
-			print(segmented_os_roads_prepped)
+			# print(segmented_os_roads_prepped)
 			# segmented_os_roads_prepped = gpd.GeoDataFrame(segmented_os_roads_prepped, geometry=gpd.GeoSeries.from_wkt(segmented_os_roads_prepped['geometry']),crs='EPSG:27700')
 		else:
 			os_open_roads = preprocess.read_raw_os_data(self.os_open_roads_filelist,self.row_limit)
@@ -624,22 +657,25 @@ class CensusGB_geocoder:
 			segmented_os_roads_prepped = segmented_os_roads_prepped[os_road_cols[1:]]
 
 		# Read or process GB1900:
-		gb1900_cols = ['pin_id',self.field_dict['conparid'],self.field_dict['cen'],'final_text'] #NEEDS SCOTLAND VARIANT ADDING
+		if self.country == 'EW':
+			gb1900_cols = ['pin_id',self.field_dict['conparid'],self.field_dict['cen'],'final_text']
+		else:
+			gb1900_cols = ['pin_id',self.field_dict['scot_parish'],'final_text']
 
-		if gb1900_processed_outputfile_exists and user_input == 'yes':
+		if gb1900_processed_outputfile_exists and self.reuse_data == 'yes':
 			print('Pre-processed GB1900 files already exist, reading pre-processed files')
 			gb1900_processed = pd.read_csv(gb1900_processed_outputfile,sep="\t",index_col='pin_id',usecols=gb1900_cols)
 			# gb1900_processed = gpd.GeoDataFrame(gb1900_processed, geometry=gpd.GeoSeries.from_wkt(gb1900_processed['geometry']),crs='EPSG:27700')
-			print(gb1900_processed)
+			# print(gb1900_processed)
 		else:
 			gb1900_processed = preprocess.process_gb1900(self.gb1900_file,parish_data_processed,self.field_dict,self.row_limit)
 			# Output processed file
 			gb1900_processed.to_csv(gb1900_processed_outputfile,sep="\t")
-			print(gb1900_processed)
+			# print(gb1900_processed)
 			gb1900_processed = gb1900_processed[gb1900_cols[1:]]
 
 		# Read or process ICEM and census counties:	
-		if census_processed_outputfile_exists and census_unique_addresses_outputfile_exists and census_counties_outputfile_exists and user_input == 'yes':
+		if census_processed_outputfile_exists and census_unique_addresses_outputfile_exists and census_counties_outputfile_exists and self.reuse_data == 'yes':
 			print('Pre-processed ICEM files already exist, reading pre-processed files')
 			# census_processed = pd.read_csv(census_processed_outputfile,sep="\t")
 
@@ -697,19 +733,20 @@ class CensusGB_geocoder:
 			census_subset = census[census['RegCnty'] == county].copy()
 
 			census_subset = preprocess.compute_tfidf(census_subset).copy()
+
+			print(self.field_dict)
 			gb1900_candidate_links = recordcomparison.gb1900_candidate_links(census_subset,gb1900,self.field_dict)
 			gb1900_linked, gb1900_duplicates = recordcomparison.gb1900_compare(census_subset,gb1900,gb1900_candidate_links)
 			os_candidate_links = recordcomparison.os_candidate_links(census_subset,segmented_os_roads,self.field_dict)
 			os_linked, os_duplicates = recordcomparison.os_compare(census_subset,segmented_os_roads,os_candidate_links,self.field_dict)
 
-			
 			if os_linked.empty or gb1900_linked.empty: # Refine so that the script can run on one of these if the other is empty
 				# print('No data in OS Open Roads or GB1900 for {}, skipping.'.format(county))
 				print(f'No data in OS Open Roads or GB1900 for {county}, skipping.')
 			else:
 				full_county_output = pd.merge(left=gb1900_linked,right=os_linked,on='unique_add_id',how='outer',suffixes=['_gb1900','_os'])
 				full_county_duplicate_output = pd.merge(left=gb1900_duplicates,right=os_duplicates,on='unique_add_id',how='outer',suffixes=['_gb1900','_os'])
-				print(full_county_duplicate_output)
+				# print(full_county_duplicate_output)
 				# Write full county output to file
 				full_county_output.to_csv(self.output_dir + '/{1}_{2}_full_county_output.tsv'.format(self.census_year,self.census_year,county),sep="\t",index=False)
 
@@ -732,7 +769,7 @@ class CensusGB_geocoder:
 		# census_processed = pd.read_csv('/Users/jrhodes/historic-census-gb-geocoder/data/testing_outputs/data/output/1851/EW/testing/census_processed_1851_EW_testing.tsv',sep="\t")
 		outputting = pd.merge(left=census_processed,right=geocoded_addressses,on='unique_add_id',how='left')
 		print(outputting)
-		outputting.to_csv(self.output_dir + 'outputting_trial.txt',sep="\t")
+		outputting.to_csv(self.output_dir + '/outputting_trial.txt',sep="\t")
 		pass
 
 
