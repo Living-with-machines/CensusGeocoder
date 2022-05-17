@@ -4,52 +4,53 @@ Geocode Historic Great British Census Data 1851-1911
 
 ## Installation
 
- ### Set up a conda environment
+### Set up a conda environment
 
- I recommend installation via Anaconda (refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/)).
+I recommend installation via Anaconda (refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/)).
 
- * Create a new environment for `historic-census-gb-geocoder` called `geocoder_py38`:
+* Create a new environment for `historic-census-gb-geocoder` called `geocoder_py38`:
 
- ```bash
- conda create -n geocoder_py38 python=3.8
- ```
+```bash
+conda create -n geocoder_py38 python=3.8
+```
 
- * Activate the environment:
+* Activate the environment:
 
- ```bash
- conda activate geocoder_py38
- ```
- ### Method 1
+```bash
+conda activate geocoder_py38
+```
+### Method 1
 
- ***Not added to pypi yet***
- ### Install `historic-census-gb-geocoder`:
-
- ```bash
- pip install historic-census-gb-geocoder
- ```
-
- ### Method 2
-
- * Clone `historic-census-gb-geocoder` source code:
+***Not added to pypi yet - use method 2***
+### Install `historic-census-gb-geocoder`:
 
  ```bash
- git clone https://github.com/Living-with-machines/historic-census-gb-geocoder.git
- ```
+pip install historic-census-gb-geocoder
+```
 
- * Install:
+### Method 2
 
- ```bash
- cd /path/to/historic-census-gb-geocoder
- pip install -v -e .
- ```
+* Clone `historic-census-gb-geocoder` source code:
 
-### 1. Connect to VM
+```bash
+git clone https://github.com/Living-with-machines/historic-census-gb-geocoder.git
+```
 
-Connect to the census-geocoder VM on Azure. Navigate to `/datadrive`. There should be a `data/` folder in this directory, which is connected via blobfuse to `--account-name censusplacelinking` `--container-name data`. There should also be a clone of the github repo `historic-census-gb-geocoder`. Make sure that's it's up-to-date and running off the `main` branch.
+* Install:
 
-To set the parameters of the geocoding script, you need to edit `data/historic-census-gb-geocoder-params.json`.
+```bash
+cd /path/to/historic-census-gb-geocoder
+pip install -v -e .
+```
 
-The file will look something like this. Change "no" to either "testing" or "full" depending on if you want to run the geocoding script on the full datasets (e.g. all census entries, all OS Roads, and all GB1900) or if you want to just run it on a sample of those for testing purposes.
+Edit `/path/to/` as appropriate to the directory that you cloned `historic-census-gb-geocoder` into. E.g. `/Users/jrhodes/historic-census-gb-geocoder`
+
+## Set parameters
+
+The `historic-census-gb-geocoder-params.json` file allows you to adjust the following for each census year:
+
+* "Type" - set to "full" to run on all data for that census year, set to "testing" to run on a sample of the data, or set to "no" to skip that year.
+* "use_existing_files" - set to "yes" to re-use pre-processed geometry files and to proceed to string matching census records to street names. Set to "no" to create processed geometry files before conducting string matching. Setting to "yes" speeds the script up significantly because the creation of new street geometries using historic boundary data is computationally intensive.
 
 ```json
 {"EW_1851":{"type":"full","use_existing_files":"yes"},
@@ -66,29 +67,14 @@ The file will look something like this. Change "no" to either "testing" or "full
 "SCOT_1901":{"type":"full","use_existing_files":"yes"}}
 
 ```
-### 2. Enter the following in the terminal
+## Run `historic-census-gb-geocoder`
 
-Activate the python virtual environment, using:
+```bash
+python3 historic_census_gb_geocoder.py
+```
 
-`conda activate geocode_env`
+## Outputs
 
-To run the script:
-
-`python3 historic-census-gb-geocoder/historic-census-gb-geocoder/historic_census_gb_geocoder.py`
-
-Alternatively, to allow the script to carry on running even after you've exited your session (but have left the VM on), use instead:
-
-`nohup python3 -u /historic-census-gb-geocoder/historic-census-gb-geocoder/historic_census_gb_geocoder.py &`
-
-This will write the print statements to `nohup.out` in the `/datadrive` folder. You can view the progress by entering:
-
-`clear`
-
-Followed by
-
-`tail -f nohup.out`
-
-Press Control + C to stop viewing the output, and enter `exit` to quit the session. The script will carry on running in the background.
 
 ## Documentation
 
