@@ -107,18 +107,18 @@ This is a list and discription of the datasets you need to download and store in
 
 `data/input/census` contains the I-CeM census datasets, which are digitised individual-level 19th and early 20th century census data for Great Britain, covering England and Wales 1851-1911 (except 1871), and Scotland 1851-1901. There are 12 `.txt` files in total, each containing tab delimited census data. The filenames are comprised of either 'EW' or 'SCOT' to indicate 'England and Wales' or 'Scotland', followed by the year e.g. '1851'. So, `EW1851` is the 1851 census file for England & Wales.
 
-These files have been created by merging two versions of the I-CeM datasets together, which contain different types of information and have different access restrictions. You need both to perform geocoding on the full I-CeM dataset. There is an anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) and a 'Names and Addresses - Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). The anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) is downloadable via the UKDS after signing up to their standard end user licence. The anonymised version does not contain individuals' names and addresses but contains a unique id `RecID` for each person that links them to their name and address held in the 'Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). As its name suggests, access to the name and address data in I-CeM is by application for a special licence, which requires review by UKDS and the owners ([Findmypast](https://www.findmypast.co.uk)) of the transcriptions on which I-CeM is based.
+These files have been created by merging two versions of the I-CeM datasets together, which contain different types of information and have different access restrictions. You need both to perform geocoding on the full I-CeM dataset. There is an anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) and a 'Names and Addresses - Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). The anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) is downloadable via the UKDS after signing up to their standard end user licence. The anonymised version does not contain individuals' names and addresses but contains a unique id `RecID` for each person that links them to their name and address held in the 'Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). As its name suggests, access to the name and address data in I-CeM is by application for a special licence, which requires review by UKDS and the owners ([Findmypast/Brightsolid](https://www.findmypast.co.uk)) of the transcriptions on which I-CeM is based.
 
 Further documentation on I-CeM, including how it was created and the variables it contains can be found [here](https://www.essex.ac.uk/research-projects/integrated-census-microdata).
 
 The `historic-census-gb-geocoder` uses the following fields from these census files:
 
-FIELD|VALUE
+FIELD|DESCRIPTION
 --|--
 RecID|Unique id for each person
 Address|Street Address
 ConParID|Consistent Parish ID
-ParID|Parish ID
+ParID|Parish IDs
 RegCnty|Registration County
 
 RecID|Address|ConParID|ParID|RegCnty
@@ -129,6 +129,11 @@ RecID|Address|ConParID|ParID|RegCnty
 4|23 High Street|12|21|Essex
 5|25 High Street|12|21|Essex
 6|25 High Street|12|21|Essex
+
+Citation
+Schurer, K., Higgs, E. (2020). Integrated Census Microdata (I-CeM), 1851-1911. [data collection]. UK Data Service. SN: 7481, DOI: 10.5255/UKDA-SN-7481-2
+Schurer, K., Higgs, E. (2022). Integrated Census Microdata (I-CeM) Names and Addresses, 1851-1911: Special Licence Access. [data collection]. 2nd Edition. UK Data Service. SN: 7856, DOI: 10.5255/UKDA-SN-7856-2
+
 
 ## How to cite historic-census-gb-geocoder
 ## Credit and re-use terms
@@ -143,10 +148,6 @@ RecID|Address|ConParID|ParID|RegCnty
 ### OS Open Roads (enhanced)
 ### National Records of Scotland - Historic Civil Parishes pre-1891
 ### National Records of Scotland - Civil Parishes (post 1891)
-
-
-
-
 
 
 
