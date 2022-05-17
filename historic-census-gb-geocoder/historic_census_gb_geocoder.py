@@ -3,7 +3,7 @@ import setupgeocoder
 from datetime import datetime
 import json
 
-with open('../inputs/historic-census-gb-geocoder-params.json') as f:
+with open('./inputs/historic-census-gb-geocoder-params.json') as f:
 	geocode_parameters = json.load(f)
 
 input_data_path = geocode_parameters["input_data_path"]
