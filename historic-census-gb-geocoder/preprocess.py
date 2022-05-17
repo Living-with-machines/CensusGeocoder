@@ -238,7 +238,7 @@ def process_gb1900(gb1900_file,boundary_data,field_dict,rows_to_use):
 	gb1900['final_text'] = gb1900['final_text'].str.strip()
 
 	# Read in regex replacement dictionary to standardise street names e.g. 'HIGH ST.' TO 'HIGH STREET'
-	with open('../inputs/street_standardisation.json') as f:
+	with open('./inputs/street_standardisation.json') as f:
 		street_standardisation = json.load(f)
 
 	gb1900['final_text'] = gb1900['final_text'].replace(street_standardisation,regex=True)

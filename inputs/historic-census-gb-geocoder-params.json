@@ -13,5 +13,5 @@
     "SCOT_1891":{"type":"no","use_existing_files":"yes"},
     "SCOT_1901":{"type":"no","use_existing_files":"no"}},
 "input_data_path":"./",
-"output_data_path":"./data/testing_outputs/"
+"output_data_path":"./"
 }
