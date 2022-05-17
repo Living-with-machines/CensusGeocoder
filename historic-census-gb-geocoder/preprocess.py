@@ -238,7 +238,7 @@ def process_gb1900(gb1900_file,boundary_data,field_dict,rows_to_use):
 	gb1900['final_text'] = gb1900['final_text'].str.strip()
 
 	# Read in regex replacement dictionary to standardise street names e.g. 'HIGH ST.' TO 'HIGH STREET'
-	with open('../inputs/street_standardisation.json') as f:
+	with open('./inputs/street_standardisation.json') as f:
 		street_standardisation = json.load(f)
 
 	gb1900['final_text'] = gb1900['final_text'].replace(street_standardisation,regex=True)
@@ -326,7 +326,7 @@ def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
 	census = census.rename({'address_anonymised':'add_anon','safehaven_id':'sh_id'},axis=1) # This isn't necessary now as output is tsv not .shp so field names don't have to be under 10 characters long.
 
 	# Make limited regex replacements to standardise street names
-	with open('../inputs/icem_street_standardisation.json') as f:
+	with open('./inputs/icem_street_standardisation.json') as f:
 		street_standardisation = json.load(f)
 	census['add_anon'] = census['add_anon'].replace(street_standardisation,regex=True)
 	census['add_anon'] = census['add_anon'].replace('^\\s*$',np.nan,regex=True)
