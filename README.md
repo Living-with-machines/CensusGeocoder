@@ -2,6 +2,28 @@
 
 Geocode Historic Great British Census Data 1851-1911
 
+- [What is historic-census-gb-geocoder?](#What-is-historic-census-gb-geocoder)
+- [Installation and setup](#installation)
+  - [Set up a conda environment](#set-up-a-conda-environment)
+  - [Method 1: pip](#method-1)
+  - [Method 2: source code (for developers)](#method-2)
+- [How it works](#how-historic-census-gb-geocoder-works)
+- [Credit and re-use terms](#credit-and-re-use-terms)
+  - [How to cite historic-census-gb-geocoder](#how-to-cite-historic-census-gb-geocoder)
+  - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
+  - [1851 Parish Boundary Data for England and Wales](#1851-parish-boundary-data-for-england-and-wales)
+  - [Registration Sub-District (RSD) Boundary Data](#registration-sub-district-rsd-boundary-data)
+  - [Parish-Registration Sub-District (RSD) Dictionaries](#parish-registration-sub-district-rsd-dictionaries)
+  - [GB1900 Gazetteer](#gb1900-gazetteer)
+  - [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table)
+  - [OS Open Roads (enhanced)](#os-open-roads-enhanced)
+  - [National Records of Scotland - Historic Civil Parishes pre-1891](#national-records-of-scotland---historic-civil-parishes-pre-1891)
+  - [National Records of Scotland - Civil Parishes (post 1891)](#national-records-of-scotland---civil-parishes-post-1891)
+- [Acknowledgements](#acknowledgements)
+
+## What is historic-census-gb-geocoder
+
+
 ## Installation
 
 ### Set up a conda environment
@@ -22,7 +44,7 @@ conda activate geocoder_py38
 ### Method 1
 
 ***Not added to pypi yet - use method 2***
-### Install `historic-census-gb-geocoder`:
+* Install `historic-census-gb-geocoder`:
 
  ```bash
 pip install historic-census-gb-geocoder
@@ -67,7 +89,7 @@ The `historic-census-gb-geocoder-params.json` file allows you to adjust the foll
 "SCOT_1901":{"type":"full","use_existing_files":"yes"}}
 
 ```
-## Run `historic-census-gb-geocoder`
+## Run
 
 ```bash
 python3 historic_census_gb_geocoder.py
@@ -75,8 +97,26 @@ python3 historic_census_gb_geocoder.py
 
 ## Outputs
 
+## How historic-census-gb-geocoder works
+
+
+## Credit and- re-use terms
+### How to cite historic-census-gb-geocoder
+### Integrated Census Microdata (I-CeM)
+### 1851 Parish Boundary Data for England and Wales
+### Registration Sub-District (RSD) Boundary Data
+### Parish-Registration Sub-District (RSD) Dictionaries
+### GB1900 Gazetteer
+### 1851EngWalesParishandPlace I-CeM Lookup Table
+### OS Open Roads (enhanced)
+### National Records of Scotland - Historic Civil Parishes pre-1891
+### National Records of Scotland - Civil Parishes (post 1891)
 
 ## Documentation
+
+
+
+
 
 ### Data Input
 This is a list and discription of the datasets you need to download and store in `data/input` in order to run the scripts correctly.
@@ -190,7 +230,7 @@ SMALL ISLES | 100119 | exact
 
 *Needs adding 
 
-
+## Acknowledgements
 
 
 
