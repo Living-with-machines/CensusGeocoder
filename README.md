@@ -2,9 +2,46 @@
 
 Geocode Historic Great British Census Data 1851-1911
 
-## How to run
+## Installation
 
-*I've added some details here that you wouldn't normally find in a section like this - can remove when made public.*
+ ### Set up a conda environment
+
+ I recommend installation via Anaconda (refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/)).
+
+ * Create a new environment for `historic-census-gb-geocoder` called `geocoder_py38`:
+
+ ```bash
+ conda create -n geocoder_py38 python=3.8
+ ```
+
+ * Activate the environment:
+
+ ```bash
+ conda activate geocoder_py38
+ ```
+ ### Method 1
+
+ ***Not added to pypi yet***
+ ### Install `historic-census-gb-geocoder`:
+
+ ```bash
+ pip install historic-census-gb-geocoder
+ ```
+
+ ### Method 2
+
+ * Clone `historic-census-gb-geocoder` source code:
+
+ ```bash
+ git clone https://github.com/Living-with-machines/historic-census-gb-geocoder.git
+ ```
+
+ * Install:
+
+ ```bash
+ cd /path/to/historic-census-gb-geocoder
+ pip install -v -e .
+ ```
 
 ### 1. Connect to VM
 
