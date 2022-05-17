@@ -310,7 +310,10 @@ def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
 	Returns
 	-------
 	pandas.DataFrame
-		A pandas dataframe containing the processed census data aggregated to unique addresses.
+		A pandas dataframe containing the processed census data for each individual.
+
+	pandas.DataFrame
+		A pandas dataframe containing unique addresses and counties.
 
 	list
 		A sorted list of census counties.
@@ -343,25 +346,16 @@ def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
 		census['unique_add_id'] = census['add_anon'].astype(str)+'_'+census['ParID'].astype(str)
 
 
-	# Create new dataframe containing unique addresses with a column containing a list of sh_ids that relate to this address
-	
-	groupby_fields = ['unique_add_id','add_anon','RegCnty']
-	
-	if field_dict['country'] == 'SCOT':
-		groupby_fields.append('ParID')
-	elif field_dict['country'] == 'EW':
-		groupby_fields.append('ConParID')
-		groupby_fields.append(field_dict['cen'])
+	# Drop duplicate addresses, drop sh_id column
+	census_unique = census.drop_duplicates(subset=['unique_add_id']).drop('sh_id',axis=1)
+	# Set the 'unique_add_id' field as the index
+	census_unique_addresses = census_unique.set_index('unique_add_id')
 
-
-	census_unique = census.groupby(groupby_fields)['sh_id'].apply(list).reset_index(name='sh_id_list')
-	census_unique = census_unique.set_index('unique_add_id')
 
 	census_counties = census['RegCnty'].unique()
 	census_counties = sorted(census_counties)
 
-
-	return census_unique, census_counties
+	return census, census_unique_addresses, census_counties
 
 def scot_parish_lookup(scot_parish_lkup_path,census_year):
 	"""
