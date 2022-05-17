@@ -8,8 +8,10 @@ Geocode Historic Great British Census Data 1851-1911
   - [Method 1: pip](#method-1)
   - [Method 2: source code (for developers)](#method-2)
 - [How it works](#how-historic-census-gb-geocoder-works)
+  - [Overview](#overview)
+  - [Data Inputs](#data-inputs)
+- [How to cite historic-census-gb-geocoder](#how-to-cite-historic-census-gb-geocoder)
 - [Credit and re-use terms](#credit-and-re-use-terms)
-  - [How to cite historic-census-gb-geocoder](#how-to-cite-historic-census-gb-geocoder)
   - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
   - [1851 Parish Boundary Data for England and Wales](#1851-parish-boundary-data-for-england-and-wales)
   - [Registration Sub-District (RSD) Boundary Data](#registration-sub-district-rsd-boundary-data)
@@ -98,9 +100,11 @@ python3 historic_census_gb_geocoder.py
 ## Outputs
 
 ## How historic-census-gb-geocoder works
+### Overview
+### Data Inputs
 
-
-## Credit and- re-use terms
+## Credit and re-use terms
+`historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
 ### How to cite historic-census-gb-geocoder
 ### Integrated Census Microdata (I-CeM)
 ### 1851 Parish Boundary Data for England and Wales
@@ -113,9 +117,6 @@ python3 historic_census_gb_geocoder.py
 ### National Records of Scotland - Civil Parishes (post 1891)
 
 ## Documentation
-
-
-
 
 
 ### Data Input
@@ -232,6 +233,6 @@ SMALL ISLES | 100119 | exact
 
 ## Acknowledgements
 
+This work was supported by Living with Machines (AHRC grant AH/S01179X/1) and The Alan Turing Institute (EPSRC grant EP/N510129/1). Living with Machines, funded by the UK Research and Innovation (UKRI) Strategic Priority Fund, is a multidisciplinary collaboration delivered by the Arts and Humanities Research Council (AHRC), with The Alan Turing Institute, the British Library and the Universities of Cambridge, East Anglia, Exeter, and Queen Mary University of London.
 
-
-
+I'd also like to  thank @mcollardanuy for reviewing the code.
