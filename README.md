@@ -102,11 +102,39 @@ python3 historic_census_gb_geocoder.py
 ## How historic-census-gb-geocoder works
 ### Overview
 ### Data Inputs
+This is a list and discription of the datasets you need to download and store in `data/input` in order to run the scripts correctly.
+#### Integrated Census Microdata (I-CeM)
 
+`data/input/census` contains the I-CeM census datasets, which are digitised individual-level 19th and early 20th century census data for Great Britain, covering England and Wales 1851-1911 (except 1871), and Scotland 1851-1901. There are 12 `.txt` files in total, each containing tab delimited census data. The filenames are comprised of either 'EW' or 'SCOT' to indicate 'England and Wales' or 'Scotland', followed by the year e.g. '1851'. So, `EW1851` is the 1851 census file for England & Wales.
+
+These files have been created by merging two versions of the I-CeM datasets together, which contain different types of information and have different access restrictions. You need both to perform geocoding on the full I-CeM dataset. There is an anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) and a 'Names and Addresses - Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). The anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) is downloadable via the UKDS after signing up to their standard end user licence. The anonymised version does not contain individuals' names and addresses but contains a unique id `RecID` for each person that links them to their name and address held in the 'Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). As its name suggests, access to the name and address data in I-CeM is by application for a special licence, which requires review by UKDS and the owners ([Findmypast](https://www.findmypast.co.uk)) of the transcriptions on which I-CeM is based.
+
+Further documentation on I-CeM, including how it was created and the variables it contains can be found [here](https://www.essex.ac.uk/research-projects/integrated-census-microdata).
+
+The `historic-census-gb-geocoder` uses the following fields from these census files:
+
+FIELD|VALUE
+--|--
+RecID|Unique id for each person
+Address|Street Address
+ConParID|Consistent Parish ID
+ParID|Parish ID
+RegCnty|Registration County
+
+RecID|Address|ConParID|ParID|RegCnty
+--|--|--|--|--
+1|23 High Street|12|21|Essex
+2|23 High Street|12|21|Essex
+3|23 High Street|12|21|Essex
+4|23 High Street|12|21|Essex
+5|25 High Street|12|21|Essex
+6|25 High Street|12|21|Essex
+
+## How to cite historic-census-gb-geocoder
 ## Credit and re-use terms
 `historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
-### How to cite historic-census-gb-geocoder
-### Integrated Census Microdata (I-CeM)
+
+
 ### 1851 Parish Boundary Data for England and Wales
 ### Registration Sub-District (RSD) Boundary Data
 ### Parish-Registration Sub-District (RSD) Dictionaries
@@ -116,21 +144,10 @@ python3 historic_census_gb_geocoder.py
 ### National Records of Scotland - Historic Civil Parishes pre-1891
 ### National Records of Scotland - Civil Parishes (post 1891)
 
-## Documentation
 
 
-### Data Input
-This is a list and discription of the datasets you need to download and store in `data/input` in order to run the scripts correctly.
 
-#### 1. Integrated Census Microdata (I-CeM)
 
-*Some information here is specific to LwM Project because of the need to ingress and egress between Tier 1 and Tier 3 DataSafeHaven. Readme and code will need editing to remove safehaven steps upon public release.*
-
-`census_anonymisation_egress` contains igitised individual-level 19th and early 20th century census data for Great Britain, covering England and Wales 1851-1911 (except 1871), and Scotland 1851-1901.
-
- There are two versions of I-CeM with different access restrictions. You need both to perform geocoding on the full I-CeM dataset. There is an anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) and a 'Names and Addresses - Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). The anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) is downloadable via the UKDS after signing up to their standard end user licence. The anonymised version does not contain individuals' names and addresses but contains a unique id `RecID` for each person that links them to their name and address held in the 'Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). As its name suggests, access to the name and address data in I-CeM is by application for a special licence, which requires review by UKDS and the owners ([Findmypast](https://www.findmypast.co.uk)) of the transcriptions on which I-CeM is based.
-
-Further documentation on I-CeM, including how it was created and the variables it contains can be found [here](https://www.essex.ac.uk/research-projects/integrated-census-microdata).
 
 
 #### 2. 1851 Parish Boundary Data for England and Wales (ENGLAND AND WALES ONLY)
