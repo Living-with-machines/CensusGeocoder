@@ -12,8 +12,7 @@ Geocode Historic Great British Census Data 1851-1911
   - [Data Inputs](#data-inputs)
     - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
     - [1851 Parish Boundary Data for England and Wales](#1851-parish-boundary-data-for-england-and-wales)
-    - [Registration Sub-District (RSD) Boundary Data](#registration-sub-district-rsd-boundary-data)
-    - [Parish-Registration Sub-District (RSD) Dictionaries](#parish-registration-sub-district-rsd-dictionaries)
+    - [Registration Sub-District (RSD) Boundary Data and Lookup Table](#registration-sub-district-rsd-boundary-data)
     - [GB1900 Gazetteer](#gb1900-gazetteer)
     - [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
     - [OS Open Roads (enhanced)](#os-open-roads-enhanced)
@@ -90,8 +89,8 @@ The `historic-census-gb-geocoder-params.json` file allows you to adjust the foll
 "SCOT_1881":{"type":"full","use_existing_files":"yes"},
 "SCOT_1891":{"type":"full","use_existing_files":"yes"},
 "SCOT_1901":{"type":"full","use_existing_files":"yes"}}
-
 ```
+
 ## Run
 
 ```bash
@@ -122,6 +121,7 @@ ConParID|Consistent Parish ID
 ParID|Parish IDs
 RegCnty|Registration County
 
+*Sample (fabricated) Data*
 RecID|Address|ConParID|ParID|RegCnty
 --|--|--|--|--
 1|23 High Street|12|21|Essex
@@ -132,7 +132,8 @@ RecID|Address|ConParID|ParID|RegCnty
 6|25 High Street|12|21|Essex
 
 Citation
-Schurer, K., Higgs, E. (2020). Integrated Census Microdata (I-CeM), 1851-1911. [data collection]. UK Data Service. SN: 7481, DOI: 10.5255/UKDA-SN-7481-2
+
+>Schurer, K., Higgs, E. (2020). Integrated Census Microdata (I-CeM), 1851-1911. [data collection]. UK Data Service. SN: 7481, DOI: 10.5255/UKDA-SN-7481-2
 Schurer, K., Higgs, E. (2022). Integrated Census Microdata (I-CeM) Names and Addresses, 1851-1911: Special Licence Access. [data collection]. 2nd Edition. UK Data Service. SN: 7856, DOI: 10.5255/UKDA-SN-7856-2
 
 #### 1851 Parish Boundary Data for England and Wales (ENGLAND AND WALES ONLY)
@@ -147,7 +148,7 @@ FIELD|DESCRIPTION
 ID|Unique ID for parish, links to [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
 geometry|Polygon or Multipolygon boundary data
 
-*add examples*
+*Sample Data*
 
 ID|geometry
 --|--
@@ -172,11 +173,70 @@ UKDS_ID|ID that links to `ID` [1851 Parish Boundary Data for England and Wales](
 conparid_51-91|Consistent parish ID for census years 1851 to 1891; links to `ConParID` in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 conparid_01-11|Consistent parish ID for census years 1901 and 1911; links to `ConParID` in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 
-#### Registration Sub-District (RSD) Boundary Data
-#### Parish-Registration Sub-District (RSD) Dictionaries
+UKDS_ID|conparid_51-91|conparid_01-11
+--|--|--
+977|1|100001
+909|1|100001
+925|2|100001
+
+#### Registration Sub-District (RSD) Boundary Data and Lookup Table (ENGLAND AND WALES ONLY)
+
+`data/input/rsd_boundary_data` contains a shapefile and associated files of boundary data for Registration Sub-Districts in England and Wales 1851-1911. The correct RSD boundaries for each year are created by 'dissolving' the geometries on the appropriate `CEN` field, e.g. `CEN_1851` to create 1851 boundaries or `CEN_1901` to create 1901 boundaries. The boundary dataset looks like this:
+
+![RSD Boundary Data](documentation/RSD_boundary.png "RSD Boundary Data")
+
+
+
+
+FIELD|DESCRIPTION
+--|--
+CEN_1851|RSD ID for 1851
+CEN_1861|RSD ID for 1861
+CEN_1871|RSD ID for 1871
+CEN_1881|RSD ID for 1881
+CEN_1891|RSD ID for 1891
+CEN_1901|RSD ID for 1901
+CEN_1911|RSD ID for 1911
+geometry|Polygon or Multipolygon boundary data
+
+*Sample Data*
+
+CEN_1851|CEN_1861|CEN_1871|CEN_1881|CEN_1891|CEN_1901|CEN_1911|geometry
+--|--|--|--|--|--|--|--
+10001|10001|10001|10001|10101|10101|10001|MultiPolygon (((525713.3125 183236.54690000042319298, 525824.6875...)))
+10002|10002|10002|10002|10102|10102|10003|MultiPolygon (((527519.875 181175.60940000042319298...)))
+10002|10002|10002|10002|10102|10102|10002|MultiPolygon (((525407.86180000007152557 180858.28729999996721745...)))
+10001|10001|10001|10001|10101|10101|10002|MultiPolygon (((525405 181928, 525420 181906, 525487...)))
+
+Citation
+>Day, J.D. Registration sub-district boundaries for England and Wales 1851-1911 (2016). This dataset was created by the 'Atlas of Victorian Fertility Decline' project (PI: A.M. Reid) with funding from the ESRC (ES/L015463/1).
+
+The RSD Boundaries were supplied directly by Joe Day at the University of Bristol and Alice Reid at the University of Cambridge. They are in the process of being deposited with UKDS and the citation may change to reflect this in due course.
+
+`data/input/parish_rsd_lookup` contains a series of data dictionaries for linking I-CeM to the RSD Boundary Data. You can ignore `finalEWnondiss1851_1911.txt`, `PAR1851_RSD_MATCH.txt` and `1871_DICTIONARY_CODED.txt`. There are 6 other files - one for each census year in I-CeM - that link the `ParID` field in I-CeM to a `CEN_****` (e.g. `CEN_1851`) field in the RSD Boundary data above. 
+
+`historic-census-gb-geocoder` uses the following fields from the lookup tables (this example is taken from the 1851 file):
+
+FIELD|DESCRIPTION
+--|--
+ParID|Parish ID in [I-CeM](#integrated-census-microdata-i-cem)
+CEN_1851|RSD ID in [RSD Boundary Data](#registration-sub-district-rsd-boundary-data-and-lookup-table-england-and-wales-only)
+
+*Sample Data*
+
+ParID|CEN_1851
+--|--
+1|10001
+2|10002
+
+
+
+
 #### GB1900 Gazetteer
 
 #### OS Open Roads (enhanced)
+
+
 #### National Records of Scotland - Historic Civil Parishes pre-1891
 #### National Records of Scotland - Civil Parishes (post 1891)
 
@@ -202,21 +262,11 @@ conparid_01-11|Consistent parish ID for census years 1901 and 1911; links to `Co
 
 `oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. historic-census-gb-geocoder only requires the `RoadLink` files.
 
-#### 4. Registration Sub-District (RSD) Boundary Data (ENGLAND AND WALES ONLY)
 
-*Supplied directly by Joe Day at Bristol and Alice Reid at Cambridge - supposedly in the process of being deposited with UKDS. Update this when link to UKDS ready.*
 
-`data/input/rsd_boundary_data` contains a shapefile and associated files of boundary data for Registration Sub-Districts in England and Wales 1851-1911. The correct RSD boundaries for each year are created by 'dissolving' the geometries on the appropriate `CEN` field, e.g. `CEN_1851` to create 1851 boundaries or `CEN_1901` to create 1901 boundaries.
 
-#### 5. Parish-Registration Sub-District (RSD) Dictionaries (ENGLAND AND WALES ONLY)
 
-*Supplied directly by Joe Day at Bristol and Alice Reid at Cambridge - supposedly in the process of being deposited with UKDS. Update this when link to UKDS ready.*
 
-*Folder contains the word 'encoding' because the original files given to us weren't reading correctly (no matter which encoding I specified) so I re-encoded them to 'utf-8' to get them to work. This could be tidied up in future.*
-
-`parish_dicts_encoding` contains a series of data dictionaries for linking I-CeM to the RSD Boundary Data (point 4 above). Ignore `finalEWnondiss1851_1911.txt`, `PAR1851_RSD_MATCH.txt` and `1871_DICTIONARY_CODED.txt`.
-
-The dictionaries link the `CEN` fields in the RSD Boundary Data, e.g. `CEN_1851` to unique parish identifier `ParID` in I-CeM. For example, the 1851 dictionary lists each `ParID` in the 1851 census file and the corresponding `CEN_1851`. This tells us which parish lies within which registration sub-district.
 
 #### 6. GB1900 Gazetteer
 
@@ -286,4 +336,4 @@ SMALL ISLES | 100119 | exact
 
 This work was supported by Living with Machines (AHRC grant AH/S01179X/1) and The Alan Turing Institute (EPSRC grant EP/N510129/1). Living with Machines, funded by the UK Research and Innovation (UKRI) Strategic Priority Fund, is a multidisciplinary collaboration delivered by the Arts and Humanities Research Council (AHRC), with The Alan Turing Institute, the British Library and the Universities of Cambridge, East Anglia, Exeter, and Queen Mary University of London.
 
-I'd also like to  thank @mcollardanuy for reviewing the code.
+I'd also like to  thank @mcollardanuy for reviewing the code, Joe Day and Alice Reid for supplying RSD Boundary data and lookups prior to their deposit with the UK Data Service.
