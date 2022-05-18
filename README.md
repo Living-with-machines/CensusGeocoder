@@ -10,17 +10,18 @@ Geocode Historic Great British Census Data 1851-1911
 - [How it works](#how-historic-census-gb-geocoder-works)
   - [Overview](#overview)
   - [Data Inputs](#data-inputs)
+    - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
+    - [1851 Parish Boundary Data for England and Wales](#1851-parish-boundary-data-for-england-and-wales)
+    - [Registration Sub-District (RSD) Boundary Data](#registration-sub-district-rsd-boundary-data)
+    - [Parish-Registration Sub-District (RSD) Dictionaries](#parish-registration-sub-district-rsd-dictionaries)
+    - [GB1900 Gazetteer](#gb1900-gazetteer)
+    - [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
+    - [OS Open Roads (enhanced)](#os-open-roads-enhanced)
+    - [National Records of Scotland - Historic Civil Parishes pre-1891](#national-records-of-scotland---historic-civil-parishes-pre-1891)
+    - [National Records of Scotland - Civil Parishes (post 1891)](#national-records-of-scotland---civil-parishes-post-1891)
 - [How to cite historic-census-gb-geocoder](#how-to-cite-historic-census-gb-geocoder)
 - [Credit and re-use terms](#credit-and-re-use-terms)
-  - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
-  - [1851 Parish Boundary Data for England and Wales](#1851-parish-boundary-data-for-england-and-wales)
-  - [Registration Sub-District (RSD) Boundary Data](#registration-sub-district-rsd-boundary-data)
-  - [Parish-Registration Sub-District (RSD) Dictionaries](#parish-registration-sub-district-rsd-dictionaries)
-  - [GB1900 Gazetteer](#gb1900-gazetteer)
-  - [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
-  - [OS Open Roads (enhanced)](#os-open-roads-enhanced)
-  - [National Records of Scotland - Historic Civil Parishes pre-1891](#national-records-of-scotland---historic-civil-parishes-pre-1891)
-  - [National Records of Scotland - Civil Parishes (post 1891)](#national-records-of-scotland---civil-parishes-post-1891)
+
 - [Acknowledgements](#acknowledgements)
 
 ## What is historic-census-gb-geocoder
@@ -156,7 +157,7 @@ The files and documentation explaining the creation of the boundaries and the fi
 
 Citation:
 
->Satchell, A.E.M and Kitson, P.K and Newton, G.H and Shaw-Taylor, L. and Wrigley, E.A (2018). 1851 England and Wales census parishes, townships and places. [Data Collection]. Colchester, Essex: UK Data Archive. 10.5255/UKDA-SN-852232
+Satchell, A.E.M and Kitson, P.K and Newton, G.H and Shaw-Taylor, L. and Wrigley, E.A (2018). 1851 England and Wales census parishes, townships and places. [Data Collection]. Colchester, Essex: UK Data Archive. 10.5255/UKDA-SN-852232
 
 
 #### 1851EngWalesParishandPlace I-CeM Lookup Table (ENGLAND AND WALES ONLY)
@@ -171,6 +172,13 @@ UKDS_ID|ID that links to `ID` [1851 Parish Boundary Data for England and Wales](
 conparid_51-91|Consistent parish ID for census years 1851 to 1891; links to `ConParID` in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 conparid_01-11|Consistent parish ID for census years 1901 and 1911; links to `ConParID` in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 
+#### Registration Sub-District (RSD) Boundary Data
+#### Parish-Registration Sub-District (RSD) Dictionaries
+#### GB1900 Gazetteer
+
+#### OS Open Roads (enhanced)
+#### National Records of Scotland - Historic Civil Parishes pre-1891
+#### National Records of Scotland - Civil Parishes (post 1891)
 
 
 
@@ -183,13 +191,6 @@ conparid_01-11|Consistent parish ID for census years 1901 and 1911; links to `Co
 `historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
 
 
-### Registration Sub-District (RSD) Boundary Data
-### Parish-Registration Sub-District (RSD) Dictionaries
-### GB1900 Gazetteer
-
-### OS Open Roads (enhanced)
-### National Records of Scotland - Historic Civil Parishes pre-1891
-### National Records of Scotland - Civil Parishes (post 1891)
 
 
 
