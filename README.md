@@ -152,7 +152,10 @@ geometry|Polygon or Multipolygon boundary data
 
 ID|geometry
 --|--
-
+0|MultiPolygon (((324609.9061836339533329 553449.56249322975054383, 324656.15613449434749782…)))
+1|MultiPolygon (((446743.09374157758429646 400075.09375633631134406, 446731.84381735557690263…)))
+2|MultiPolygon (((579932.99360200657974929 144415.23930413232301362, 579938.06249888404272497…)))
+3|MultiPolygon (((408229.88241174072027206 604962.03670125640928745…)))
 
 The files and documentation explaining the creation of the boundaries and the fields in the dataset are available from the UKDS [here](https://reshare.ukdataservice.ac.uk/852816/). Access to the files requires registration with the UKDS.
 
@@ -184,9 +187,6 @@ UKDS_ID|conparid_51-91|conparid_01-11
 `data/input/rsd_boundary_data` contains a shapefile and associated files of boundary data for Registration Sub-Districts in England and Wales 1851-1911. The correct RSD boundaries for each year are created by 'dissolving' the geometries on the appropriate `CEN` field, e.g. `CEN_1851` to create 1851 boundaries or `CEN_1901` to create 1901 boundaries. The boundary dataset looks like this:
 
 ![RSD Boundary Data](documentation/RSD_boundary.png "RSD Boundary Data")
-
-
-
 
 FIELD|DESCRIPTION
 --|--
@@ -237,8 +237,8 @@ ParID|CEN_1851
 #### OS Open Roads (enhanced)
 
 
-#### National Records of Scotland - Historic Civil Parishes pre-1891
-#### National Records of Scotland - Civil Parishes (post 1891)
+#### National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891)
+
 
 
 
