@@ -15,16 +15,15 @@ Geocode Historic Great British Census Data 1851-1911
     - [Registration Sub-District (RSD) Boundary Data and Lookup Table](#registration-sub-district-rsd-boundary-data)
     - [GB1900 Gazetteer](#gb1900-gazetteer)
     - [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
-    - [OS Open Roads (enhanced)](#os-open-roads-enhanced)
-    - [National Records of Scotland - Historic Civil Parishes pre-1891](#national-records-of-scotland---historic-civil-parishes-pre-1891)
-    - [National Records of Scotland - Civil Parishes (post 1891)](#national-records-of-scotland---civil-parishes-post-1891)
+    - [OS Open Roads](#os-open-roads)
+    - [National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table](#national-records-of-scotland---historic-civil-parishes-pre-1891-and-civil-parishes-post-1891-boundary-data-and-lookup-table)
 - [How to cite historic-census-gb-geocoder](#how-to-cite-historic-census-gb-geocoder)
 - [Credit and re-use terms](#credit-and-re-use-terms)
 
 - [Acknowledgements](#acknowledgements)
 
 ## What is historic-census-gb-geocoder
-
+*To add*
 
 ## Installation
 
@@ -69,7 +68,7 @@ pip install -v -e .
 
 Edit `/path/to/` as appropriate to the directory that you cloned `historic-census-gb-geocoder` into. E.g. `/Users/jrhodes/historic-census-gb-geocoder`
 
-## Set parameters
+### Set parameters
 
 The `historic-census-gb-geocoder-params.json` file allows you to adjust the following for each census year:
 
@@ -91,7 +90,54 @@ The `historic-census-gb-geocoder-params.json` file allows you to adjust the foll
 "SCOT_1901":{"type":"full","use_existing_files":"yes"}}
 ```
 
-## Run
+
+
+### Folder structure and data
+*to edit*
+
+```bash
+├── data
+│   ├── input
+│   │   ├── 1851EngWalesParishandPlace
+│   │   ├── census_anonymisation_egress
+│   │   ├── oproad_essh_gb-2
+│   │   │   ├── data
+│   │   │   └── doc
+│   │   ├── parish_dicts_encoding
+│   │   ├── rsd_boundary_data
+│   │   └── scot_parish_boundary
+│   │       ├── CivilParish1930
+│   │       └── CivilParish_pre1891
+│   ├── new_geocode_egress
+│   ├── output
+│   │   ├── 1891
+│   │   │   └── EW
+│   │   │       └── testing
+│   │   ├── 1901
+│   │   │   └── SCOT
+│   │   │       └── testing
+│   │   └── 1911
+│   │       └── EW
+│   │           └── testing
+│   └── testing_outputs
+│       └── data
+│           └── output
+│               └── 1851
+│                   └── EW
+│                       └── testing
+├── inputs
+└── testing_outputs
+    └── data
+        └── output
+            ├── 1891
+            │   └── EW
+            │       └── testing
+            └── 1901
+                └── SCOT
+                    └── full
+```
+
+### Run
 
 ```bash
 python3 historic_census_gb_geocoder.py
@@ -234,67 +280,20 @@ ParID|CEN_1851
 
 #### GB1900 Gazetteer
 
-#### OS Open Roads (enhanced)
-
-
-#### National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891)
-
-
-
-
-
-
-
-
-## How to cite historic-census-gb-geocoder
-## Credit and re-use terms
-`historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
-
-
-
-
-
-
-
-
-#### 3. Ordnance Survey Open Roads
-`data/input/oproad_essh_gb-2` contains shapefiles and documentation from the Ordnance Survey's Open access modern road vector data. Available here to download: https://www.ordnancesurvey.co.uk/business-government/products/open-map-roads.
-
-`oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. historic-census-gb-geocoder only requires the `RoadLink` files.
-
-
-
-
-
-
-
-#### 6. GB1900 Gazetteer
-
 `gb1900_gazetteer_complete_july_2018.csv` contains transcriptions of text labels from the Second Edition County Series six-inch-to-one-mile maps covering the whole of Great Britain, published by the Ordnance Survey between 1888 and 1914. As well as the labels, GB1900 Gazetteer contains the geographic coordinates of the labels (usually taken from the upper, left-hand corner of the label).
 
 The version of the GB1900 Gazetteer used in this repo is the 'COMPLETE GB1900 GAZETTEER', which can be downloaded from [here](http://www.visionofbritain.org.uk/data/#tabgb1900). It is available on a CC-BY-SA licence.
 
 
+#### OS Open Roads
 
+`data/input/oproad_essh_gb-2` contains shapefiles and documentation from the Ordnance Survey's Open access modern road vector data. Available here to download: https://www.ordnancesurvey.co.uk/business-government/products/open-map-roads.
 
+`oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. historic-census-gb-geocoder only requires the `RoadLink` files.
 
-#### 8. Street Standardisation
+#### National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table
 
-*The naming conventions need to be improved here - this file is for use with the GB1900 Gazetteer.*
-
-*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
-
-`street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in GB1900 Gazetteer, e.g. Rd to Road.
-
-#### 9. I-CeM Street Standardisation
-
-*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
-
-`icem_street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in I-CeM, e.g. Rd to Road. Also removes extra letters left at the start of the address strings after removing digits (to comply with safehaven rules). E.g. '68A High Street' leaves 'A High Street', which is then cleaned to 'High Street'.
-
-#### 10. Scotland Parish Boundary data (SCOTLAND ONLY)
-
-`scot_parish_boundary/` - contains two Scottish parish boundary files and a lookup table that links the boundary files to I-CeM.
+`data/input/scot_parish_boundary/` - contains two Scottish parish boundary files and a lookup table that links the boundary files to I-CeM.
 
 There are Scottish parish boundary datasets for pre- and post-1891 civil parishes. A detailed discussion of the dataset and changes to the boundaries of Scottish parishes, see [National Records of Scotland - Historic Civil Parishes pre-1891](https://www.nrscotland.gov.uk/statistics-and-data/geography/our-products/other-national-records-of-scotland-nrs-geographies-datasets/historic-civil-parishes-pre-1891) and [National Records of Scotland - Civil Parishes (post 1891)](https://www.nrscotland.gov.uk/statistics-and-data/geography/our-products/other-national-records-of-scotland-nrs-geographies-datasets/civil-parishes). For further information on the major boundary changes around 1891, see also [Genuki](https://www.genuki.org.uk/big/sct/shennan/boundaries).
 
@@ -326,6 +325,32 @@ NEW CUMNOCK | 100595 | exact
 OLD CUMNOCK | 100597 | exact
 DAILLY | 100572 | exact
 SMALL ISLES | 100119 | exact
+
+
+
+
+
+
+
+
+## How to cite historic-census-gb-geocoder
+## Credit and re-use terms
+`historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
+
+#### 8. Street Standardisation
+
+*The naming conventions need to be improved here - this file is for use with the GB1900 Gazetteer.*
+
+*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
+
+`street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in GB1900 Gazetteer, e.g. Rd to Road.
+
+#### 9. I-CeM Street Standardisation
+
+*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
+
+`icem_street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in I-CeM, e.g. Rd to Road. Also removes extra letters left at the start of the address strings after removing digits (to comply with safehaven rules). E.g. '68A High Street' leaves 'A High Street', which is then cleaned to 'High Street'.
+
 
 
 ### Data Output
