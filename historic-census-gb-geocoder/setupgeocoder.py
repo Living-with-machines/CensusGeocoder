@@ -163,9 +163,9 @@ class CensusGB_geocoder:
 			Path to RSD boundary shapefile
 
 		"""
-		rsd_shapefile_path = None
-		if self.reuse_data == 'yes':
-			return rsd_shapefile_path
+		# rsd_shapefile_path = None
+		# if self.reuse_data == 'yes':
+		# 	return rsd_shapefile_path
 
 		if self.country == 'EW':
 			rsd_shapefile_folder = self.input_data_path + 'data/input/rsd_boundary_data/'
@@ -186,9 +186,9 @@ class CensusGB_geocoder:
 			Path to RSD dictionary lookup file
 
 		"""
-		rsd_dictionary_path = None
-		if self.reuse_data == 'yes':
-			return rsd_dictionary_path
+		# rsd_dictionary_path = None
+		# if self.reuse_data == 'yes':
+		# 	return rsd_dictionary_path
 
 		if self.country == 'EW':
 			rsd_dictionary_folder = self.input_data_path + 'data/input/parish_dicts_encoding/'
@@ -209,9 +209,9 @@ class CensusGB_geocoder:
 			Path to Parish shapefile
 
 		"""
-		parish_shapefile_path = None
-		if self.reuse_data == 'yes':
-			return parish_shapefile_path
+		# parish_shapefile_path = None
+		# if self.reuse_data == 'yes':
+		# 	return parish_shapefile_path
 
 		if self.country == 'EW':
 			parish_shapefile_path = self.input_data_path + 'data/input/1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp'
@@ -235,8 +235,8 @@ class CensusGB_geocoder:
 
 		"""
 		os_open_roads_filelist = []
-		if self.reuse_data == 'yes':
-			return os_open_roads_filelist
+		# if self.reuse_data == 'yes':
+		# 	return os_open_roads_filelist
 
 		os_open_roads_folder = self.input_data_path + 'data/input/oproad_essh_gb-2/data'
 		for root, directories, files in os.walk(os_open_roads_folder):
@@ -337,9 +337,9 @@ class CensusGB_geocoder:
 		gb1900_data: str
 			Path to GB1900 dataset.
 		"""
-		gb1900_data = None
-		if self.reuse_data == 'yes':
-			return gb1900_data
+		# gb1900_data = None
+		# if self.reuse_data == 'yes':
+		# 	return gb1900_data
 
 		gb1900_data = self.input_data_path + 'data/input/gb1900_gazetteer_complete_july_2018.csv'
 		return gb1900_data
@@ -353,9 +353,9 @@ class CensusGB_geocoder:
 		ukds_gis_to_icem_path: str
 			Path to lookup table file.
 		"""
-		ukds_gis_to_icem_path = None
-		if self.reuse_data == 'yes':
-			return ukds_gis_to_icem_path
+		# ukds_gis_to_icem_path = None
+		# if self.reuse_data == 'yes':
+		# 	return ukds_gis_to_icem_path
 		
 		if self.country == 'EW':
 			ukds_gis_to_icem_path = self.input_data_path + 'data/input/UKDS_GIS_to_icem.xlsx'
@@ -371,12 +371,14 @@ class CensusGB_geocoder:
 		scot_parish_lkup_path: str
 			Path to lookup table file.
 		"""
-		scot_parish_lkup_path = None
-		if self.reuse_data == 'yes':
-			return scot_parish_lkup_path
+		# scot_parish_lkup_path = None
+		# if self.reuse_data == 'yes':
+		# 	return scot_parish_lkup_path
 
 		if self.country == 'SCOT':
 			scot_parish_lkup_path = self.input_data_path + 'data/input/scot_parish_boundary/scotboundarylinking.xlsx'
+		else:
+			scot_parish_lkup_path = None
 			
 		return scot_parish_lkup_path
 
@@ -389,9 +391,9 @@ class CensusGB_geocoder:
 		census_file: str
 			Path to census file.
 		"""
-		census_file = None
-		if self.reuse_data == 'yes':
-			return census_file
+		# census_file = None
+		# if self.reuse_data == 'yes':
+		# 	return census_file
 
 		census_folder = self.input_data_path + 'data/input/census_anonymisation_egress/'
 		for root, directories, files in os.walk(census_folder):
