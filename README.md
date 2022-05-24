@@ -23,7 +23,8 @@ Geocode Historic Great British Census Data 1851-1911
 - [Acknowledgements](#acknowledgements)
 
 ## What is historic-census-gb-geocoder
-*To add*
+
+![overview](documentation/overview.png)
 
 ## Installation
 
@@ -207,7 +208,7 @@ The files and documentation explaining the creation of the boundaries and the fi
 
 Citation:
 
-Satchell, A.E.M and Kitson, P.K and Newton, G.H and Shaw-Taylor, L. and Wrigley, E.A (2018). 1851 England and Wales census parishes, townships and places. [Data Collection]. Colchester, Essex: UK Data Archive. 10.5255/UKDA-SN-852232
+>Satchell, A.E.M and Kitson, P.K and Newton, G.H and Shaw-Taylor, L. and Wrigley, E.A (2018). 1851 England and Wales census parishes, townships and places. [Data Collection]. Colchester, Essex: UK Data Archive. 10.5255/UKDA-SN-852232
 
 
 #### 1851EngWalesParishandPlace I-CeM Lookup Table (ENGLAND AND WALES ONLY)
