@@ -24,7 +24,7 @@ Geocode Historic Great British Census Data 1851-1911
 
 ## What is historic-census-gb-geocoder
 
-![overview](documentation/overview.png)
+![overview](documentation/overview_large.png)
 
 ## Installation
 
