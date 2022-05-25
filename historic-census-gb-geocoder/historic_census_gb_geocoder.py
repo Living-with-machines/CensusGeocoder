@@ -23,9 +23,10 @@ for key, value in geocode_parameters["geocoding"].items():
 		census_geocoder = setupgeocoder.CensusGB_geocoder(census_year,country,parse_option,input_data_path,output_data_path,value['use_existing_files'])
 		print(vars(census_geocoder))
 
-		os_roads, gb1900, census_unique_addresses, census_counties, census_processed = census_geocoder.preprocessing()
-		full_output = census_geocoder.geocoding(census_unique_addresses,gb1900,os_roads,census_counties)
-		final_output = census_geocoder.link_geocode_to_icem(census_processed,full_output)
+		os_roads, gb1900,census_counties = census_geocoder.preprocessing()
+		# full_output = census_geocoder.geocoding(gb1900,os_roads,census_counties,census_year,country)
+		census_geocoder.geocoding(gb1900,os_roads,census_counties,census_year,country)
+		# final_output = census_geocoder.link_geocode_to_icem(census_processed,full_output)
 
 		# Retain for testing purposes for now
 		# print(dsh_output['sh_id'].is_unique)

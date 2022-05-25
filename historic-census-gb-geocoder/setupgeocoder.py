@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import numpy as np
+from pyparsing import col
 import preprocess
 import recordcomparison
 import geopandas as gpd
@@ -696,17 +697,19 @@ class CensusGB_geocoder:
 			rsd_dictionary_processed = None
 			if self.country == 'EW':
 				rsd_dictionary_processed = preprocess.read_rsd_dictionary(self.rsd_dictionary_path,self.field_dict)
-			census_processed, census_unique_addresses, census_counties = preprocess.process_census(self.census_file,rsd_dictionary_processed,self.row_limit,self.field_dict)
-			census_processed.to_csv(census_processed_outputfile,sep="\t",index=False)
-			census_unique_addresses.to_csv(census_unique_addresses_outputfile,sep="\t") # Census Processed
-			with open (census_counties_outputfile,'w') as f:
-				for county in census_counties:
-					f.write(str(county) +"\n")
+			census_counties = preprocess.process_census(self.census_file,rsd_dictionary_processed,self.row_limit,self.field_dict,self.census_year,self.country)
 
 
-		return segmented_os_roads_prepped,gb1900_processed, census_unique_addresses, census_counties, census_processed
+			# census_processed.to_csv(census_processed_outputfile,sep="\t",index=False)
+			# census_unique_addresses.to_csv(census_unique_addresses_outputfile,sep="\t") # Census Processed
+			# with open (census_counties_outputfile,'w') as f:
+			# 	for county in census_counties:
+			# 		f.write(str(county) +"\n")
 
-	def geocoding(self,census,gb1900,segmented_os_roads,census_counties):
+
+		return segmented_os_roads_prepped,gb1900_processed, census_counties
+
+	def geocoding(self,gb1900,segmented_os_roads,census_counties,census_year,country):
 		"""
 		Links census addresses to the geometry data for streets in OS Open Roads and GB1900.Takes outputs from `preprocessing` method, iterates over counties in census computing the similarity between census addresses and addresses in OS Open Roads and GB1900.
 		
@@ -732,9 +735,15 @@ class CensusGB_geocoder:
 
 		for county in census_counties:
 			print(county)
-			census_subset = census[census['RegCnty'] == county].copy()
+			census_subset = pd.read_parquet(f'./data/input/census_parquet/{census_year}/{country}/',filters=[[('RegCnty','=',f'{county}')]],columns=['unique_add_id','ConParID',self.field_dict['cen'],'add_anon'])
+			print(census_subset)
+			# # Drop duplicate addresses, drop sh_id column
+			census_subset = census_subset.drop_duplicates(subset=['unique_add_id']).copy()
+			# # Set the 'unique_add_id' field as the index
+			census_subset = census_subset.set_index('unique_add_id')
 
-			census_subset = preprocess.compute_tfidf(census_subset).copy()
+			census_subset = preprocess.compute_tfidf(census_subset)
+			print(census_subset)
 
 			print(self.field_dict)
 			gb1900_candidate_links = recordcomparison.gb1900_candidate_links(census_subset,gb1900,self.field_dict)
@@ -750,22 +759,24 @@ class CensusGB_geocoder:
 				full_county_duplicate_output = pd.merge(left=gb1900_duplicates,right=os_duplicates,on='unique_add_id',how='outer',suffixes=['_gb1900','_os'])
 				# print(full_county_duplicate_output)
 				# Write full county output to file
-				full_county_output.to_csv(self.output_dir + '/{1}_{2}_full_county_output.tsv'.format(self.census_year,self.census_year,county),sep="\t",index=False)
-
-				full_county_duplicate_output.to_csv(self.output_dir + '/{1}_{2}_full_county_duplicate_output.tsv'.format(self.census_year,self.census_year,county),sep="\t",index=False)
-				full_output_list.append(full_county_output) # Append DSH output for this county to a list of dfs
-
-
-		print('Creating DSH outputs')
-		if full_output_list == []:
-			print('No DSH outputs to create')
-			full_all_output = None
-		else:
-			full_all_output = pd.concat(full_output_list)
-			full_all_output.to_csv(self.output_dir + '/{0}_full_output.tsv'.format(self.census_year),sep="\t",index=False)
+				# full_county_output.to_csv(self.output_dir + '/{1}_{2}_full_county_output.tsv'.format(self.census_year,self.census_year,county),sep="\t",index=False)
+				census_subset1 = pd.read_parquet(f'./data/input/census_parquet/{census_year}/{country}/',filters=[[('RegCnty','=',f'{county}')]],columns=['unique_add_id','sh_id'])
+				new_trial = pd.merge(left=census_subset1,right=full_county_output,on='unique_add_id',how='inner')
+				print(new_trial)
+				new_trial.to_csv(self.output_dir + f'/{self.census_year}_{county}_full_county_duplicate_output.tsv',sep="\t",index=False)
+				# full_output_list.append(full_county_output) # Append DSH output for this county to a list of dfs
 
 
-		return full_all_output
+		# print('Creating DSH outputs')
+		# if full_output_list == []:
+		# 	print('No DSH outputs to create')
+		# 	full_all_output = None
+		# else:
+		# 	full_all_output = pd.concat(full_output_list)
+		# 	full_all_output.to_csv(self.output_dir + '/{0}_full_output.tsv'.format(self.census_year),sep="\t",index=False)
+
+
+		return None
 
 	def link_geocode_to_icem(self,census_processed,geocoded_addressses):
 		# census_processed = pd.read_csv('/Users/jrhodes/historic-census-gb-geocoder/data/testing_outputs/data/output/1851/EW/testing/census_processed_1851_EW_testing.tsv',sep="\t")

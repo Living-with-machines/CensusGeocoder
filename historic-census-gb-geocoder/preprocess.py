@@ -1,8 +1,10 @@
 import os
+import dask.dataframe as dd
 import pandas as pd
 import geopandas as gpd
 import json
 import pygeos as pg
+from pathlib import Path
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -291,7 +293,7 @@ def read_rsd_dictionary(rsd_dictionary,field_dict):
 	return rsd_dict
 
 
-def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
+def process_census(census_file,rsd_dictionary,rows_to_use,field_dict,census_year,country):
 
 	"""
 	Read the census file and prepare it for subsquent geo-coding steps.
@@ -321,41 +323,52 @@ def process_census(census_file,rsd_dictionary,rows_to_use,field_dict):
 
 	census_variables = ['safehaven_id','address_anonymised','ConParID','ParID','RegCnty']
 	print('Reading census')
-	census = pd.read_csv(census_file,sep="\t",quoting=3,encoding = "latin-1",na_values=".",usecols=census_variables,nrows=rows_to_use)
+
+	census_dd = dd.read_csv(census_file,sep="\t",encoding="latin-1",na_values=".",usecols=census_variables,quoting=3,blocksize=25e6,assume_missing=True)
+	# census_dd.to_parquet(f'./data/input/census_parquet/{census_year}/{country}/', partition_on=['RegCnty'], engine="pyarrow")
+	
+
+
+	# census = pd.read_csv(census_file,sep="\t",quoting=3,encoding = "latin-1",na_values=".",usecols=census_variables,nrows=rows_to_use)
 	print('Successfully read census')
 
-	census['ConParID'] = pd.to_numeric(census['ConParID'], errors='coerce')
+	census_dd['ConParID'] = pd.to_numeric(census_dd['ConParID'], errors='coerce')
 
-	census = census.rename({'address_anonymised':'add_anon','safehaven_id':'sh_id'},axis=1) # This isn't necessary now as output is tsv not .shp so field names don't have to be under 10 characters long.
+	census_dd = census_dd.rename(columns = {'address_anonymised':'add_anon','safehaven_id':'sh_id'}) # This isn't necessary now as output is tsv not .shp so field names don't have to be under 10 characters long.
 
 	# Make limited regex replacements to standardise street names
 	with open('./inputs/icem_street_standardisation.json') as f:
 		street_standardisation = json.load(f)
-	census['add_anon'] = census['add_anon'].replace(street_standardisation,regex=True)
-	census['add_anon'] = census['add_anon'].replace('^\\s*$',np.nan,regex=True)
-	census['add_anon'] = census['add_anon'].str.strip()
-	census = census.dropna(subset=['add_anon']).copy()
+	census_dd['add_anon'] = census_dd['add_anon'].replace(street_standardisation,regex=True)
+	census_dd['add_anon'] = census_dd['add_anon'].replace('^\\s*$',np.nan,regex=True)
+	census_dd['add_anon'] = census_dd['add_anon'].str.strip()
+	census_dd = census_dd.dropna(subset=['add_anon']).copy()
 
 	if field_dict['country'] == 'EW':
-		census = pd.merge(left=census,right=rsd_dictionary,left_on='ParID',right_on=field_dict['parid_for_rsd_dict'],how='left')
-		census[field_dict['cen']] = pd.to_numeric(census[field_dict['cen']], errors='coerce')
+		census_dd = dd.merge(left=census_dd,right=rsd_dictionary,left_on='ParID',right_on=field_dict['parid_for_rsd_dict'],how='left')
+		census_dd[field_dict['cen']] = pd.to_numeric(census_dd[field_dict['cen']], errors='coerce')
 		# Create an id for each unique 'address' + ConParID + CEN_1901 combination
-		census['unique_add_id'] = census['add_anon'].astype(str)+'_'+census['ConParID'].astype(str) + '_' + census[field_dict['cen']].astype(str)
+		census_dd['unique_add_id'] = census_dd['add_anon'].astype(str)+'_'+census_dd['ConParID'].astype(str) + '_' + census_dd[field_dict['cen']].astype(str)
 		print('Merged with RSD dictionary')
 	elif field_dict['country'] == 'SCOT':
-		census['unique_add_id'] = census['add_anon'].astype(str)+'_'+census['ParID'].astype(str)
+		census_dd['unique_add_id'] = census_dd['add_anon'].astype(str)+'_'+census_dd['ParID'].astype(str)
 
+	census_dd.to_parquet(f'./data/input/census_parquet/{census_year}/{country}/', partition_on=['RegCnty'], engine="pyarrow")
 
-	# Drop duplicate addresses, drop sh_id column
-	census_unique = census.drop_duplicates(subset=['unique_add_id']).drop('sh_id',axis=1)
-	# Set the 'unique_add_id' field as the index
-	census_unique_addresses = census_unique.set_index('unique_add_id')
-
-
-	census_counties = census['RegCnty'].unique()
+	# Gets census counties from the file paths output via the to_parquet above
+	census_counties = []
+	for p in Path(f'./data/input/census_parquet/{census_year}/{country}/').iterdir():
+		census_counties.append(p.stem.split('=')[1])
 	census_counties = sorted(census_counties)
+	# trial = pd.read_parquet(f'./data/input/census_parquet/{census_year}/{country}/',filters=[[('RegCnty','=','Anglesey')]])
+	# print(trial)
 
-	return census, census_unique_addresses, census_counties
+
+
+	# census_counties = census['RegCnty'].unique()
+	# census_counties = sorted(census_counties)
+
+	return census_counties
 
 def scot_parish_lookup(scot_parish_lkup_path,census_year):
 	"""
