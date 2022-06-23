@@ -1,97 +1,46 @@
+from hashlib import new
 import pandas as pd
-import os
-import numpy as np
-from pyparsing import col
-import preprocess
+import ew_geom_preprocess
+import scot_geom_preprocess
+import target_geom_preprocess
+import census
+import utils
 import recordcomparison
-import geopandas as gpd
 import pathlib
 
-class CensusGB_geocoder:
+class CensusGB_geocoder():
 	"""
-	Class to geo-code census data
+	Base Class to geo-code census data
 
 	Attributes
 	----------
 	#### GENERAL
 	census_year : int
-		The census year to be geo-coded, specified in `data/historic-census-gb-geocoder-params.json`
-	country_input: str
-		The country to be geo-coded, specified in `data/historic-census-gb-geocoder-params.json`
-	parse_option: str
-		The parse_option of geo-coding to be run, specified in `data/historic-census-gb-geocoder-params.json`
+		The census year to be geo-coded, specified in `data/historic-census-gb-geocoder-config.json`
+	census_country: str
+		The country to be geo-coded, specified in `data/historic-census-gb-geocoder-config.json`
+	# runtype: str
+	# 	The parse_option of geo-coding to be run, specified in `data/historic-census-gb-geocoder-params.json`
 	input_data_path: str
-		The path to the `data/` folder, where the datasets needed to run the code are stored
+		The path to to where the datasets needed to run the code are stored, specified in `data/historic-census-gb-geocoder-config.json`
 	output_data_path: str
 		The path to the outputs directory, where all outputs from the geo-coding script are stored. E.g. `data/output/1901/SCOT`.
-
-	os_open_roads_filelist: list
-		List of file paths for OS Open Road data.
-	gb1900_file: str
-		Path to GB1900 dataset.
 	census_file: str
-		Path to the census file to be geocoded.
-	parish_shapefile_path: str
-		Path to the Parish Boundary Shapefile for either England and Wales or Scotland.
-
+		Path to the census file to be geocoded, specified in `data/historic-census-gb-geocoder-config.json`.
 	row_limit: int
 		The number of rows of the OS Open Road and census file to read. If `parse_option` parameter is 'full', then `row_limit` is None, which results in the full files being read. If `parse_option` parameter is 'testing', then `row_limit` is 15,000. By limiting the number of rows of data read from the OS Open Road dataset and the census file, the script will run much quicker for testing purposes.
-
-	field_dict: dict
-		Dictionary containing the column or field names for the various datasets used as part of the geo-coding script. Contains the following keys: "country", "cen", "conparid", "conparid_alt", "os_road_id", "scot_parish", "parid_for_rsd_dict". The values for each key are set in the below E&W and Scotland specific variables.
-
-	os_road_id: str
-		Name of the unique id field for roads in the OS Open Roads after segmenting roads by RSD/Parish boundaries for specified census year. Created using 'road_id_' + final two digits of census year, e.g. 'road_id_01'. # In future I want to add the country into this name, e.g. 'EW' or 'Scot', and expand the last two digits of the census year so that the name includes the full census year.
-
-	#### ENGLAND & WALES SPECIFIC
-	conparid: str
-		The 'ConParID' column name, either 'conparid_51-91' for 1851 to 1891 or 'conparid_01-11' for 1901 to 1911.
-	cen: str
-		The cen field found in the RSD Dictionary lookup files and RSD Boundary Shapefiles. Created using 'cen' + `census_year` attribute, e.g. 'CEN_1901'. Used to dissolve the RSD Shapefile to create the correct RSD boundaries for specified census year and to link these to RSD Dictionary lookup.
-	rsd_shapefile_path: str
-		Path to the England and Wales RSD Boundary Shapefile.
-	rsd_dictionary_path: str
-		Path to the England and Wales RSD Dictionary lookup file for the specified census year.
-	ukds_gis_to_icem_path: str
-		Path to lookup table that links England and Wales Parish Boundary Shapefile to the Consistent Parish Geographies (`ConParID` field) in I-CeM
-	parid_for_rsd_dict: str
-		Name of the `Par_ID` column in the England and Wales RSD Dictionary lookup file. For 1851,1861,1891,1901, and 1911 the column is labelled 'ParID'. The 1881 RSD Dictionary lookup file has two columns 'OLD_ParID' and 'NEW_ParID', we use 'NEW_ParID'.
-
-	#### SCOTLAND SPECIFIC
-
-	scot_parish_lkup_file: str
-		Path to the lookup table that links the Scotland Parish boundary shapefile to the 'ParID' field in I-CeM.
+	target_geoms: dict
+		Dictionary containing information about the target geometry to be linked to the census.
 
 	Methods
 	----------
-	set_conparid()
-		Sets the label to be used for the 'ConParID' field.
-	set_cen()
-		Sets the label for the 'CEN_****' field for the specified census year in RSD Dictionary lookup files and RSD Boundary Shapefiles, e.g. 'CEN_1901'.
-	set_os_road_id()
-		Sets the unique id field for roads in OS Open Roads datasets after segmenting by boundary data, e.g. 'road_id_01'.
-	set_rsd_shapefile()
-		Sets the filepath to the England and Wales Registration Sub-District (RSD) Boundary shapefile.
-	set_rsd_dictionary()
-		Sets filepath to the England and Wales Registration Sub-District (RSD) dictionary lookup file.
-	set_parish_shapefile()
-		Sets the filepath to the Parish Boundary shapefile for England and Wales or Scotland.
-	set_os_open_roads_filelist()
-		Sets the list of shapefiles to be used from the OS Open Roads dataset.
-	set_gb1900_file()
-		Sets the GB1900 file.
-	set_ukds_gis_to_icem_file()
-		Sets the UKDS_GIS_to_icem file.
-	set_census_file()
-		Sets the census file to be geo-coded.
-	set_par_id()
-		Sets the ParID column label for the England and Wales Registration Sub-District (RSD) dictionary lookup file.
+
 	set_row_limit()
 		Sets the number of rows to read from OS Open Roads, GB1900, and Census file.
 	set_output_dir()
 		Sets the output directory to which all outputs are written. Creates directory if none exists.
-	create_field_dict()
-		Creates a dictionary that holds various column or field names from various input datasets.
+
+
 	preprocessing()
 		Pre-processes input files, returning OS Open Road data, GB1900, Census, and a list of census counties. Writes OS Open Road and GB1900 datasets segmented by historic parish/RSD boundaries.
 	geocoding()
@@ -100,155 +49,40 @@ class CensusGB_geocoder:
 		Produces summary statistics, detailing the contents of the geo-coded outputs.
 
 	"""
-
-	def __init__(self,census_year,country_input,parse_option,input_data_path,output_data_path,reuse_data):
+		
+	def __init__(self,census_country,census_year,census_params,target_geoms,path_to_data):
 
 		"""
 		Parameters
 		----------
 		census_year : int
 			The census year to be geo-coded, e.g. 1851, 1861, 1871, 1881, 1891, 1901, or 1911. Warning, no census data for England and Wales for 1871, and no Scottish census data for 1911. Specified in parameters json.
-		country_input: str
-			Name of the census country to be geo-coded, either 'EW' for England and Wales, or 'SCOT' for Scotland. Specified in parameters json.
-		parse_option: str
+		runtype: str
 			Specify type of geo-coding, use 'full' to geo-code entire year and country specified, or 'testing' to geo-code sample for testing/debugging purposes. Specified in parameters json.
 		input_data_path: str
 			Specify the path to the `data/` folder, where the datasets needed to perform the geocoding are stored.
 		output_data_path: str
 			Specify the path to the outputs folder, where the outputs are stored.
-		reuse_data: str
-			If value is 'yes' and the source data has already been preprocessed, reuse preprocessed data. If value is 'no', preprocess data.
 		"""
 
-		"""
-		GEO-CODING PARAMETERS PASSED FROM `data/historic-census-gb-geocoder-params.json`
-		"""
+		self.census_country = census_country
+		self.inputdir = path_to_data['input_data_path']
 		self.census_year = census_year
-		self.country = country_input
-		self.parse_option = parse_option
-		self.input_data_path = input_data_path
-		self.output_data_path = output_data_path
-		self.reuse_data = reuse_data
-
-		"""
-		GENERAL VARIABLES
-		"""
-		self.os_open_roads_filelist = self.set_os_open_roads_filelist()
-		self.gb1900_file = self.set_gb1900_file()
-		self.census_file = self.set_census_file()
-		self.row_limit = self.set_row_limit()
-		self.output_dir = self.set_output_dir()
-		self.field_dict = self.create_field_dict()
-
-		"""
-		ENGLAND & WALES SPECIFIC VARIABLES
-		"""
-		self.rsd_shapefile_path = self.set_rsd_shapefile()
-		self.rsd_dictionary_path = self.set_rsd_dictionary()
-		self.parish_shapefile_path = self.set_parish_shapefile()
-		self.ukds_gis_to_icem_path = self.set_ukds_gis_to_icem_file()
-
-		"""
-		SCOTLAND SPECIFIC VARIABLES
-		"""
-		self.scot_parish_lkup_file = self.set_scot_parish_lookup_file()
-
-	def set_rsd_shapefile(self):
-		"""
-		Set path to Registration Sub-District (RSD) boundary shapefile. There is one shapefile for 1851-1911, the boundaries for a specific census year are created by dissolving the shapefile on a specified field. The pre-processing and dissolving are done by `process_rsd_boundary_data` in `preprocess.py`.
-
-		Returns
-		----------
+		self.row_limit = self.set_row_limit(census_params['runtype'])
+		self.census_file = f"{self.inputdir}/{census_params['census_file']}"
 		
-		rsd_shapefile_path: str
-			Path to RSD boundary shapefile
+		self.outputdir = self.set_output_dir(path_to_data['output_data_path'],self.census_country,self.census_year,census_params['runtype'])
+		self.target_geoms = target_geoms
+		self.census_fields = census_params['census_fields']
+		self.census_csv_params = census_params['csv_params']
+		self.census_standardisation_file = f"{self.inputdir}/{census_params['census_standardisation_file']}"
+		self.census_output_params  = census_params['census_output_params']
 
+
+
+	def set_row_limit(self,runtype):
 		"""
-		# rsd_shapefile_path = None
-		# if self.reuse_data == 'yes':
-		# 	return rsd_shapefile_path
-
-		if self.country == 'EW':
-			rsd_shapefile_folder = self.input_data_path + 'data/input/rsd_boundary_data/'
-			for root, directories, files in os.walk(rsd_shapefile_folder):
-				for file in files:
-					if file == 'RSD_1851_1911_JR.shp':
-						rsd_shapefile_path = os.path.join(root,file)
-		return rsd_shapefile_path
-
-	def set_rsd_dictionary(self):
-		"""
-		Set path to Registration Sub-District (RSD) dictionary lookup for census year specified when initiating CensusGB_geocoder class, e.g. `CensusGB_geocoder(1881,'EW','testing')`
-
-		Returns
-		----------
-		
-		rsd_dictionary_path: str
-			Path to RSD dictionary lookup file
-
-		"""
-		# rsd_dictionary_path = None
-		# if self.reuse_data == 'yes':
-		# 	return rsd_dictionary_path
-
-		if self.country == 'EW':
-			rsd_dictionary_folder = self.input_data_path + 'data/input/parish_dicts_encoding/'
-			for root, directories, files in os.walk(rsd_dictionary_folder):
-				for file in files:
-					if str(self.census_year) in file and 'DICTIONARY_CODED' in file:
-						rsd_dictionary_path = os.path.join(root,file)
-		return rsd_dictionary_path
-
-	def set_parish_shapefile(self):
-		"""
-		Set path to the appropriate Parish boundary shapefile for the census year and country specified in parameters json.
-
-		Returns
-		----------
-		
-		parish_shapefile_path: str
-			Path to Parish shapefile
-
-		"""
-		# parish_shapefile_path = None
-		# if self.reuse_data == 'yes':
-		# 	return parish_shapefile_path
-
-		if self.country == 'EW':
-			parish_shapefile_path = self.input_data_path + 'data/input/1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp'
-		else:
-			if self.census_year <= 1891:
-				parish_shapefile_path = self.input_data_path + 'data/input/scot_parish_boundary/CivilParish_pre1891/CivilParish_pre1891.shp'
-			else:
-				parish_shapefile_path = self.input_data_path + 'data/input/scot_parish_boundary/CivilParish1930/CivilParish1930.shp'
-
-		return parish_shapefile_path
-
-	def set_os_open_roads_filelist(self):
-		"""
-		Set path to Ordnance Survey Open Roads (OS Open Roads) dataset. For more documentation on OS Open Roads, see https://www.ordnancesurvey.co.uk/business-government/tools-support/open-map-roads-support. This function reads only the files with line vector data, labelled as `RoadLink.shp` and prefaced with the National Grid reference that they cover. The OS Open Roads dataset also includes nodes, which are ignored here.
-
-		Returns
-		----------
-		
-		os_open_roads_path_list: list containing str
-			List containing the paths to OS Open Road line shapefiles.
-
-		"""
-		os_open_roads_filelist = []
-		# if self.reuse_data == 'yes':
-		# 	return os_open_roads_filelist
-
-		os_open_roads_folder = self.input_data_path + 'data/input/oproad_essh_gb-2/data'
-		for root, directories, files in os.walk(os_open_roads_folder):
-			for file in files:
-				if 'RoadLink.shp' in file:
-					os_open_roads_filelist.append(os.path.join(root,file))
-		return os_open_roads_filelist
-
-	def set_row_limit(self):
-		"""
-		Checks the `parse_option` value pecified in parameters json.
+		Checks the `parse_option` value specified in parameters json.
 
 		Returns
 		----------
@@ -258,152 +92,11 @@ class CensusGB_geocoder:
 
 		"""
 		rows = None
-		if self.parse_option == 'testing':
-			rows = 15000
+		if runtype == 'testing':
+			rows = 1000
 		return rows
 
-	def set_conparid(self):
-		"""
-		Set the consistent parish id field for the appropriate census year and country. No consistent parish id used for Scotland. There are two consistent parish ids for England and Wales, one that covers 1851 to 1891, and a second that covers 1901 to 1911.
-
-		Returns
-		----------
-		
-		conparid: str
-			Appropriate census year / country ConParID field name for I-CeM.
-
-		"""
-		conparid = None
-		if self.country == 'EW':
-			if self.census_year in [1851,1861,1881,1891]:
-				conparid = 'conparid_51-91'
-			elif self.census_year in [1901,1911]:
-				conparid = 'conparid_01-11'
-		return conparid
-
-	def set_cen(self):
-		"""
-		Set the cen field for the specified census year. The cen field is found in the RSD Dictionary lookup files and RSD Boundary Shapefiles. Created using 'cen' + `census_year` attribute, e.g. 'CEN_1901'. `cen` is used to dissolve the RSD Shapefile to create the correct RSD boundaries for specified census year and to link these to RSD Dictionary lookup. England and Wales only.
-
-		Returns
-		----------
-		
-		cen: str
-			Name of CEN column for specified census year, e.g. 'CEN_1901'.
-
-		"""
-		if self.country == 'EW':
-			# cen = 'CEN_{}'.format(self.census_year)
-			cen = f'CEN_{self.census_year}'
-		else:
-			cen = None
-		return cen
-
-	def set_os_road_id(self):
-		"""
-		Set the label of the unique id field for roads in the OS Open Roads dataset after processing and segmentation by RSD/parish boundary data for specified census year and country.
-		
-		Returns
-		----------
-		os_road_id: str
-			Name of the unique id field for roads in the OS Open Roads after segmenting roads by RSD/Parish boundaries for specified census year. Created using 'road_id_' + final two digits of census year, e.g. 'road_id_01'. # In future I want to add the country into this name, e.g. 'EW' or 'Scot', and expand the last two digits of the census year so that the name includes the full census year.
-		"""
-
-		os_road_id = 'road_id_' + str(self.census_year)[-2:]
-		return os_road_id
-
-	def set_parid_for_rsd_dict(self):
-		"""
-		Set the label of the `Par_ID` column in the RSD Dictionary lookup file for the specified census year.
-		
-		Returns
-		----------
-		par_id: str
-			Name of the `Par_ID` column in the RSD Dictionary lookup file. For 1851,1861,1891,1901, and 1911 the column is labelled 'ParID'. The 1881 RSD Dictionary lookup file has two columns 'OLD_ParID' and 'NEW_ParID', we use 'NEW_ParID'.
-		"""
-		parid_for_rsd_dict = None
-		if self.country == 'EW':
-			if self.census_year in [1851,1861,1891,1901,1911]:
-				parid_for_rsd_dict = 'ParID'
-			elif self.census_year in [1881]:
-				parid_for_rsd_dict = 'NEW_ParID'
-		return parid_for_rsd_dict
-	
-	def set_gb1900_file(self):
-		"""
-		Set the path to the GB1900 dataset.
-
-		Returns
-		----------
-		gb1900_data: str
-			Path to GB1900 dataset.
-		"""
-		# gb1900_data = None
-		# if self.reuse_data == 'yes':
-		# 	return gb1900_data
-
-		gb1900_data = self.input_data_path + 'data/input/gb1900_gazetteer_complete_july_2018.csv'
-		return gb1900_data
-
-	def set_ukds_gis_to_icem_file(self):
-		"""
-		Set the path to 'UKDS_GIS_to_icem.xlsx' file, available from https://www.essex.ac.uk/research-projects/integrated-census-microdata. Lookup table that links Parish Boundary Shapefile to the Consistent Parish Geographies (`ConParID` field) in I-CeM. England and Wales only.
-
-		Returns
-		----------
-		ukds_gis_to_icem_path: str
-			Path to lookup table file.
-		"""
-		# ukds_gis_to_icem_path = None
-		# if self.reuse_data == 'yes':
-		# 	return ukds_gis_to_icem_path
-		
-		if self.country == 'EW':
-			ukds_gis_to_icem_path = self.input_data_path + 'data/input/UKDS_GIS_to_icem.xlsx'
-			
-		return ukds_gis_to_icem_path
-
-	def set_scot_parish_lookup_file(self):
-		"""
-		Set path to the lookup table for Scottish boundary data. Currently only 1901 is available. Scotland only.
-
-		Returns
-		----------
-		scot_parish_lkup_path: str
-			Path to lookup table file.
-		"""
-		# scot_parish_lkup_path = None
-		# if self.reuse_data == 'yes':
-		# 	return scot_parish_lkup_path
-
-		if self.country == 'SCOT':
-			scot_parish_lkup_path = self.input_data_path + 'data/input/scot_parish_boundary/scotboundarylinking.xlsx'
-		else:
-			scot_parish_lkup_path = None
-			
-		return scot_parish_lkup_path
-
-	def set_census_file(self):
-		"""
-		Set the path to the census file to be geocoded.
-
-		Returns
-		----------
-		census_file: str
-			Path to census file.
-		"""
-		# census_file = None
-		# if self.reuse_data == 'yes':
-		# 	return census_file
-
-		census_folder = self.input_data_path + 'data/input/census_anonymisation_egress/'
-		for root, directories, files in os.walk(census_folder):
-			for file in files:
-				if str(self.census_year) in file and self.country in file:
-					census_file = os.path.join(root,file)
-		return census_file
-
-	def set_output_dir(self):
+	def set_output_dir(self,outputdirparent,census_country,census_year,runtype):
 		"""
 		Set the output directory in the format e.g. `data/output/1901/EW/full`. Checks if output directory exists, if it doesn't it creates a directory. 
 
@@ -413,305 +106,25 @@ class CensusGB_geocoder:
 			Path to output directory.
 		"""
 
-		output_dir = self.output_data_path + f'data/output/{str(self.census_year)}/{self.country}/{self.parse_option}'
+		output_dir = outputdirparent + f'/{str(census_year)}/{census_country}/{runtype}'
 		pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
 		return output_dir
+	
+	def link_geocode_to_icem(self,linked,county,new_uid,geom_name):
 
-	def create_field_dict(self):
+		census = pd.read_parquet(self.outputdir,filters=[[('RegCnty','=',f'{county}')]],columns=['unique_add_id','safehaven_id'])
+		print(census.info())
+		print(linked.info())
+		new_trial = pd.merge(left=census,right=linked,on='unique_add_id',how='inner')
+		new_trial = new_trial[['safehaven_id',new_uid]]
+		new_trial.to_csv(f'data/output/testingoutput/{county}_{geom_name}_linked_output.tsv',sep="\t",index=False)
+		pass
+
+
+	def geocoding_new(self,parish_data_processed,census_blocking_cols,geom_blocking_cols,census_counties):
 		"""
-		Create a dictionary of values and field column names for use in various stages of the geo-coding process to allow code to select the correct column names and parameters depending on the year or country specified.
-
-		Returns
-		----------
-		field_dict: dictionary
-			Dictionary containing values and field names.
-		"""
-		field_dict = {}
-		field_dict['country'] = self.country
-		field_dict['cen'] = self.set_cen()
-		field_dict['conparid'] = self.set_conparid()
-		field_dict['os_road_id'] = self.set_os_road_id()
-		field_dict['scot_parish'] = 'ParID_link'
-		field_dict['parid_for_rsd_dict'] = self.set_parid_for_rsd_dict()
-		return field_dict
-
-	def preprocessing(self):
-
-		"""
-		Checks for existing pre-processed files, if these exist, it reads the files and moves to the geo-coding phase. If pre-processed files don't exist, it pre-processes input files, returning OS Open Road data, GB1900, a processed version of the census, a census subset only including unique addresses, and a list of census counties. It writes full versions of processed OS Open Road Data, GB1900, and processed census data, as well as a subset of the census data only including unique addresses and a list of census counties.
-
-		Writes to output files
-		---------
-		
-		segmented_os_roads_prepped: `geopandas.GeoDataFrame`
-			GeoDataFrame of OS Open Roads data with additional attributes and new geometries based on RSD/Parish Boundaries attributes, which is ready to link to the census file. 
-			The GeoDataFrame contains the following fields:
-
-			`road_id_{}` - unique id of road constructed from `nameTOID` + '_' + `new_id`. {} populated with last two digits of census year e.g. 'road_id_61' for 1861. To be improved e.g. add full census year and country.
-
-			`name1` - name of road from base OS Open Roads Dataset.
-
-			`nameTOID`- unique id of road from base OS Open Roads Dataset.
-			
-			`new_id` - id created from either, England and Wales: `conparid_$` + '_' + `CEN_$`; Scotland: `ParID`.
-
-			`geometry` - Linestring or Multi Linestring geometry of a road.
-
-			`conparid_$` - The ConParID that this road is within. ***England and Wales ONLY***
-
-			`CEN_$` - The id of the RSD Unit that this road is within. ***England and Wales ONLY***
-
-			`ParID_link` - The ParID that this road is within. ***Scotland ONLY***
-
-
-		gb1900_processed: `geopandas.GeoDataFrame`
-			GeoDataFrame of GB1900 data with additional attributes and new geometries based on RSD/Parish Boundaries attributes, which is ready to link to the census file. 
-			The GeoDataFrame contains the following fields:
-
-			`pid_id` - unique id of GB1900 label.
-
-			`final_text` - transcribed map text label (e.g. the name of a street)
-
-			`osgb_east`- Easting
-
-			`osgb_north`- Northing
-			
-			`geometry` - Point geometry of map text label.
-
-			`new_id` - id created from either, England and Wales: `conparid_$` + '_' + `CEN_$`; Scotland: `ParID`.
-
-			`conparid_$` - The ConParID that this label is within. ***England and Wales ONLY***
-
-			`CEN_$` - The id of the RSD Unit that this label is within. ***England and Wales ONLY***
-
-			`ParID_link` - The ParID that this road is within. ***Scotland ONLY***
-
-		census_counties: list
-			Unique, sorted list of the names of Census Registration Counties in census file.
-
-		census_processed: `pandas.DataFrame`
-			DataFrame of census data with additional attributes from the RSD Dictionary lookup table, giving the RSD unit for each person.
-
-			The DataFrame contains the following fields:
-
-			`unique_add_id` - Unique id for an address comprised of `add_anon` + '_' + `ConParID` + '_' + `cen_$`.
-
-			`add_anon` - The street address, stripped of numerical digits to comply with egress from Turing DataSafeHaven.
-
-			`RegCnty` - Census Registration County
-
-			`sh_id_list` - List of the `safehaven_ids` that are associated with this unique address.
-
-			`ConParID` - The ConParID value from I-CeM ***England and Wales ONLY***
-
-			`cen_$` - The id of the RSD Unit that this address lies within. ***England and Wales ONLY***
-
-			`ParID` - The ParID value from I-CeM ***Scotland ONLY***
-
-		census_unique_addresses: `pandas.DataFrame`
-			DataFrame of unique addresses from census with additional attributes to perform geo-blocking in geocoding function.
-
-			The DataFrame contains the following fields:
-
-			`unique_add_id` - Unique id for an address comprised of `add_anon` + '_' + `ConParID` + '_' + `cen_$`.
-
-			`add_anon` - The street address, stripped of numerical digits to comply with egress from Turing DataSafeHaven.
-
-			`RegCnty` - Census Registration County
-
-			`ConParID` - The ConParID value from I-CeM ***England and Wales ONLY***
-
-			`cen_$` - The id of the RSD Unit that this address lies within. ***England and Wales ONLY***
-
-			`ParID` - The ParID value from I-CeM
-
-		Returns
-		--------
-				segmented_os_roads_prepped: `geopandas.GeoDataFrame`
-			GeoDataFrame of OS Open Roads
-			The GeoDataFrame contains the following fields:
-
-			`road_id_{}` - unique id of road constructed from `nameTOID` + '_' + `new_id`. {} populated with last two digits of census year e.g. 'road_id_61' for 1861. To be improved e.g. add full census year and country.
-
-			`name1` - name of road from base OS Open Roads Dataset.
-			
-			`new_id` - id created from either, England and Wales: `conparid_$` + '_' + `CEN_$`; Scotland: `ParID`.
-
-			`conparid_$` - The ConParID that this road is within. ***England and Wales ONLY***
-
-			`CEN_$` - The id of the RSD Unit that this road is within. ***England and Wales ONLY***
-
-			`ParID_link` - The ParID that this road is within. ***Scotland ONLY***
-
-
-		gb1900_processed: `geopandas.GeoDataFrame`
-			GeoDataFrame of GB1900 data with additional attributes and new geometries based on RSD/Parish Boundaries attributes, which is ready to link to the census file. 
-			The GeoDataFrame contains the following fields:
-
-			`pid_id` - unique id of GB1900 label.
-
-			`final_text` - transcribed map text label (e.g. the name of a street)
-
-			`new_id` - id created from either, England and Wales: `conparid_$` + '_' + `CEN_$`; Scotland: `ParID`.
-
-			`conparid_$` - The ConParID that this label is within. ***England and Wales ONLY***
-
-			`CEN_$` - The id of the RSD Unit that this label is within. ***England and Wales ONLY***
-
-			`ParID_link` - The ParID that this road is within. ***Scotland ONLY***
-
-		census_counties: list
-			Unique, sorted list of the names of Census Registration Counties in census file.
-
-		census_processed: `pandas.DataFrame`
-			DataFrame of census data with additional attributes from the RSD Dictionary lookup table, giving the RSD unit for each person.
-
-			The DataFrame contains the following fields:
-
-			`unique_add_id` - Unique id for an address comprised of `add_anon` + '_' + `ConParID` + '_' + `cen_$`.
-
-			`add_anon` - The street address, stripped of numerical digits to comply with egress from Turing DataSafeHaven.
-
-			`RegCnty` - Census Registration County
-
-			`sh_id` - Safehaven_id for individual.
-
-			`ConParID` - The ConParID value from I-CeM ***England and Wales ONLY***
-
-			`cen_$` - The id of the RSD Unit that this address lies within. ***England and Wales ONLY***
-
-			`ParID` - The ParID value from I-CeM ***Scotland ONLY***
-
-		census_unique_addresses: `pandas.DataFrame`
-			DataFrame of unique addresses from census with additional attributes to perform geo-blocking in geocoding function.
-
-			The DataFrame contains the following fields:
-
-			`unique_add_id` - Unique id for an address comprised of `add_anon` + '_' + `ConParID` + '_' + `cen_$`.
-
-			`add_anon` - The street address, stripped of numerical digits to comply with egress from Turing DataSafeHaven.
-
-			`RegCnty` - Census Registration County
-
-			`ConParID` - The ConParID value from I-CeM ***England and Wales ONLY***
-
-			`cen_$` - The id of the RSD Unit that this address lies within. ***England and Wales ONLY***
-
-			`ParID` - The ParID value from I-CeM
-
-		"""
-
-		segmented_os_roads_prepped = None
-		gb1900_processed = None
-		census_processed = None
-		census_unique_addresses = None
-		census_counties = None
-
-		os_roads_processed_outputfile = self.output_dir + f'/os_roads_{self.census_year}_{self.country}_{self.parse_option}.tsv'
-		gb1900_processed_outputfile = self.output_dir + f'/gb1900_{self.census_year}_{self.country}_{self.parse_option}.tsv'
-		census_processed_outputfile = self.output_dir + f'/census_processed_{self.census_year}_{self.country}_{self.parse_option}.tsv'
-		census_unique_addresses_outputfile = self.output_dir + f'/census_unique_addresses_{self.census_year}_{self.country}_{self.parse_option}.tsv'
-		census_counties_outputfile = self.output_dir + f'/census_counties_{self.census_year}_{self.country}_{self.parse_option}.txt'
-
-		os_roads_processed_outputfile_exists = os.path.exists(os_roads_processed_outputfile)
-		gb1900_processed_outputfile_exists = os.path.exists(gb1900_processed_outputfile)
-		census_processed_outputfile_exists = os.path.exists(census_processed_outputfile)
-		census_unique_addresses_outputfile_exists = os.path.exists(census_unique_addresses_outputfile)
-		census_counties_outputfile_exists = os.path.exists(census_counties_outputfile)
-
-		# Process parish data
-		parish_data_processed = None
-		if not os_roads_processed_outputfile_exists or not gb1900_processed_outputfile_exists:
-			print("Process parish data")
-			if self.country == 'EW':
-				processed = preprocess.process_rsd_boundary_data(self.rsd_shapefile_path,self.field_dict)
-				ukds_link = preprocess.read_gis_to_icem(self.ukds_gis_to_icem_path,self.field_dict)
-				parish = preprocess.process_parish_boundary_data(self.parish_shapefile_path,ukds_link,self.field_dict)
-				parish_data_processed = preprocess.join_parish_rsd_boundary(parish,processed,self.field_dict)
-			elif self.country == 'SCOT':
-				scot_parish_link = preprocess.scot_parish_lookup(self.scot_parish_lkup_file,self.census_year)
-				parish_data_processed = preprocess.process_scot_parish_boundary_data(self.parish_shapefile_path,scot_parish_link,self.census_year)
-
-		# Read or process OS Roads
-
-		if self.country == 'EW':
-			os_road_cols = [self.field_dict['os_road_id'],self.field_dict['conparid'],self.field_dict['cen'],'name1']
-		else:
-			os_road_cols = [self.field_dict['os_road_id'],self.field_dict['scot_parish'],'name1']
-
-
-		# 			blocking_fields_l.append('ParID')
-		# 	blocking_fields_r.append(field_dict['scot_parish'])
-		# elif field_dict['country'] == 'EW':
-		# 	blocking_fields_l.append('ConParID')
-		# 	blocking_fields_l.append(field_dict['cen'])
-
-		if os_roads_processed_outputfile_exists and self.reuse_data == 'yes':
-			print('Pre-processed OS roads files already exist, reading pre-processed files')
-			segmented_os_roads_prepped = pd.read_csv(os_roads_processed_outputfile,sep="\t",index_col=self.field_dict['os_road_id'],usecols=os_road_cols)
-			# print(segmented_os_roads_prepped)
-			# segmented_os_roads_prepped = gpd.GeoDataFrame(segmented_os_roads_prepped, geometry=gpd.GeoSeries.from_wkt(segmented_os_roads_prepped['geometry']),crs='EPSG:27700')
-		else:
-			os_open_roads = preprocess.read_raw_os_data(self.os_open_roads_filelist,self.row_limit)
-			segmented_os_roads = preprocess.segment_os_roads(os_open_roads,parish_data_processed,self.field_dict)
-			segmented_os_roads_prepped = preprocess.icem_linking_prep(segmented_os_roads,self.field_dict)
-			# Output processed file
-			segmented_os_roads_prepped.to_csv(os_roads_processed_outputfile,sep="\t") # OS Roads
-			segmented_os_roads_prepped = segmented_os_roads_prepped[os_road_cols[1:]]
-
-		# Read or process GB1900:
-		if self.country == 'EW':
-			gb1900_cols = ['pin_id',self.field_dict['conparid'],self.field_dict['cen'],'final_text']
-		else:
-			gb1900_cols = ['pin_id',self.field_dict['scot_parish'],'final_text']
-
-		if gb1900_processed_outputfile_exists and self.reuse_data == 'yes':
-			print('Pre-processed GB1900 files already exist, reading pre-processed files')
-			gb1900_processed = pd.read_csv(gb1900_processed_outputfile,sep="\t",index_col='pin_id',usecols=gb1900_cols)
-			# gb1900_processed = gpd.GeoDataFrame(gb1900_processed, geometry=gpd.GeoSeries.from_wkt(gb1900_processed['geometry']),crs='EPSG:27700')
-			# print(gb1900_processed)
-		else:
-			gb1900_processed = preprocess.process_gb1900(self.gb1900_file,parish_data_processed,self.field_dict,self.row_limit)
-			# Output processed file
-			gb1900_processed.to_csv(gb1900_processed_outputfile,sep="\t")
-			# print(gb1900_processed)
-			gb1900_processed = gb1900_processed[gb1900_cols[1:]]
-
-		# Read or process ICEM and census counties:	
-		if census_processed_outputfile_exists and census_unique_addresses_outputfile_exists and census_counties_outputfile_exists and self.reuse_data == 'yes':
-			print('Pre-processed ICEM files already exist, reading pre-processed files')
-			# census_processed = pd.read_csv(census_processed_outputfile,sep="\t")
-
-			census_unique_addresses = pd.read_csv(census_unique_addresses_outputfile,sep="\t",index_col='unique_add_id')
-
-			print('Pre-processed census county list file already exists, reading pre-processed file')
-			census_counties = []
-			with open(census_counties_outputfile,'r') as f:
-				for line in f:
-					census_counties.append(str(line).strip('\n'))
-				print(census_counties)
-			
-			census_processed = pd.read_csv(census_processed_outputfile,sep="\t")
-		else:
-			# Process RSD dictionary
-			rsd_dictionary_processed = None
-			if self.country == 'EW':
-				rsd_dictionary_processed = preprocess.read_rsd_dictionary(self.rsd_dictionary_path,self.field_dict)
-			census_counties = preprocess.process_census(self.census_file,rsd_dictionary_processed,self.row_limit,self.field_dict,self.census_year,self.country)
-
-
-			# census_processed.to_csv(census_processed_outputfile,sep="\t",index=False)
-			# census_unique_addresses.to_csv(census_unique_addresses_outputfile,sep="\t") # Census Processed
-			# with open (census_counties_outputfile,'w') as f:
-			# 	for county in census_counties:
-			# 		f.write(str(county) +"\n")
-
-
-		return segmented_os_roads_prepped,gb1900_processed, census_counties
-
-	def geocoding(self,gb1900,segmented_os_roads,census_counties,census_year,country):
-		"""
-		Links census addresses to the geometry data for streets in OS Open Roads and GB1900.Takes outputs from `preprocessing` method, iterates over counties in census computing the similarity between census addresses and addresses in OS Open Roads and GB1900.
+		Needs editing
+		Links census addresses to the geometry data for streets in OS Open Roads and GB1900. Takes outputs from `preprocessing` method, iterates over counties in census computing the similarity between census addresses and addresses in OS Open Roads and GB1900.
 		
 		Writes the results for each county, the whole country, as well as duplicate matches.
 
@@ -731,58 +144,141 @@ class CensusGB_geocoder:
 		Currently doesn't pass anything on to another function.
 
 		"""
-		full_output_list = []
+		for k,v in self.target_geoms.items():
+			processed_geom_data,new_uid = target_geom_preprocess.process_raw_geo_data(k,self.row_limit,parish_data_processed,v,self.census_year,self.outputdir)
+			# census_counties = census.get_census_countylist(self.outputdir) # Get list of census counties
+			for county in census_counties:
+				print('#'*30)
+				print(county)
+				print('#'*30)
+				census_subset = census.create_county_subset(county,self.outputdir,self.census_fields)
+				if census_subset.empty:
+					continue
+				else:
+					census_subset_tfidf = utils.compute_tfidf(census_subset,self.census_fields) #add address fields
 
-		for county in census_counties:
-			print(county)
-			census_subset = pd.read_parquet(f'./data/input/census_parquet/{census_year}/{country}/',filters=[[('RegCnty','=',f'{county}')]],columns=['unique_add_id','ConParID',self.field_dict['cen'],'add_anon'])
-			print(census_subset)
-			# # Drop duplicate addresses, drop sh_id column
-			census_subset = census_subset.drop_duplicates(subset=['unique_add_id']).copy()
-			# # Set the 'unique_add_id' field as the index
-			census_subset = census_subset.set_index('unique_add_id')
-
-			census_subset = preprocess.compute_tfidf(census_subset)
-			print(census_subset)
-
-			print(self.field_dict)
-			gb1900_candidate_links = recordcomparison.gb1900_candidate_links(census_subset,gb1900,self.field_dict)
-			gb1900_linked, gb1900_duplicates = recordcomparison.gb1900_compare(census_subset,gb1900,gb1900_candidate_links)
-			os_candidate_links = recordcomparison.os_candidate_links(census_subset,segmented_os_roads,self.field_dict)
-			os_linked, os_duplicates = recordcomparison.os_compare(census_subset,segmented_os_roads,os_candidate_links,self.field_dict)
-
-			if os_linked.empty or gb1900_linked.empty: # Refine so that the script can run on one of these if the other is empty
-				# print('No data in OS Open Roads or GB1900 for {}, skipping.'.format(county))
-				print(f'No data in OS Open Roads or GB1900 for {county}, skipping.')
-			else:
-				full_county_output = pd.merge(left=gb1900_linked,right=os_linked,on='unique_add_id',how='outer',suffixes=['_gb1900','_os'])
-				full_county_duplicate_output = pd.merge(left=gb1900_duplicates,right=os_duplicates,on='unique_add_id',how='outer',suffixes=['_gb1900','_os'])
-				# print(full_county_duplicate_output)
-				# Write full county output to file
-				# full_county_output.to_csv(self.output_dir + '/{1}_{2}_full_county_output.tsv'.format(self.census_year,self.census_year,county),sep="\t",index=False)
-				census_subset1 = pd.read_parquet(f'./data/input/census_parquet/{census_year}/{country}/',filters=[[('RegCnty','=',f'{county}')]],columns=['unique_add_id','sh_id'])
-				new_trial = pd.merge(left=census_subset1,right=full_county_output,on='unique_add_id',how='inner')
-				print(new_trial)
-				new_trial.to_csv(self.output_dir + f'/{self.census_year}_{county}_full_county_duplicate_output.tsv',sep="\t",index=False)
-				# full_output_list.append(full_county_output) # Append DSH output for this county to a list of dfs
-
-
-		# print('Creating DSH outputs')
-		# if full_output_list == []:
-		# 	print('No DSH outputs to create')
-		# 	full_all_output = None
-		# else:
-		# 	full_all_output = pd.concat(full_output_list)
-		# 	full_all_output.to_csv(self.output_dir + '/{0}_full_output.tsv'.format(self.census_year),sep="\t",index=False)
-
-
-		return None
-
-	def link_geocode_to_icem(self,census_processed,geocoded_addressses):
-		# census_processed = pd.read_csv('/Users/jrhodes/historic-census-gb-geocoder/data/testing_outputs/data/output/1851/EW/testing/census_processed_1851_EW_testing.tsv',sep="\t")
-		outputting = pd.merge(left=census_processed,right=geocoded_addressses,on='unique_add_id',how='left')
-		print(outputting)
-		outputting.to_csv(self.output_dir + '/outputting_trial.txt',sep="\t")
+					candidate_links = recordcomparison.create_candidate_links(census_subset,processed_geom_data,census_blocking_cols,geom_blocking_cols)
+					print(census_subset_tfidf)
+					linked, duplicates = recordcomparison.compare(census_subset_tfidf,processed_geom_data,candidate_links,new_uid,v,self.census_fields)
+					# print(linked.info())
+					if linked.empty:
+						continue
+					else:
+						linked.to_csv(f'data/output/testingoutput/{self.census_year}_{county}_linked.tsv',sep="\t",index=False)
+						duplicates.to_csv(f'data/output/testingoutput/{self.census_year}_{county}_duplicates.tsv',sep="\t",index=False)
+						self.link_geocode_to_icem(linked,county,new_uid,k)
 		pass
 
+
+class EW_geocoder(CensusGB_geocoder):
+	'''
+		set_rsd_dictionary()
+		Sets filepath to the England and Wales Registration Sub-District (RSD) dictionary lookup file.
+	#### ENGLAND & WALES SPECIFIC
+	conparid: str
+		The 'ConParID' column name, either 'conparid_51-91' for 1851 to 1891 or 'conparid_01-11' for 1901 to 1911.
+	cen: str
+		The cen field found in the RSD Dictionary lookup files and RSD Boundary Shapefiles. Created using 'cen' + `census_year` attribute, e.g. 'CEN_1901'. Used to dissolve the RSD Shapefile to create the correct RSD boundaries for specified census year and to link these to RSD Dictionary lookup.
+	rsd_shapefile_path: str
+		Path to the England and Wales RSD Boundary Shapefile.
+	rsd_dictionary_path: str
+		Path to the England and Wales RSD Dictionary lookup file for the specified census year.
+	ukds_gis_to_icem_path: str
+		Path to lookup table that links England and Wales Parish Boundary Shapefile to the Consistent Parish Geographies (`ConParID` field) in I-CeM
+	parid_for_rsd_dict: str
+		Name of the `Par_ID` column in the England and Wales RSD Dictionary lookup file. For 1851,1861,1891,1901, and 1911 the column is labelled 'ParID'. The 1881 RSD Dictionary lookup file has two columns 'OLD_ParID' and 'NEW_ParID', we use 'NEW_ParID'.
+	'''
+	def __init__(self, census_country, census_year, census_params, target_geoms, path_to_data, ew_config):
+		super().__init__(census_country,census_year, census_params, target_geoms, path_to_data)
+
+		self.conparid = census_params['conparid']
+
+		self.path_to_rsd_dict,self.cen_parid_field,self.rsd_id_field,self.rsd_dictfile_encoding = self.create_rsd_dict_vars(self.inputdir,ew_config['rsd_dictionary_config'],self.census_year)
+
+		self.path_to_rsd_gis_file,self.rsd_gis_projection = self.create_rsd_gis_vars(self.inputdir,ew_config['rsd_gis_config'])
+
+		self.path_to_parish_icem_lkup, self.parish_icem_lkup_sheet, self.parish_icem_lkup_idfield, self.parish_icem_lkup_navals = self.create_parish_icem_vars(self.inputdir,ew_config['parish_icem_lkup_config'])
+		
+		self.path_to_parish_gis_file, self.parish_gis_projection, self.parish_gis_id_field = self.create_parish_gis_vars(self.inputdir,ew_config['parish_gis_config'])
+		
+	def create_rsd_gis_vars(self,inputdir, rsd_gis_config):
+		path_to_rsd_gis_file = f"{inputdir}/{rsd_gis_config['filepath']}"
+		rsd_gis_projection = rsd_gis_config['projection']
+		return path_to_rsd_gis_file, rsd_gis_projection
+
+
+	def create_rsd_dict_vars(self,inputdir,rsd_dictionary_config,census_year):
+
+		path_to_rsd_dict = f"{inputdir}/{rsd_dictionary_config['parentdir']}/{rsd_dictionary_config[f'{str(census_year)}']['filepath']}"
+		cen_parid_field = rsd_dictionary_config[f'{str(census_year)}']['cen_parid_field']
+		rsd_id_field = rsd_dictionary_config[f'{str(census_year)}']['rsd_id_field']
+		rsd_dictfile_encoding = rsd_dictionary_config[f'{str(census_year)}']['encoding']
+		
+		return path_to_rsd_dict,cen_parid_field,rsd_id_field,rsd_dictfile_encoding
+
+	def create_parish_icem_vars(self,inputdir,parish_icem_lkup_config):
+		path_to_parish_icem_lkup = f"{inputdir}/{parish_icem_lkup_config['filepath']}"
+		parish_icem_lkup_sheet = parish_icem_lkup_config['sheet']
+		parish_icem_lkup_idfield = parish_icem_lkup_config['ukds_id_field']
+		parish_icem_lkup_navals = parish_icem_lkup_config['na_values']
+
+		return path_to_parish_icem_lkup, parish_icem_lkup_sheet, parish_icem_lkup_idfield, parish_icem_lkup_navals
+
+	def create_parish_gis_vars(self,inputdir,parish_gis_config):
+		path_to_parish_gis_file = f"{inputdir}/{parish_gis_config['filepath']}"
+		parish_gis_projection = parish_gis_config['projection']
+		parish_gis_id_field = parish_gis_config['id_field']
+
+		return path_to_parish_gis_file, parish_gis_projection, parish_gis_id_field
+
+	def create_ew_parishboundaryprocessed(self):
+		rsd_dictionary_processed = ew_geom_preprocess.read_rsd_dictionary(self.path_to_rsd_dict,self.cen_parid_field,self.rsd_id_field,self.rsd_dictfile_encoding)
+		processed = ew_geom_preprocess.process_rsd_boundary_data(self.path_to_rsd_gis_file ,self.rsd_id_field,self.rsd_gis_projection)
+		ukds_link = ew_geom_preprocess.read_gis_to_icem(self.path_to_parish_icem_lkup,self.conparid,self.parish_icem_lkup_sheet,self.parish_icem_lkup_idfield,self.parish_icem_lkup_navals)
+
+		parish = ew_geom_preprocess.process_parish_boundary_data(self.path_to_parish_gis_file, self.parish_gis_projection, self.parish_gis_id_field, ukds_link,self.conparid,self.parish_icem_lkup_idfield)
+		
+
+		parish_data_processed, geom_blocking_cols = ew_geom_preprocess.join_parish_rsd_boundary(parish,processed,self.conparid,self.rsd_id_field)
+		# print(parish_data_processed)
+		return rsd_dictionary_processed,parish_data_processed, geom_blocking_cols
+
+	def process_ew_census(self,rsd_dictionary_processed):
+
+		census_data = census.read_census(self.census_file,self.census_fields,self.census_csv_params)
+		# print(census_data)
+		census_cleaned = census.clean_census_address_data(census_data,self.census_fields['address'],self.census_standardisation_file)
+		# print(census_cleaned)
+		census_linked,census_blocking_cols, census_counties = census.process_ew_census(census_cleaned,rsd_dictionary_processed,self.census_fields['parid'],self.cen_parid_field,self.rsd_id_field,self.census_fields)
+		census.output_census(census_linked,self.outputdir,self.census_output_params)
+
+		return census_blocking_cols, census_counties
+
+class SCOT_geocoder(CensusGB_geocoder):
+	def __init__(self,census_country, census_year, census_params, target_geoms, path_to_data, scot_config):
+		super().__init__(census_country,census_year, census_params, target_geoms, path_to_data)
+
+	# 		#### SCOTLAND SPECIFIC
+	def create_scot_parishboundaryprocessed(self):
+
+		pass
+
+
+
+	def process_scot_census(self):
+
+		self.process_census(self.census_file,self.census_fields)
+		#scot unique here
+		self.output_census()
+		pass
+	# scot_parish_lkup_file: str
+	# 	Path to the lookup table that links the Scotland Parish boundary shapefile to the 'ParID' field in I-CeM.
+		# print(scot_config)
+		"""
+		SCOTLAND SPECIFIC VARIABLES
+		"""
+		# self.scot_parish_lkup_file = self.set_scot_parish_lookup_file()
+
+	# scot_parish_link = preprocess.scot_parish_lookup(self.scot_parish_lkup_file,self.census_year)
+	# parish_data_processed = preprocess.process_scot_parish_boundary_data(self.parish_shapefile_path,scot_parish_link,self.census_year)
 
