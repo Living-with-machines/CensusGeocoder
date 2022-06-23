@@ -2,11 +2,11 @@ import pandas as pd
 from recordlinkage.base import BaseCompareFeature
 import numpy as np
 from recordlinkage.utils import fillna as _fillna
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 """
 Edited version of string comparison method from the recordlinkage package - I've adjusted it so that the string algorithm uses rapidfuzz not fuzzywuzzy.
 """
-
 
 class rapidfuzzy_wratio_comparer(BaseCompareFeature):
 
@@ -80,3 +80,28 @@ def rapidfuzzy_wratio(s1, s2):
                 raise err
 
     return conc.apply(fuzzy_apply)
+
+def compute_tfidf(census,census_fields):
+	"""
+	Compute TF-IDF scores to assess how common road names are. These scores are used to weight the string comparisons so that common road names have to reach a higher matching threshold to be classed as a match.
+
+	Parameters
+	----------
+	census: pandas.dataframe
+		A pandas dataframe containing census data.
+
+	Returns
+	-------
+	pandas.DataFrame
+		A pandas dataframe containing census data with two additional columns with tf-idf weighting data.
+	"""
+	try:
+		tfidf_vectorizer = TfidfVectorizer(norm='l2',use_idf=True,lowercase=False) # default is norm l2
+		tfidf_sparse = tfidf_vectorizer.fit_transform(census[f"{census_fields['address']}"])
+		tfidf_array = tfidf_sparse.toarray()
+		tfidf_array_sums = np.sum(tfidf_array,axis=1).tolist()
+		census['tfidf'] = tfidf_array_sums
+		census['weighting'] = census['tfidf'] / census[f"{census_fields['address']}"].str.len()
+	except ValueError:
+			print('Likely error with tf-idf not having any strings to compare')
+	return census[[f"{census_fields['address']}",'weighting']]

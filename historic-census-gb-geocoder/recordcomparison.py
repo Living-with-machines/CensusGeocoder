@@ -111,7 +111,7 @@ def gb1900_compare(census,gb1900,gb1900_candidate_links):
 
 
 
-def os_candidate_links(census,segmented_os_roads,field_dict):
+def create_candidate_links(census,segmented_os_roads,census_blocking_cols,geom_blocking_cols):
 	"""
 	Create candidate links based on geo-blocking to pass to the string comparison function. Returns a pandas.MultiIndex of two records, one from the census and one from OS Roads.
 
@@ -137,17 +137,17 @@ def os_candidate_links(census,segmented_os_roads,field_dict):
 		os_candidate_links = pd.DataFrame()
 	else:
 		os_indexer = recordlinkage.Index()
-		blocking_fields_l = []
-		blocking_fields_r = []
+		blocking_fields_l = census_blocking_cols
+		blocking_fields_r = geom_blocking_cols
 
-		if field_dict['country'] == 'SCOT':
-			blocking_fields_l.append('ParID')
-			blocking_fields_r.append(field_dict['scot_parish'])
-		elif field_dict['country'] == 'EW':
-			blocking_fields_l.append('ConParID')
-			blocking_fields_l.append(field_dict['cen'])
-			blocking_fields_r.append(field_dict['conparid'])
-			blocking_fields_r.append(field_dict['cen'])
+		# if field_dict['country'] == 'SCOT':
+		# 	blocking_fields_l.append('ParID')
+		# 	blocking_fields_r.append(field_dict['scot_parish'])
+		# elif field_dict['country'] == 'EW':
+		# 	blocking_fields_l.append('ConParID')
+		# 	blocking_fields_l.append(field_dict['cen'])
+		# 	blocking_fields_r.append(field_dict['conparid'])
+		# 	blocking_fields_r.append(field_dict['cen'])
 
 		os_indexer.block(left_on = blocking_fields_l,right_on = blocking_fields_r)
 		print('Creating candidate links between os and census')
@@ -155,7 +155,7 @@ def os_candidate_links(census,segmented_os_roads,field_dict):
 
 	return os_candidate_links
 
-def os_compare(census,os,os_candidate_links,field_dict):
+def compare(census,os,os_candidate_links,new_uid,geom_attributes,census_fields):
 	"""
 	Performs fuzzy string matching between candidate links identified between OS Roads and census. Selects best batch using a combination of fuzzy string matching score and tf-idf weighting. Candidate links with more than one strong match are stored in a duplicates table. Returns matches and duplicate matches.
 
@@ -188,9 +188,12 @@ def os_compare(census,os,os_candidate_links,field_dict):
 	else:
 		os_comparison = recordlinkage.Compare() # Set up comparison
 
-		os_comparison.add(utils.rapidfuzzy_wratio_comparer(left_on = 'add_anon',right_on = 'name1', method='rapidfuzzy_wratio', label='rfuzz_score'))
+		os_comparison.add(utils.rapidfuzzy_wratio_comparer(left_on = census_fields['address'],right_on = geom_attributes['data_fields']['address_field'], method='rapidfuzzy_wratio', label='rfuzz_score'))
 
 		print('Computing os / census string comparison')
+
+		# print(os.info())
+		# print(census.info())
 
 		os_comparison_results = os_comparison.compute(os_candidate_links, census, os)
 		os_comparison_results = os_comparison_results.sort_index()
@@ -204,11 +207,21 @@ def os_compare(census,os,os_candidate_links,field_dict):
 		else:
 
 			# Link comparison results to I-CeM data and OS Road Vector data
+			# print(os_comparison_results.info())
+			# os_census_roads_output = os_comparison_results.reset_index()
+			
+			os_census_roads_output = pd.merge(census,os_comparison_results,left_index=True,right_on='unique_add_id').reset_index()
 
-			os_census_roads_output = pd.merge(census,os_comparison_results,left_index=True,right_on='unique_add_id')
-			cols_to_use = os_census_roads_output.columns.difference(os.columns)
-			os_census_roads_output = pd.merge(os, os_census_roads_output[cols_to_use],left_index=True,right_on=field_dict['os_road_id'])
-			os_census_roads_output = os_census_roads_output.reset_index()
+
+
+			print(os_census_roads_output.info())
+
+
+			os_census_roads_output = pd.merge(os[[f"{geom_attributes['data_fields']['address_field']}"]], os_census_roads_output,left_index=True,right_on=new_uid)
+
+			# cols_to_use = os_census_roads_output.columns.difference(os.columns)
+			# os_census_roads_output = pd.merge(os, os_census_roads_output[cols_to_use],left_index=True,right_on=new_uid)
+			# os_census_roads_output = os_census_roads_output.reset_index()
 			os_census_roads_output = os_census_roads_output.sort_values(by='unique_add_id')
 
 			os_census_roads_output['rfuzz_weighted'] = os_census_roads_output['rfuzz_score'] * os_census_roads_output['weighting']

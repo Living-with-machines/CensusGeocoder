@@ -3,34 +3,27 @@ import setupgeocoder
 from datetime import datetime
 import json
 
-with open('./inputs/historic-census-gb-geocoder-params.json') as f:
-	geocode_parameters = json.load(f)
+with open('./inputs/historic-census-gb-geocoder-config.json') as f:
+	geocode_config = json.load(f)
 
-input_data_path = geocode_parameters["input_data_path"]
-output_data_path = geocode_parameters["output_data_path"]
+# Call a json checker function here
 
-for key, value in geocode_parameters["geocoding"].items():
-	if value['type'] == 'no':
-		continue
-	else:
-
+for census_country, census_year in geocode_config["census_config"].items():
+	for year, year_config in census_year.items():
+		# print(year)
 		start = datetime.now()
+		if year_config['runtype'] != 'no':
+			if census_country == 'EW':
+				census_geocoder = setupgeocoder.EW_geocoder(census_country,year,year_config,geocode_config['target_geoms'],geocode_config['path_to_data'],geocode_config['ew_config'])
+				rsd_dictionary_processed, processed_parish_boundary_data, geom_blocking_cols = census_geocoder.create_ew_parishboundaryprocessed()
+				census_blocking_cols,census_counties = census_geocoder.process_ew_census(rsd_dictionary_processed)
+			elif census_country == 'SCOT':
+				census_geocoder = setupgeocoder.SCOT_geocoder(census_country,year,year_config,geocode_config['target_geoms'],geocode_config['path_to_data'],geocode_config['scot_config'])
+				processed_parish_boundary_data = census_geocoder.create_scot_parishboundaryprocessed()
+				census_geocoder.process_scot_census()
 
-		country = key.split('_')[0]
-		census_year = int(key.split('_')[1])
-		parse_option = value['type']
-
-		census_geocoder = setupgeocoder.CensusGB_geocoder(census_year,country,parse_option,input_data_path,output_data_path,value['use_existing_files'])
-		print(vars(census_geocoder))
-
-		os_roads, gb1900, census_unique_addresses, census_counties, census_processed = census_geocoder.preprocessing()
-		full_output = census_geocoder.geocoding(census_unique_addresses,gb1900,os_roads,census_counties)
-		final_output = census_geocoder.link_geocode_to_icem(census_processed,full_output)
-
-		# Retain for testing purposes for now
-		# print(dsh_output['sh_id'].is_unique)
-
-		end_time = datetime.now() - start
-		print('Time to run: ',end_time.total_seconds()/60)
+			census_geocoder.geocoding_new(processed_parish_boundary_data,census_blocking_cols,geom_blocking_cols,census_counties)
 
 
+			end_time = datetime.now() - start
+			print('Time to run: ',end_time.total_seconds()/60)
