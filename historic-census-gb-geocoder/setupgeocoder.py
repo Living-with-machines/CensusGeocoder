@@ -1,4 +1,3 @@
-from hashlib import new
 import pandas as pd
 import ew_geom_preprocess
 import scot_geom_preprocess
@@ -191,13 +190,13 @@ class EW_geocoder(CensusGB_geocoder):
 	def __init__(self, census_country, census_year, census_params, target_geoms, path_to_data, ew_config):
 		super().__init__(census_country,census_year, census_params, target_geoms, path_to_data)
 
-		self.conparid = census_params['conparid']
+		# self.conparid = census_params['conparid']
 
 		self.path_to_rsd_dict,self.cen_parid_field,self.rsd_id_field,self.rsd_dictfile_encoding = self.create_rsd_dict_vars(self.inputdir,ew_config['rsd_dictionary_config'],self.census_year)
 
 		self.path_to_rsd_gis_file,self.rsd_gis_projection = self.create_rsd_gis_vars(self.inputdir,ew_config['rsd_gis_config'])
 
-		self.path_to_parish_icem_lkup, self.parish_icem_lkup_sheet, self.parish_icem_lkup_idfield, self.parish_icem_lkup_navals = self.create_parish_icem_vars(self.inputdir,ew_config['parish_icem_lkup_config'])
+		self.path_to_parish_icem_lkup, self.parish_icem_lkup_sheet, self.parish_icem_lkup_idfield, self.parish_icem_lkup_navals, self.conparid = self.create_parish_icem_vars(self.inputdir,ew_config['parish_icem_lkup_config'])
 		
 		self.path_to_parish_gis_file, self.parish_gis_projection, self.parish_gis_id_field = self.create_parish_gis_vars(self.inputdir,ew_config['parish_gis_config'])
 		
@@ -221,8 +220,12 @@ class EW_geocoder(CensusGB_geocoder):
 		parish_icem_lkup_sheet = parish_icem_lkup_config['sheet']
 		parish_icem_lkup_idfield = parish_icem_lkup_config['ukds_id_field']
 		parish_icem_lkup_navals = parish_icem_lkup_config['na_values']
+		if int(self.census_year) < 1901:
+			conparid = parish_icem_lkup_config['conparid51-91_field']
+		else:
+			conparid = parish_icem_lkup_config['conparid01-11_field']
 
-		return path_to_parish_icem_lkup, parish_icem_lkup_sheet, parish_icem_lkup_idfield, parish_icem_lkup_navals
+		return path_to_parish_icem_lkup, parish_icem_lkup_sheet, parish_icem_lkup_idfield, parish_icem_lkup_navals, conparid
 
 	def create_parish_gis_vars(self,inputdir,parish_gis_config):
 		path_to_parish_gis_file = f"{inputdir}/{parish_gis_config['filepath']}"

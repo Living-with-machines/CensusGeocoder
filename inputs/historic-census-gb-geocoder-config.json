@@ -28,31 +28,26 @@
             "1861": {
                 "runtype": "no",
                 "use_existing_files": "no",
-                "conparid": "conparid_51-91",
                 "census_file": "census_anonymisation_egress/EW1861_anonymised.txt"
             },
             "1881": {
                 "runtype": "no",
                 "use_existing_files": "no",
-                "conparid": "conparid_51-91",
                 "census_file": "census_anonymisation_egress/EW1881_anonymised.txt"
             },
             "1891": {
                 "runtype": "no",
                 "use_existing_files": "no",
-                "conparid": "conparid_51-91",
                 "census_file": "census_anonymisation_egress/EW1891_anonymised.txt"
             },
             "1901": {
                 "runtype": "no",
                 "use_existing_files": "yes",
-                "conparid": "conparid_01-11",
                 "census_file": "census_anonymisation_egress/EW1901_anonymised.txt"
             },
             "1911": {
                 "runtype": "no",
                 "use_existing_files": "yes",
-                "conparid": "conparid_01-11",
                 "census_file": "census_anonymisation_egress/EW1911_anonymised.txt"
             }
         },
@@ -180,7 +175,9 @@
             "filepath": "UKDS_GIS_to_icem.xlsx",
             "sheet": "link",
             "ukds_id_field": "UKDS_ID",
-            "na_values": "."
+            "na_values": ".",
+            "conparid51-91_field":"conparid_51-91",
+            "conparid01-11_field":"conparid_01-11"
         }
     },
     "scot_config": {
