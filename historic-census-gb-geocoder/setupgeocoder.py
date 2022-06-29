@@ -8,7 +8,7 @@ import recordcomparison
 import pathlib
 
 
-class CensusGB_geocoder():
+class CensusGB_geocoder:
     """Base Class to geo-code census data
 
     Attributes
@@ -70,12 +70,9 @@ class CensusGB_geocoder():
     """
 
     def __init__(
-                self,
-                census_country,
-                census_year,
-                census_params,
-                target_geoms,
-                path_to_data):
+        self,
+        census_country, census_year, census_params, target_geoms, path_to_data
+    ):
 
         """Parameters
         ----------
@@ -97,24 +94,25 @@ class CensusGB_geocoder():
         """
 
         self.census_country = census_country
-        self.inputdir = path_to_data['input_data_path']
+        self.inputdir = path_to_data["input_data_path"]
         self.census_year = census_year
-        self.row_limit = self.set_row_limit(census_params['runtype'])
+        self.row_limit = self.set_row_limit(census_params["runtype"])
         self.census_file = f"{self.inputdir}/{census_params['census_file']}"
         self.outputdir = self.set_output_dir(
-                                            path_to_data['output_data_path'],
-                                            self.census_country,
-                                            self.census_year,
-                                            census_params['runtype'])
+            path_to_data["output_data_path"],
+            self.census_country,
+            self.census_year,
+            census_params["runtype"],
+        )
         self.target_geoms = target_geoms
-        self.census_fields = census_params['census_fields']
-        self.census_csv_params = census_params['csv_params']
-        self.census_standardisation_file = f"{self.inputdir}/{census_params['census_standardisation_file']}"
-        self.census_output_params = census_params['census_output_params']
+        self.census_fields = census_params["census_fields"]
+        self.census_csv_params = census_params["csv_params"]
+        self.census_standardisation_file = (
+            f"{self.inputdir}/{census_params['census_standardisation_file']}"
+        )
+        self.census_output_params = census_params["census_output_params"]
 
-    def set_row_limit(
-                    self,
-                    runtype):
+    def set_row_limit(self, runtype):
         """
         Checks the `parse_option` value specified in parameters json.
 
@@ -128,16 +126,11 @@ class CensusGB_geocoder():
 
         """
         rows = None
-        if runtype == 'testing':
+        if runtype == "testing":
             rows = 1000
         return rows
 
-    def set_output_dir(
-                        self,
-                        outputdirparent,
-                        census_country,
-                        census_year,
-                        runtype):
+    def set_output_dir(self, outputdirparent, census_country, census_year, runtype):
         """
         Set the output directory in the format e.g.
         `data/output/1901/EW/full`. Checks if output directory exists,
@@ -149,43 +142,37 @@ class CensusGB_geocoder():
             Path to output directory.
         """
 
-        output_dir = outputdirparent + f'/{str(census_year)}/{census_country}/{runtype}'
+        output_dir = outputdirparent + f"/{str(census_year)}/{census_country}/{runtype}"
         pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
         return output_dir
 
     def link_geocode_to_icem(
-                            self,
-                            linked,
-                            county,
-                            new_uid,
-                            geom_name,
-                            census_fields,
-                            census_output_params):
+        self, linked, county, new_uid, geom_name, census_fields, census_output_params
+    ):
 
         census = pd.read_parquet(
-                                self.outputdir,
-                                filters=[[('RegCnty', '=', f'{county}')]],
-                                columns=['unique_add_id', 'safehaven_id'])
+            self.outputdir,
+            filters=[[("RegCnty", "=", f"{county}")]],
+            columns=["unique_add_id", "safehaven_id"],
+        )
         print(census.info())
         print(linked.info())
-        new_trial = pd.merge(
-                            left=census,
-                            right=linked,
-                            on='unique_add_id',
-                            how='inner')
-        new_trial = new_trial[['safehaven_id', new_uid]]
+        new_trial = pd.merge(left=census, right=linked, on="unique_add_id", how="inner")
+        new_trial = new_trial[["safehaven_id", new_uid]]
         new_trial.to_csv(
-                        f'data/output/testingoutput/{county}_{geom_name}_linked_output.tsv',
-                        sep="\t",
-                        index=False)
+            f"data/output/testingoutput/{county}_{geom_name}_linked_output.tsv",
+            sep="\t",
+            index=False,
+        )
         pass
 
     def geocoding_new(
-                        self,
-                        parish_data_processed,
-                        census_blocking_cols,
-                        geom_blocking_cols,
-                        census_counties):
+        self,
+        parish_data_processed,
+        census_blocking_cols,
+        geom_blocking_cols,
+        census_counties,
+    ):
         """
         Needs editing Links census addresses to the geometry data for
         streets in OS Open Roads and GB1900. Takes outputs from
@@ -218,58 +205,65 @@ class CensusGB_geocoder():
         """
         for k, v in self.target_geoms.items():
             processed_geom_data, new_uid = target_geom_preprocess.process_raw_geo_data(
-                                                                                        k,
-                                                                                        self.row_limit,
-                                                                                        parish_data_processed,
-                                                                                        v,
-                                                                                        self.census_year,
-                                                                                        self.outputdir)
+                k,
+                self.row_limit,
+                parish_data_processed,
+                v,
+                self.census_year,
+                self.outputdir,
+            )
 
             for county in census_counties:
-                print('#'*30)
+                print("#" * 30)
                 print(county)
-                print('#'*30)
+                print("#" * 30)
                 census_subset = census.create_county_subset(
-                                                            county,
-                                                            self.outputdir,
-                                                            self.census_fields)
+                    county, self.outputdir, self.census_fields
+                )
                 if census_subset.empty:
                     continue
                 else:
                     census_subset_tfidf = utils.compute_tfidf(
-                                                            census_subset,
-                                                            self.census_fields)
+                        census_subset, self.census_fields
+                    )
 
                     candidate_links = recordcomparison.create_candidate_links(
-                                                                            census_subset,
-                                                                            processed_geom_data,
-                                                                            census_blocking_cols,
-                                                                            geom_blocking_cols)
+                        census_subset,
+                        processed_geom_data,
+                        census_blocking_cols,
+                        geom_blocking_cols,
+                    )
                     print(census_subset_tfidf)
                     linked, duplicates = recordcomparison.compare(
-                                                                census_subset_tfidf,
-                                                                processed_geom_data,
-                                                                candidate_links,
-                                                                new_uid,
-                                                                v,
-                                                                self.census_fields)
+                        census_subset_tfidf,
+                        processed_geom_data,
+                        candidate_links,
+                        new_uid,
+                        v,
+                        self.census_fields,
+                    )
                     # print(linked.info())
                     if linked.empty:
                         continue
                     else:
-                        linked.to_csv(f'data/output/testingoutput/{self.census_year}_{county}_linked.tsv',sep="\t",index=False)
-                        duplicates.to_csv(f'data/output/testingoutput/{self.census_year}_{county}_duplicates.tsv',sep="\t",index=False)
+                        linked.to_csv(
+                            f"data/output/testingoutput/{self.census_year}_{county}_linked.tsv",
+                            sep="\t",
+                            index=False,
+                        )
+                        duplicates.to_csv(
+                            f"data/output/testingoutput/{self.census_year}_{county}_duplicates.tsv",
+                            sep="\t",
+                            index=False,
+                        )
                         self.link_geocode_to_icem(
-                                                linked,
-                                                county,
-                                                new_uid,
-                                                k,
-                                                self.census_fields) #need to add in census output params here
+                            linked, county, new_uid, k, self.census_fields
+                        )  # need to add in census output params here
         pass
 
 
 class EW_geocoder(CensusGB_geocoder):
-    '''
+    """
         set_rsd_dictionary() Sets filepath to the England and Wales
         Registration Sub-District (RSD) dictionary lookup file.
     #### ENGLAND & WALES SPECIFIC conparid: str
@@ -295,156 +289,168 @@ class EW_geocoder(CensusGB_geocoder):
         Dictionary lookup file. For 1851,1861,1891,1901, and 1911 the
         column is labelled 'ParID'. The 1881 RSD Dictionary lookup file
         has two columns 'OLD_ParID' and 'NEW_ParID', we use 'NEW_ParID'.
-    '''
+    """
+
     def __init__(
-                self,
-                census_country,
-                census_year,
-                census_params,
-                target_geoms,
-                path_to_data,
-                ew_config):
+        self,
+        census_country,
+        census_year,
+        census_params,
+        target_geoms,
+        path_to_data,
+        ew_config,
+    ):
         super().__init__(
-                        census_country,
-                        census_year,
-                        census_params,
-                        target_geoms,
-                        path_to_data)
+            census_country, census_year, census_params, target_geoms, path_to_data
+        )
 
         # self.conparid = census_params['conparid']
 
-        self.path_to_rsd_dict, self.cen_parid_field, self.rsd_id_field, self.rsd_dictfile_encoding = self.create_rsd_dict_vars(self.inputdir,ew_config['rsd_dictionary_config'],self.census_year)
+        (
+            self.path_to_rsd_dict,
+            self.cen_parid_field,
+            self.rsd_id_field,
+            self.rsd_dictfile_encoding,
+        ) = self.create_rsd_dict_vars(
+            self.inputdir, ew_config["rsd_dictionary_config"], self.census_year
+        )
 
-        self.path_to_rsd_gis_file,self.rsd_gis_projection = self.create_rsd_gis_vars(self.inputdir,ew_config['rsd_gis_config'])
+        self.path_to_rsd_gis_file, self.rsd_gis_projection = self.create_rsd_gis_vars(
+            self.inputdir, ew_config["rsd_gis_config"]
+        )
 
-        self.path_to_parish_icem_lkup, self.parish_icem_lkup_sheet, self.parish_icem_lkup_idfield, self.parish_icem_lkup_navals, self.conparid = self.create_parish_icem_vars(self.inputdir,ew_config['parish_icem_lkup_config'])
+        (
+            self.path_to_parish_icem_lkup,
+            self.parish_icem_lkup_sheet,
+            self.parish_icem_lkup_idfield,
+            self.parish_icem_lkup_navals,
+            self.conparid,
+        ) = self.create_parish_icem_vars(
+            self.inputdir, ew_config["parish_icem_lkup_config"]
+        )
 
-        self.path_to_parish_gis_file, self.parish_gis_projection, self.parish_gis_id_field = self.create_parish_gis_vars(self.inputdir,ew_config['parish_gis_config'])
+        (
+            self.path_to_parish_gis_file,
+            self.parish_gis_projection,
+            self.parish_gis_id_field,
+        ) = self.create_parish_gis_vars(self.inputdir, ew_config["parish_gis_config"])
 
-    def create_rsd_gis_vars(
-                            self,
-                            inputdir,
-                            rsd_gis_config):
+    def create_rsd_gis_vars(self, inputdir, rsd_gis_config):
         path_to_rsd_gis_file = f"{inputdir}/{rsd_gis_config['filepath']}"
-        rsd_gis_projection = rsd_gis_config['projection']
+        rsd_gis_projection = rsd_gis_config["projection"]
         return path_to_rsd_gis_file, rsd_gis_projection
 
-    def create_rsd_dict_vars(
-                            self,
-                            inputdir,
-                            rsd_dictionary_config,
-                            census_year):
+    def create_rsd_dict_vars(self, inputdir, rsd_dictionary_config, census_year):
 
         path_to_rsd_dict = f"{inputdir}/{rsd_dictionary_config['parentdir']}/{rsd_dictionary_config[f'{str(census_year)}']['filepath']}"
-        cen_parid_field = rsd_dictionary_config[f'{str(census_year)}']['cen_parid_field']
-        rsd_id_field = rsd_dictionary_config[f'{str(census_year)}']['rsd_id_field']
-        rsd_dictfile_encoding = rsd_dictionary_config[f'{str(census_year)}']['encoding']
+        cen_parid_field = rsd_dictionary_config[f"{str(census_year)}"][
+            "cen_parid_field"
+        ]
+        rsd_id_field = rsd_dictionary_config[f"{str(census_year)}"]["rsd_id_field"]
+        rsd_dictfile_encoding = rsd_dictionary_config[f"{str(census_year)}"]["encoding"]
 
-        return path_to_rsd_dict,cen_parid_field,rsd_id_field,rsd_dictfile_encoding
+        return path_to_rsd_dict, cen_parid_field, rsd_id_field, rsd_dictfile_encoding
 
-    def create_parish_icem_vars(
-                                self,
-                                inputdir,
-                                parish_icem_lkup_config):
+    def create_parish_icem_vars(self, inputdir, parish_icem_lkup_config):
         path_to_parish_icem_lkup = f"{inputdir}/{parish_icem_lkup_config['filepath']}"
-        parish_icem_lkup_sheet = parish_icem_lkup_config['sheet']
-        parish_icem_lkup_idfield = parish_icem_lkup_config['ukds_id_field']
-        parish_icem_lkup_navals = parish_icem_lkup_config['na_values']
+        parish_icem_lkup_sheet = parish_icem_lkup_config["sheet"]
+        parish_icem_lkup_idfield = parish_icem_lkup_config["ukds_id_field"]
+        parish_icem_lkup_navals = parish_icem_lkup_config["na_values"]
         if self.census_year < 1901:
-            conparid = parish_icem_lkup_config['conparid51-91_field']
+            conparid = parish_icem_lkup_config["conparid51-91_field"]
         else:
-            conparid = parish_icem_lkup_config['conparid01-11_field']
+            conparid = parish_icem_lkup_config["conparid01-11_field"]
 
-        return path_to_parish_icem_lkup, parish_icem_lkup_sheet, parish_icem_lkup_idfield, parish_icem_lkup_navals, conparid
+        return (
+            path_to_parish_icem_lkup,
+            parish_icem_lkup_sheet,
+            parish_icem_lkup_idfield,
+            parish_icem_lkup_navals,
+            conparid,
+        )
 
-    def create_parish_gis_vars(self,inputdir,parish_gis_config):
+    def create_parish_gis_vars(self, inputdir, parish_gis_config):
         path_to_parish_gis_file = f"{inputdir}/{parish_gis_config['filepath']}"
-        parish_gis_projection = parish_gis_config['projection']
-        parish_gis_id_field = parish_gis_config['id_field']
+        parish_gis_projection = parish_gis_config["projection"]
+        parish_gis_id_field = parish_gis_config["id_field"]
 
         return path_to_parish_gis_file, parish_gis_projection, parish_gis_id_field
 
-    def create_ew_parishboundaryprocessed(
-                                        self):
+    def create_ew_parishboundaryprocessed(self):
         rsd_dictionary_processed = ew_geom_preprocess.read_rsd_dictionary(
-                                                                        self.path_to_rsd_dict,
-                                                                        self.cen_parid_field,
-                                                                        self.rsd_id_field,
-                                                                        self.rsd_dictfile_encoding)
+            self.path_to_rsd_dict,
+            self.cen_parid_field,
+            self.rsd_id_field,
+            self.rsd_dictfile_encoding,
+        )
 
         processed = ew_geom_preprocess.process_rsd_boundary_data(
-                                                                self.path_to_rsd_gis_file,
-                                                                self.rsd_id_field,
-                                                                self.rsd_gis_projection)
+            self.path_to_rsd_gis_file, self.rsd_id_field, self.rsd_gis_projection
+        )
 
         ukds_link = ew_geom_preprocess.read_gis_to_icem(
-                                                        self.path_to_parish_icem_lkup,
-                                                        self.conparid,
-                                                        self.parish_icem_lkup_sheet,
-                                                        self.parish_icem_lkup_idfield,
-                                                        self.parish_icem_lkup_navals)
+            self.path_to_parish_icem_lkup,
+            self.conparid,
+            self.parish_icem_lkup_sheet,
+            self.parish_icem_lkup_idfield,
+            self.parish_icem_lkup_navals,
+        )
 
         parish = ew_geom_preprocess.process_parish_boundary_data(
-                                                                self.path_to_parish_gis_file,
-                                                                self.parish_gis_projection,
-                                                                self.parish_gis_id_field,
-                                                                ukds_link,
-                                                                self.conparid,
-                                                                self.parish_icem_lkup_idfield)
+            self.path_to_parish_gis_file,
+            self.parish_gis_projection,
+            self.parish_gis_id_field,
+            ukds_link,
+            self.conparid,
+            self.parish_icem_lkup_idfield,
+        )
 
-        parish_data_processed, geom_blocking_cols = ew_geom_preprocess.join_parish_rsd_boundary(
-                                                                                                parish,
-                                                                                                processed,
-                                                                                                self.conparid,
-                                                                                                self.rsd_id_field)
+        (
+            parish_data_processed,
+            geom_blocking_cols,
+        ) = ew_geom_preprocess.join_parish_rsd_boundary(
+            parish, processed, self.conparid, self.rsd_id_field
+        )
         # print(parish_data_processed)
-        return rsd_dictionary_processed,parish_data_processed, geom_blocking_cols
+        return rsd_dictionary_processed, parish_data_processed, geom_blocking_cols
 
-    def process_ew_census(
-                            self,
-                            rsd_dictionary_processed):
+    def process_ew_census(self, rsd_dictionary_processed):
 
         census_data = census.read_census(
-                                        self.census_file,
-                                        self.census_fields,
-                                        self.census_csv_params)
+            self.census_file, self.census_fields, self.census_csv_params
+        )
         # print(census_data)
         census_cleaned = census.clean_census_address_data(
-                                                        census_data,
-                                                        self.census_fields['address'],
-                                                        self.census_standardisation_file)
+            census_data, self.census_fields["address"], self.census_standardisation_file
+        )
         # print(census_cleaned)
-        census_linked,census_blocking_cols, census_counties = census.process_ew_census(
-                                                                                        census_cleaned,
-                                                                                        rsd_dictionary_processed,
-                                                                                        self.census_fields['parid'],
-                                                                                        self.cen_parid_field,
-                                                                                        self.rsd_id_field,
-                                                                                        self.census_fields)
+        census_linked, census_blocking_cols, census_counties = census.process_ew_census(
+            census_cleaned,
+            rsd_dictionary_processed,
+            self.census_fields["parid"],
+            self.cen_parid_field,
+            self.rsd_id_field,
+            self.census_fields,
+        )
 
-        census.output_census(
-                            census_linked,
-                            self.outputdir,
-                            self.census_output_params)
+        census.output_census(census_linked, self.outputdir, self.census_output_params)
 
         return census_blocking_cols, census_counties
 
 
 class SCOT_geocoder(CensusGB_geocoder):
     def __init__(
-                self,
-                census_country,
-                census_year,
-                census_params,
-                target_geoms,
-                path_to_data,
-                scot_config):
+        self,
+        census_country,
+        census_year,
+        census_params,
+        target_geoms,
+        path_to_data,
+        scot_config,
+    ):
         super().__init__(
-                        census_country,
-                        census_year,
-                        census_params,
-                        target_geoms,
-                        path_to_data)
+            census_country, census_year, census_params, target_geoms, path_to_data
+        )
 
     # 		#### SCOTLAND SPECIFIC
     def create_scot_parishboundaryprocessed(self):
@@ -453,14 +459,12 @@ class SCOT_geocoder(CensusGB_geocoder):
 
     def process_scot_census(self):
 
-        self.process_census(
-                            self.census_file,
-                            self.census_fields)
-        #scot unique here
+        self.process_census(self.census_file, self.census_fields)
+        # scot unique here
         self.output_census()
         pass
-    # scot_parish_lkup_file: str
-    # 	Path to the lookup table that links the Scotland Parish boundary shapefile to the 'ParID' field in I-CeM.
+        # scot_parish_lkup_file: str
+        # 	Path to the lookup table that links the Scotland Parish boundary shapefile to the 'ParID' field in I-CeM.
         # print(scot_config)
         """
         SCOTLAND SPECIFIC VARIABLES
@@ -469,4 +473,3 @@ class SCOT_geocoder(CensusGB_geocoder):
 
     # scot_parish_link = preprocess.scot_parish_lookup(self.scot_parish_lkup_file,self.census_year)
     # parish_data_processed = preprocess.process_scot_parish_boundary_data(self.parish_shapefile_path,scot_parish_link,self.census_year)
-

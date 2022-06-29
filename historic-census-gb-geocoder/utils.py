@@ -4,9 +4,10 @@ import numpy as np
 from recordlinkage.utils import fillna as _fillna
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+"""Edited version of string comparison method from the recordlinkage package - I've
+adjusted it so that the string algorithm uses rapidfuzz not fuzzywuzzy.
 """
-Edited version of string comparison method from the recordlinkage package - I've adjusted it so that the string algorithm uses rapidfuzz not fuzzywuzzy.
-"""
+
 
 class rapidfuzzy_wratio_comparer(BaseCompareFeature):
 
@@ -31,13 +32,15 @@ class rapidfuzzy_wratio_comparer(BaseCompareFeature):
     name = "string"
     description = "Compare string attributes of record pairs."
 
-    def __init__(self,
-                 left_on,
-                 right_on,
-                 method='rapidfuzzy_wratio',
-                 threshold=None,
-                 missing_value=0.0,
-                 label=None):
+    def __init__(
+        self,
+        left_on,
+        right_on,
+        method="rapidfuzzy_wratio",
+        threshold=None,
+        missing_value=0.0,
+        label=None,
+    ):
         super(rapidfuzzy_wratio_comparer, self).__init__(left_on, right_on, label=label)
 
         self.method = method
@@ -46,11 +49,10 @@ class rapidfuzzy_wratio_comparer(BaseCompareFeature):
 
     def _compute_vectorized(self, s_left, s_right):
 
-        if self.method == 'rapidfuzzy_wratio':
+        if self.method == "rapidfuzzy_wratio":
             str_sim_alg = rapidfuzzy_wratio
         else:
-            raise ValueError("The algorithm '{}' is not known.".format(
-                self.method))
+            raise ValueError("The algorithm '{}' is not known.".format(self.method))
 
         c = str_sim_alg(s_left, s_right)
 
@@ -63,12 +65,12 @@ class rapidfuzzy_wratio_comparer(BaseCompareFeature):
         return c
 
 
-
 def rapidfuzzy_wratio(s1, s2):
 
     conc = pd.Series(list(zip(s1, s2)))
 
     from rapidfuzz import fuzz
+
     def fuzzy_apply(x):
 
         try:
@@ -81,27 +83,36 @@ def rapidfuzzy_wratio(s1, s2):
 
     return conc.apply(fuzzy_apply)
 
-def compute_tfidf(census,census_fields):
-	"""
-	Compute TF-IDF scores to assess how common road names are. These scores are used to weight the string comparisons so that common road names have to reach a higher matching threshold to be classed as a match.
 
-	Parameters
-	----------
-	census: pandas.dataframe
-		A pandas dataframe containing census data.
+def compute_tfidf(census, census_fields):
+    """Compute TF-IDF scores to assess how common road names are. These scores are used to
+    weight the string comparisons so that common road names have to reach a higher
+    matching threshold to be classed as a match.
 
-	Returns
-	-------
-	pandas.DataFrame
-		A pandas dataframe containing census data with two additional columns with tf-idf weighting data.
-	"""
-	try:
-		tfidf_vectorizer = TfidfVectorizer(norm='l2',use_idf=True,lowercase=False) # default is norm l2
-		tfidf_sparse = tfidf_vectorizer.fit_transform(census[f"{census_fields['address']}"])
-		tfidf_array = tfidf_sparse.toarray()
-		tfidf_array_sums = np.sum(tfidf_array,axis=1).tolist()
-		census['tfidf'] = tfidf_array_sums
-		census['weighting'] = census['tfidf'] / census[f"{census_fields['address']}"].str.len()
-	except ValueError:
-			print('Likely error with tf-idf not having any strings to compare')
-	return census[[f"{census_fields['address']}",'weighting']]
+    Parameters
+    ----------
+    census: pandas.dataframe
+        A pandas dataframe containing census data.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A pandas dataframe containing census data with two additional columns with
+        tf-idf weighting data.
+    """
+    try:
+        tfidf_vectorizer = TfidfVectorizer(
+            norm="l2", use_idf=True, lowercase=False
+        )  # default is norm l2
+        tfidf_sparse = tfidf_vectorizer.fit_transform(
+            census[f"{census_fields['address']}"]
+        )
+        tfidf_array = tfidf_sparse.toarray()
+        tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
+        census["tfidf"] = tfidf_array_sums
+        census["weighting"] = (
+            census["tfidf"] / census[f"{census_fields['address']}"].str.len()
+        )
+    except ValueError:
+        print("Likely error with tf-idf not having any strings to compare")
+    return census[[f"{census_fields['address']}", "weighting"]]

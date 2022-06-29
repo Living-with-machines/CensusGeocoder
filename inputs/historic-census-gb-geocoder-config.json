@@ -176,8 +176,8 @@
             "sheet": "link",
             "ukds_id_field": "UKDS_ID",
             "na_values": ".",
-            "conparid51-91_field":"conparid_51-91",
-            "conparid01-11_field":"conparid_01-11"
+            "conparid51-91_field": "conparid_51-91",
+            "conparid01-11_field": "conparid_01-11"
         }
     },
     "scot_config": {
