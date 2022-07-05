@@ -212,6 +212,7 @@ class Rsd_dictionary_config:
     cen_parid_field: str
     rsd_id_field: str
     encoding: str
+    # add sep, quoting here
 
     def __post_init__(self):
         validate_paths(self.filepath)

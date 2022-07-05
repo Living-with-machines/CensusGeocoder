@@ -1,16 +1,10 @@
 # Main script that combines other scripts
 import setupgeocoder
+import tempfile
 
 # from datetime import datetime
 import yaml
 import config
-
-
-def get_year_country(census):
-    census_country = census.split("_")[0]
-    census_year = int(census.split("_")[1])
-    return census_year, census_country
-
 
 with open("inputs/input_config.yaml", "r") as f:
     geocode_config = yaml.load(f, Loader=yaml.FullLoader)
@@ -23,41 +17,47 @@ gen = config.General(**geocode_config["general"])
 
 
 for x, y in geocode_config["census_config"].items():
-    census_configuration = config.Censusconfiguration(**y)
-    ew_configuration = config.EW_configuration(
-        census_configuration.year, **geocode_config["ew_config"]
-    )
+    with tempfile.TemporaryDirectory(dir=gen.output_data_path) as tmpcensusdir:
+        census_configuration = config.Censusconfiguration(**y)
 
-    if census_configuration.runtype is True:
-        print("#" * 88)
-        print(census_configuration.year, census_configuration.country)
-        print("#" * 88)
-        if census_configuration.country == "EW":
-            census_geocoder = setupgeocoder.EW_geocoder(
-                census_configuration, gen, ew_configuration,
-            )
-        (
-            rsd_dictionary_processed,
-            processed_parish_boundary_data,
-            geom_blocking_cols,
-        ) = census_geocoder.create_ew_parishboundaryprocessed()
-        (census_blocking_cols, census_counties,) = census_geocoder.process_ew_census(
-            rsd_dictionary_processed
-        )
-        for geom, geom_config in geocode_config["target_geoms"].items():
+        if census_configuration.runtype is True:
             print("#" * 88)
-            print(geom)
-            geom_configuration = config.Target_geom(**geom_config)
-            print(geom_configuration)
+            print(census_configuration.year, census_configuration.country)
+            print("#" * 88)
 
-            census_geocoder.geocoding_new(
-                processed_parish_boundary_data,
-                census_blocking_cols,
-                geom_blocking_cols,
-                census_counties,
-                geom,
-                geom_configuration,
-            )
+            if census_configuration.country == "EW":
+                ew_configuration = config.EW_configuration(
+                    census_configuration.year, **geocode_config["ew_config"]
+                )
+                census_geocoder = setupgeocoder.EW_geocoder(
+                    census_configuration, gen, ew_configuration,
+                )
+                (
+                    rsd_dictionary_processed,
+                    processed_parish_boundary_data,
+                    geom_blocking_cols,
+                ) = census_geocoder.create_ew_parishboundaryprocessed()
+
+                (
+                    census_blocking_cols,
+                    partition_list,
+                ) = census_geocoder.process_ew_census(
+                    rsd_dictionary_processed, tmpcensusdir
+                )
+            for geom, geom_config in geocode_config["target_geoms"].items():
+                print("#" * 88)
+                print(geom)
+                geom_configuration = config.Target_geom(**geom_config)
+                print(geom_configuration)
+
+                census_geocoder.geocoding_new(
+                    processed_parish_boundary_data,
+                    census_blocking_cols,
+                    geom_blocking_cols,
+                    partition_list,
+                    geom,
+                    geom_configuration,
+                )
 
 # for census, census_params in geocode_config["census_config"].items():
 

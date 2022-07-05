@@ -6,9 +6,7 @@ import pygeos as pg
 # gpd.options.use_pygeos = True
 
 
-def process_rsd_boundary_data(
-    path_to_rsd_boundary_data, rsd_id_field, rsd_gis_projection
-):
+def process_rsd_boundary_data(rsd_id_field, rsd_gis_config):
     """
     Reads combined Parish / Registration Sub District (RSD) boundary data
 
@@ -32,13 +30,15 @@ def process_rsd_boundary_data(
 
     print("Reading Registration Sub District (RSD) boundary data")
 
-    tmp_file = gpd.read_file(path_to_rsd_boundary_data, rows=1)
+    tmp_file = gpd.read_file(rsd_gis_config.filepath, rows=1)
     list_of_all_cols = tmp_file.columns.values.tolist()
     cols_to_keep = [rsd_id_field, "geometry"]
     unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
 
     par_rsd_boundary = gpd.read_file(
-        path_to_rsd_boundary_data, ignore_fields=unwanted_cols, crs=rsd_gis_projection
+        rsd_gis_config.filepath,
+        ignore_fields=unwanted_cols,
+        crs=rsd_gis_config.projection,
     )
 
     par_rsd_boundary = par_rsd_boundary.dissolve(by=rsd_id_field).reset_index()
@@ -46,30 +46,30 @@ def process_rsd_boundary_data(
     return par_rsd_boundary
 
 
-def read_gis_to_icem(path_to_data, conparid, sheet, ukdsid_field, na_values):
-    list_of_cols = [ukdsid_field, conparid]
+def read_gis_to_icem(parish_icem_lkup_config, conparid):
+    list_of_cols = [parish_icem_lkup_config.ukds_id_field, conparid]
     gis_to_icem = pd.read_excel(
-        path_to_data, sheet_name=sheet, usecols=list_of_cols, na_values=na_values
+        parish_icem_lkup_config.filepath,
+        sheet_name=parish_icem_lkup_config.sheet,
+        usecols=list_of_cols,
+        na_values=parish_icem_lkup_config.na_values,
     )
     return gis_to_icem
 
 
 def process_parish_boundary_data(
-    path_to_parish_gis,
-    parish_gis_projection,
-    parish_gis_id_field,
-    ukds_lkuptbl,
-    conparid,
-    parish_icem_lkup_idfield,
+    parish_gis_config, ukds_lkuptbl, conparid, parish_icem_lkup_idfield,
 ):
     print("Reading Parish Boundary Data")
-    tmp_file = gpd.read_file(path_to_parish_gis, rows=1)
+    tmp_file = gpd.read_file(parish_gis_config.filepath, rows=1)
     list_of_all_cols = tmp_file.columns.values.tolist()
-    cols_to_keep = [parish_gis_id_field, "geometry"]
+    cols_to_keep = [parish_gis_config.id_field, "geometry"]
     unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
 
     par_boundary = gpd.read_file(
-        path_to_parish_gis, ignore_fields=unwanted_cols, crs=parish_gis_projection
+        parish_gis_config.filepath,
+        ignore_fields=unwanted_cols,
+        crs=parish_gis_config.projection,
     )
     # Buffer to ensure valid geometries
     par_boundary["geometry"] = par_boundary["geometry"].buffer(0)
@@ -79,7 +79,7 @@ def process_parish_boundary_data(
     par_boundary_conparid = pd.merge(
         left=par_boundary,
         right=ukds_lkuptbl,
-        left_on=parish_gis_id_field,
+        left_on=parish_gis_config.id_field,
         right_on=parish_icem_lkup_idfield,
         how="left",
     )
@@ -194,7 +194,7 @@ def icem_linking_prep(
     return segmented_os_roads_to_icem_aggregated_deduplicated
 
 
-def read_rsd_dictionary(path_to_file, cen_parid_field, rsd_id_field, file_encoding):
+def read_rsd_dictionary(rsd_dictionary_config):
     """
     Read the RSD Dictionary lookup file for the appropriate census year.
 
@@ -202,7 +202,6 @@ def read_rsd_dictionary(path_to_file, cen_parid_field, rsd_id_field, file_encodi
     ----------
     rsd_dictionary: str
         Path to rsd dictionary file.
-    
     field_dict: dictionary
         Dictionary with field values.
 
@@ -212,11 +211,17 @@ def read_rsd_dictionary(path_to_file, cen_parid_field, rsd_id_field, file_encodi
         A pandas dataframe containing the RSD Dictionary lookup table.
     """
 
-    rsd_variables = [cen_parid_field, rsd_id_field]
+    rsd_variables = [
+        rsd_dictionary_config.cen_parid_field,
+        rsd_dictionary_config.rsd_id_field,
+    ]
 
     rsd_dict = pd.read_csv(
-        path_to_file, sep="\t", quoting=3, usecols=rsd_variables, encoding=file_encoding
+        rsd_dictionary_config.filepath,
+        sep="\t",
+        quoting=3,
+        usecols=rsd_variables,
+        encoding=rsd_dictionary_config.encoding,
     )
 
     return rsd_dict
-
