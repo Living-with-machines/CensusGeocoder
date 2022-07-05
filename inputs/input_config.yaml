@@ -140,6 +140,138 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
 
+  SCOT_1851:
+    country: "SCOT"
+    year: 1851
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/SCOT1851_anonymised.txt"
+    census_fields:
+      uid: "safehaven_id"
+      address: "address_anonymised"
+      parid: "ParID"
+      county: "RegCnty"
+
+    csv_params:
+      sep: "\t"
+      encoding: "latin-1"
+      blocksize: "25e6"
+      quoting: 3
+      na_values: "."
+
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
+    census_output_params:
+      partition_on: "RegCnty"
+
+  SCOT_1861:
+    country: "SCOT"
+    year: 1861
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/SCOT1861_anonymised.txt"
+    census_fields:
+      uid: "safehaven_id"
+      address: "address_anonymised"
+      parid: "ParID"
+      county: "RegCnty"
+
+    csv_params:
+      sep: "\t"
+      encoding: "latin-1"
+      blocksize: "25e6"
+      quoting: 3
+      na_values: "."
+
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
+    census_output_params:
+      partition_on: "RegCnty"
+
+  SCOT_1871:
+    country: "SCOT"
+    year: 1871
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/SCOT1871_anonymised.txt"
+    census_fields:
+      uid: "safehaven_id"
+      address: "address_anonymised"
+      parid: "ParID"
+      county: "RegCnty"
+
+    csv_params:
+      sep: "\t"
+      encoding: "latin-1"
+      blocksize: "25e6"
+      quoting: 3
+      na_values: "."
+
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
+    census_output_params:
+      partition_on: "RegCnty"
+
+  SCOT_1881:
+    country: "SCOT"
+    year: 1881
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/SCOT1881_anonymised.txt"
+    census_fields:
+      uid: "safehaven_id"
+      address: "address_anonymised"
+      parid: "ParID"
+      county: "RegCnty"
+
+    csv_params:
+      sep: "\t"
+      encoding: "latin-1"
+      blocksize: "25e6"
+      quoting: 3
+      na_values: "."
+
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
+    census_output_params:
+      partition_on: "RegCnty"
+
+  SCOT_1891:
+    country: "SCOT"
+    year: 1891
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/SCOT1891_anonymised.txt"
+    census_fields:
+      uid: "safehaven_id"
+      address: "address_anonymised"
+      parid: "ParID"
+      county: "RegCnty"
+
+    csv_params:
+      sep: "\t"
+      encoding: "latin-1"
+      blocksize: "25e6"
+      quoting: 3
+      na_values: "."
+
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
+    census_output_params:
+      partition_on: "RegCnty"
+
+  SCOT_1901:
+    country: "SCOT"
+    year: 1901
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/SCOT1901_anonymised.txt"
+    census_fields:
+      uid: "safehaven_id"
+      address: "address_anonymised"
+      parid: "ParID"
+      county: "RegCnty"
+
+    csv_params:
+      sep: "\t"
+      encoding: "latin-1"
+      blocksize: "25e6"
+      quoting: 3
+      na_values: "."
+
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
+    census_output_params:
+      partition_on: "RegCnty"
+
 ew_config:
   parish_gis_config:
     filepath: "data/input/ew/1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp" # path to parish boundary data

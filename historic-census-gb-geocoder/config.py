@@ -305,7 +305,10 @@ def validate_configs(config_dict):
     General(**config_dict["general"])
     for x, y in config_dict["census_config"].items():
         census_configuration = Censusconfiguration(**y)
-        EW_configuration(census_configuration.year, **config_dict["ew_config"])
+        if census_configuration.country == "EW":
+            EW_configuration(census_configuration.year, **config_dict["ew_config"])
+        elif census_configuration.country == "SCOT":
+            pass
     for geom, geom_config in config_dict["target_geoms"].items():
         Target_geom(**geom_config)
     pass
