@@ -1,5 +1,7 @@
 general:
-  output_data_path: "data/output" # specify output path
+  output_data_path: "data/output/" # specify output path
+  # linked_subdir: "linked/" # subdir of 'output_data_path' to write linked census records to;
+  # duplicate_subdir: "duplicate/" # subdir of 'output_data_path' to write duplicate matches to;
 
 census_config:
   EW_1851:
@@ -24,6 +26,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json" # regex replacement file
     census_output_params:
       partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
+      new_uid: "unique_add_id" # name of new unique id field (see documentation)
 
   EW_1861:
     country: "EW"
@@ -47,6 +50,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   EW_1881:
     country: "EW"
@@ -70,6 +74,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   EW_1891:
     country: "EW"
@@ -93,6 +98,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   EW_1901:
     country: "EW"
@@ -116,6 +122,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   EW_1911:
     country: "EW"
@@ -139,6 +146,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   SCOT_1851:
     country: "SCOT"
@@ -161,6 +169,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   SCOT_1861:
     country: "SCOT"
@@ -183,6 +192,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   SCOT_1871:
     country: "SCOT"
@@ -205,6 +215,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   SCOT_1881:
     country: "SCOT"
@@ -227,6 +238,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   SCOT_1891:
     country: "SCOT"
@@ -249,6 +261,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
   SCOT_1901:
     country: "SCOT"
@@ -271,6 +284,7 @@ census_config:
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
+      new_uid: "unique_add_id"
 
 ew_config:
   parish_gis_config:

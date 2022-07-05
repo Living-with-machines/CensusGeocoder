@@ -1,6 +1,7 @@
 import pandas as pd
 import ew_geom_preprocess
-import scot_geom_preprocess
+
+# import scot_geom_preprocess
 import target_geom_preprocess
 import census
 import utils
@@ -69,7 +70,7 @@ class CensusGB_geocoder:
 
     """
 
-    def __init__(self, census_params, path_to_data):
+    def __init__(self, census_params, general_params):
 
         """Parameters
         ----------
@@ -94,8 +95,9 @@ class CensusGB_geocoder:
         self.census_year = census_params.year
         # self.row_limit = self.set_row_limit(census_params.runtype)
         self.census_file = census_params.census_file
-        self.outputdir = self.set_output_dir(
-            path_to_data.output_data_path, self.census_country, self.census_year
+        # self.general_params = general_params
+        self.output_dir = self.set_output_dir(
+            general_params.output_data_path, self.census_country, self.census_year
         )
         # self.target_geoms = target_geoms
         self.census_fields = census_params.census_fields
@@ -115,25 +117,37 @@ class CensusGB_geocoder:
             Path to output directory.
         """
 
-        output_dir = outputdirparent + f"/{str(census_year)}/{census_country}"
+        output_dir = pathlib.Path(
+            outputdirparent + f"{str(census_year)}/{census_country}"
+        )
         pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
         return output_dir
 
     def link_geocode_to_icem(
-        self, linked, partition, new_uid, geom_name, census_fields, census_output_params
+        self,
+        linked,
+        partition,
+        new_uid,
+        geom_name,
+        census_fields,
+        census_output_params,
+        tmpcensusdir,
     ):
 
         census = pd.read_parquet(
-            self.outputdir,
+            tmpcensusdir,
             filters=[[(census_output_params.partition_on, "=", f"{partition}")]],
-            columns=["unique_add_id", census_fields.uid],
+            columns=[census_output_params.new_uid, census_fields.uid],
         )
         print(census.info())
         print(linked.info())
-        new_trial = pd.merge(left=census, right=linked, on="unique_add_id", how="inner")
+        new_trial = pd.merge(
+            left=census, right=linked, on=census_output_params.new_uid, how="inner"
+        )
         new_trial = new_trial[[census_fields.uid, new_uid]]
         new_trial.to_csv(
-            f"data/output/testingoutput/{partition}_{geom_name}_linked_output.tsv",
+            utils.make_path(self.output_dir, geom_name)
+            / f"{self.census_year}_{geom_name}_{partition}_lkup.tsv",
             sep="\t",
             index=False,
         )
@@ -147,6 +161,7 @@ class CensusGB_geocoder:
         partition_list,
         geom,
         geom_config,
+        tmpcensusdir,
     ):
         """
         Needs editing Links census addresses to the geometry data for
@@ -180,15 +195,15 @@ class CensusGB_geocoder:
         """
 
         processed_geom_data, new_uid = target_geom_preprocess.process_raw_geo_data(
-            geom, parish_data_processed, geom_config, self.census_year, self.outputdir,
+            geom, parish_data_processed, geom_config, self.census_year, self.output_dir,
         )
 
         for partition in partition_list:
             print("#" * 30)
             print(partition)
             print("#" * 30)
-            census_subset = census.create_county_subset(
-                partition, self.outputdir, self.census_fields
+            census_subset = census.create_partition_subset(
+                partition, tmpcensusdir, self.census_fields, self.census_output_params
             )
             if census_subset.empty:
                 continue
@@ -217,12 +232,14 @@ class CensusGB_geocoder:
                     continue
                 else:
                     linked.to_csv(
-                        f"data/output/testingoutput/{self.census_year}_{partition}_linked.tsv",
+                        utils.make_path(self.output_dir, geom, "linked")
+                        / f"{self.census_year}_{geom}_{partition}.tsv",
                         sep="\t",
                         index=False,
                     )
                     duplicates.to_csv(
-                        f"data/output/testingoutput/{self.census_year}_{partition}_duplicates.tsv",
+                        utils.make_path(self.output_dir, geom, "duplicate")
+                        / f"{self.census_year}_{geom}_{partition}.tsv",
                         sep="\t",
                         index=False,
                     )
@@ -233,6 +250,7 @@ class CensusGB_geocoder:
                         geom,
                         self.census_fields,
                         self.census_output_params,
+                        tmpcensusdir,
                     )  # need to add in census output params here
         pass
 
@@ -267,9 +285,9 @@ class EW_geocoder(CensusGB_geocoder):
     """
 
     def __init__(
-        self, census_params, path_to_data, ew_config,
+        self, census_params, general_params, ew_config,
     ):
-        super().__init__(census_params, path_to_data)
+        super().__init__(census_params, general_params)
 
         # self.conparid = census_params['conparid']
 
@@ -371,12 +389,15 @@ class SCOT_geocoder(CensusGB_geocoder):
         self.output_census()
         pass
         # scot_parish_lkup_file: str
-        # 	Path to the lookup table that links the Scotland Parish boundary shapefile to the 'ParID' field in I-CeM.
+        # 	Path to the lookup table that links the Scotland Parish
+        # boundary shapefile to the 'ParID' field in I-CeM.
         # print(scot_config)
         """
         SCOTLAND SPECIFIC VARIABLES
         """
         # self.scot_parish_lkup_file = self.set_scot_parish_lookup_file()
 
-    # scot_parish_link = preprocess.scot_parish_lookup(self.scot_parish_lkup_file,self.census_year)
-    # parish_data_processed = preprocess.process_scot_parish_boundary_data(self.parish_shapefile_path,scot_parish_link,self.census_year)
+    # scot_parish_link = preprocess.scot_parish_lookup
+    # (self.scot_parish_lkup_file,self.census_year)
+    # parish_data_processed = preprocess.process_scot_parish_boundary_data
+    # (self.parish_shapefile_path,scot_parish_link,self.census_year)

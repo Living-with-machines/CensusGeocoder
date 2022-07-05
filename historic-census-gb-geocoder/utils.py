@@ -3,6 +3,8 @@ from recordlinkage.base import BaseCompareFeature
 import numpy as np
 from recordlinkage.utils import fillna as _fillna
 from sklearn.feature_extraction.text import TfidfVectorizer
+import pathlib
+
 
 """Edited version of string comparison method from the recordlinkage package - I've
 adjusted it so that the string algorithm uses rapidfuzz not fuzzywuzzy.
@@ -116,3 +118,11 @@ def compute_tfidf(census, census_fields):
     except ValueError:
         print("Likely error with tf-idf not having any strings to compare")
     return census[[f"{census_fields.address}", "weighting"]]
+
+
+def make_path(*dirs):
+
+    new_path = pathlib.Path(*dirs)
+    pathlib.Path(new_path).mkdir(parents=True, exist_ok=True)
+
+    return new_path

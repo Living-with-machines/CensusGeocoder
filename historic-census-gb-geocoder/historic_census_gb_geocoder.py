@@ -57,6 +57,7 @@ for x, y in geocode_config["census_config"].items():
                     partition_list,
                     geom,
                     geom_configuration,
+                    tmpcensusdir,
                 )
 
 # for census, census_params in geocode_config["census_config"].items():

@@ -192,14 +192,15 @@ def get_census_countylist(outputdir):
     pass
 
 
-def create_county_subset(
-    county, outputdir, census_fields
+def create_partition_subset(
+    partition, tmpcensusdir, census_fields, census_output_params
 ):  # Need to use county field from census fields
     # outputdir = outputdir +'/'
     census_subset = pd.read_parquet(
-        outputdir, filters=[[("RegCnty", "=", f"{county}")]]
+        tmpcensusdir,
+        filters=[[(census_output_params.partition_on, "=", f"{partition}")]],
     )
-    print(outputdir)
+    print(tmpcensusdir)
     # print(census_subset)
     # # Drop duplicate addresses, drop sh_id column
     census_subset = census_subset.drop_duplicates(

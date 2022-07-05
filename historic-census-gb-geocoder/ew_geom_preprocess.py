@@ -73,7 +73,8 @@ def process_parish_boundary_data(
     )
     # Buffer to ensure valid geometries
     par_boundary["geometry"] = par_boundary["geometry"].buffer(0)
-    # Set precision of coordinates so overlay operations between parish boundary and rsd boundary work properly
+    # Set precision of coordinates so overlay operations
+    # between parish boundary and rsd boundary work properly
     par_boundary["geometry"] = pg.set_precision(par_boundary["geometry"].values.data, 0)
 
     par_boundary_conparid = pd.merge(
@@ -140,29 +141,31 @@ def icem_linking_prep(
         I-CeM.
     """
 
-    # Create new road_id for each road segment per ConParID (one set of ids for 1851-1891; another for 1901-1911)
+    # Create new road_id for each road segment per ConParID
+    # (one set of ids for 1851-1891; another for 1901-1911)
     segmented_roads[field_dict["os_road_id"]] = (
         segmented_roads[nameTOID].astype(str)
         + "_"
         + segmented_roads[new_id].astype(str)
     )
 
-    # Dissolve multiple segments of roads with the same road_id (e.g. where there are two line segments of the same road in a parish)
+    # Dissolve multiple segments of roads with the same road_id
+    # (e.g. where there are two line segments of the same road in a parish)
     print("Dissolving on road_ids")
     segmented_os_roads_to_icem_aggregated = segmented_roads.dissolve(
         by=field_dict["os_road_id"]
     )
 
-    # Ensure ids match the datatype int64 otherwise error produced when linking to ConParID in I-CeM
-    # Drop duplicate roads (roads with same name and same ConParID e.g. two roads with the same name in the same parish with currently no way to distinguish them)
+    # Ensure ids match the datatype int64 otherwise error produced
+    # when linking to ConParID in I-CeM
+    # Drop duplicate roads (roads with same name and same ConParID
+    # e.g. two roads with the same name in the same parish with
+    # currently no way to distinguish them)
     # print('before de-duplicating: ',len(os_vector_data_01_11))
     segmented_os_roads_to_icem_aggregated_deduplicated = segmented_os_roads_to_icem_aggregated.drop_duplicates(
         subset=["name1", "new_id"], keep=False
     ).copy()
-    # print('after de-duplicating: ',len(os_vector_data_01_11_deduplicated))
-    # os_vector_data_01_11_duplicates = pd.concat([os_vector_data_01_11,os_vector_data_01_11_deduplicated]).drop_duplicates(keep=False)
-    # os_vector_data_01_11_duplicates = os_vector_data_01_11_duplicates.reset_index(drop=True)
-    # os_vector_data_01_11_duplicates.to_csv('data/outputs_new/os_vector_data_01_11_duplicates.txt','\t')
+
     print(segmented_os_roads_to_icem_aggregated_deduplicated.info())
     if field_dict["country"] == "SCOT":
         segmented_os_roads_to_icem_aggregated_deduplicated[
@@ -187,7 +190,6 @@ def icem_linking_prep(
             errors="coerce",
         )
 
-    # segmented_os_roads_to_icem_aggregated_deduplicated = segmented_os_roads_to_icem_aggregated_deduplicated[['geometry','name1',conparid,cen,'new_id']]
     print(
         segmented_os_roads_to_icem_aggregated_deduplicated
     )  # remove once testing finished

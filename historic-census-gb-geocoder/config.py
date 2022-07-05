@@ -145,6 +145,7 @@ class Csv_params:
 @dataclass
 class Census_output_params:
     partition_on: str
+    new_uid: str
 
     def __post_init__(self):
         first_validate(self)
@@ -296,9 +297,32 @@ class Target_geom:
 @dataclass
 class General:
     output_data_path: str
+    # linked_subdir: str
+    # duplicate_subdir: str
+
+    # linked_outputdir: pathlib.Path = field(init=False)
+    # duplicate_outputdir: pathlib.Path = field(init=False)
 
     def __post_init__(self):
         validate_paths(self.output_data_path)
+
+        # self.linked_outputdir = pathlib.Path(self.output_data_path
+        #  + self.linked_subdir)
+        # pathlib.Path(self.linked_outputdir).mkdir(parents=True, exist_ok=True)
+
+        # self.duplicate_outputdir = pathlib.Path(
+        #     self.output_data_path + self.duplicate_subdir
+        # )
+        # pathlib.Path(self.duplicate_outputdir).mkdir(parents=True, exist_ok=True)
+
+
+# trial = General(
+#     output_data_path="data/output/",
+#     linked_subdir="linked/",
+#     duplicate_subdir="duplicate/",
+# )
+
+# print(trial.duplicate_outputdir)
 
 
 def validate_configs(config_dict):

@@ -19,7 +19,7 @@ def set_geom_files(geom_attributes):
 
 
 def process_raw_geo_data(
-    geom_name, boundary_data, geom_attributes, census_year, outputdir
+    geom_name, boundary_data, geom_attributes, census_year, output_dir
 ):
 
     print(f"Reading {geom_name} geometry data")
@@ -130,11 +130,11 @@ def process_raw_geo_data(
 
     print(streets_gdf_processed.info())
 
-    geom_outputdir = "data/output/testing/"
-    pathlib.Path(geom_outputdir).mkdir(parents=True, exist_ok=True)
+    # geom_outputdir = f"{output_dir}/{geom_name}
+    # pathlib.Path(geom_outputdir).mkdir(parents=True, exist_ok=True)
 
     streets_gdf_processed.to_csv(
-        geom_outputdir + f"{geom_name}_{census_year}.tsv", sep="\t"
+        f"{output_dir}/{geom_name}_{census_year}.tsv", sep="\t"
     )
     streets_gdf_processed_small = streets_gdf_processed.drop(columns=["geometry"])
     print(streets_gdf_processed_small.info())
