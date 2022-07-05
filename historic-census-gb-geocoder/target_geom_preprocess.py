@@ -7,24 +7,24 @@ import pathlib
 def set_geom_files(geom_attributes):
 
     geom_files = []
-    p = pathlib.Path(geom_attributes["data_path"])
+    p = pathlib.Path(geom_attributes.path_to_geom)
     if p.is_file():
         geom_files.append(str(p))
     else:
         for file_p in p.iterdir():
-            if geom_attributes["file_name"] in str(file_p):
+            if geom_attributes.filename_disamb in str(file_p):
                 geom_files.append(str(file_p))
 
     return geom_files
 
 
 def process_raw_geo_data(
-    geom_name, rows_to_use, boundary_data, geom_attributes, census_year, outputdir
+    geom_name, boundary_data, geom_attributes, census_year, outputdir
 ):
 
     print(f"Reading {geom_name} geometry data")
     print(geom_attributes)
-    cols_to_keep = [*geom_attributes["data_fields"].values()]
+    cols_to_keep = geom_attributes.data_fields.list_cols()
 
     # for k,v in geom_attributes.items():
     # 	if 'field' in k:
@@ -39,7 +39,7 @@ def process_raw_geo_data(
 
     new_uid = str(geom_name) + "_" + str(census_year)
 
-    if geom_attributes["file_type"] == "shp":
+    if geom_attributes.file_type == "shp":
 
         tmp_file = gpd.read_file(filelist[0], rows=1)
         list_of_all_cols = tmp_file.columns.values.tolist()
@@ -52,59 +52,59 @@ def process_raw_geo_data(
                     gpd.read_file(
                         road_shp,
                         ignore_fields=unwanted_cols,
-                        crs=geom_attributes["projection"],
-                        rows=rows_to_use,
+                        crs=geom_attributes.projection,
+                        rows=1000,
                     )
                     for road_shp in filelist
                 ]
             ),
-            crs=geom_attributes["projection"],
+            crs=geom_attributes.projection,
         )
         # print(streets_gdf)
         streets_gdf = streets_gdf.dissolve(
-            by=geom_attributes["data_fields"]["uid_field"], as_index=False
+            by=geom_attributes.data_fields.uid_field, as_index=False
         )
         # print(streets_gdf)
 
-    elif geom_attributes["file_type"] == "csv":
+    elif geom_attributes.file_type == "csv":
 
         streets_df = pd.concat(
             [
                 pd.read_csv(
                     csv_file,
                     sep=",",
-                    encoding=geom_attributes["encoding"],
+                    encoding=geom_attributes.encoding,
                     usecols=cols_to_keep,
-                    nrows=rows_to_use,
+                    nrows=1000,
                 )
                 for csv_file in filelist
             ]
         )
 
-        if geom_attributes["geometry_format"] == "coords":
+        if geom_attributes.geometry_format == "coords":
 
             streets_gdf = gpd.GeoDataFrame(
                 streets_df,
                 geometry=gpd.points_from_xy(
-                    streets_df[geom_attributes["data_fields"]["long_field"]],
-                    streets_df[geom_attributes["data_fields"]["lat_field"]],
+                    streets_df[geom_attributes.data_fields.long_field],
+                    streets_df[geom_attributes.data_fields.lat_field],
                 ),
-                crs=geom_attributes["projection"],
+                crs=geom_attributes.projection,
             ).drop(
                 columns=[
-                    geom_attributes["data_fields"]["long_field"],
-                    geom_attributes["data_fields"]["long_field"],
+                    geom_attributes.data_fields.long_field,
+                    geom_attributes.data_fields.lat_field,
                 ]
             )
 
             # print(streets_gdf.info())
 
-        elif geom_attributes["geometry_format"] == "wkt":
+        elif geom_attributes.geometry_format == "wkt":
 
             streets_gdf = gpd.GeoDataFrame(
                 streets_df,
                 geometry=gpd.GeoSeries.from_wkt(streets_df["wkt"]),
-                crs=geom_attributes["projection"],
+                crs=geom_attributes.projection,
             )
         # print(streets_gdf)
 
@@ -115,12 +115,12 @@ def process_raw_geo_data(
 
     # print(streets_gdf.info())
 
-    if geom_attributes["geom_type"] == "line":
+    if geom_attributes.geom_type == "line":
         streets_gdf_processed = process_linstring(
             streets_gdf, boundary_data, geom_attributes, new_uid
         )
 
-    elif geom_attributes["geom_type"] == "point":
+    elif geom_attributes.geom_type == "point":
         streets_gdf_processed = process_point(
             streets_gdf, boundary_data, geom_attributes, new_uid
         )
@@ -138,7 +138,6 @@ def process_raw_geo_data(
     )
     streets_gdf_processed_small = streets_gdf_processed.drop(columns=["geometry"])
     print(streets_gdf_processed_small.info())
-    # streets_gdf_lnk = streets_gdf_processed[[geom_attributes['address_field'],field_dict['conparid'],field_dict['cen']]]
 
     # print(streets_gdf_lnk.info())
 
@@ -146,6 +145,8 @@ def process_raw_geo_data(
 
 
 def drop_outside_country(streets_gdf, new_id):
+    """Drop roads outside country (i.e. with
+    no associated parish info from the union"""
     # subset_fields = []
 
     # if field_dict['country'] == 'SCOT':
@@ -154,15 +155,13 @@ def drop_outside_country(streets_gdf, new_id):
     # 	subset_fields.append(field_dict['conparid'])
     # 	subset_fields.append(field_dict['cen'])
 
-    tmp = streets_gdf.dropna(
-        subset=new_id
-    ).copy()  # Drop roads outside country (i.e. with no associated parish info from the union)
+    tmp = streets_gdf.dropna(subset=new_id).copy()
     return tmp
 
 
 def process_linstring(line_string_gdf, boundary_data, geom_attributes, new_uid):
     tmp = line_string_gdf.dissolve(
-        by=geom_attributes["data_fields"]["uid_field"], as_index=False
+        by=geom_attributes.data_fields.uid_field, as_index=False
     )
     print(tmp)
     tmp2 = gpd.overlay(tmp, boundary_data, how="identity", keep_geom_type=True)
@@ -170,7 +169,7 @@ def process_linstring(line_string_gdf, boundary_data, geom_attributes, new_uid):
     tmp2 = drop_outside_country(tmp2, "new_id")
 
     tmp2[new_uid] = (
-        tmp2[geom_attributes["data_fields"]["uid_field"]].astype(str)
+        tmp2[geom_attributes.data_fields.uid_field].astype(str)
         + "_"
         + tmp2["new_id"].astype(str)
     )
@@ -178,7 +177,7 @@ def process_linstring(line_string_gdf, boundary_data, geom_attributes, new_uid):
     tmp3 = tmp2.dissolve(by=new_uid)
     print(tmp3)
     tmp4 = tmp3.drop_duplicates(
-        subset=[geom_attributes["data_fields"]["address_field"], "new_id"], keep=False
+        subset=[geom_attributes.data_fields.address_field, "new_id"], keep=False
     ).copy()
     return tmp4
 
@@ -191,7 +190,7 @@ def process_point(point_gdf, boundary_data, geom_attributes, new_uid):
     tmp = drop_outside_country(tmp, "new_id")
 
     tmp[new_uid] = (
-        tmp[geom_attributes["data_fields"]["uid_field"]].astype(str)
+        tmp[geom_attributes.data_fields.uid_field].astype(str)
         + "_"
         + tmp["new_id"].astype(str)
     )
@@ -202,22 +201,22 @@ def process_point(point_gdf, boundary_data, geom_attributes, new_uid):
 
 def parse_address(streets_gdf, geom_attributes):
 
-    streets_gdf[geom_attributes["data_fields"]["address_field"]] = streets_gdf[
-        geom_attributes["data_fields"]["address_field"]
+    streets_gdf[geom_attributes.data_fields.address_field] = streets_gdf[
+        geom_attributes.data_fields.address_field
     ].str.upper()
 
-    if geom_attributes["query_criteria"] != "":
-        streets_gdf = streets_gdf.query(geom_attributes["query_criteria"]).copy()
+    if geom_attributes.query_criteria != "":
+        streets_gdf = streets_gdf.query(geom_attributes.query_criteria).copy()
 
-    if geom_attributes["standardisation_file"] != "":
-        with open(geom_attributes["standardisation_file"]) as f:
+    if geom_attributes.standardisation_file != "":
+        with open(geom_attributes.standardisation_file) as f:
             street_standardisation = json.load(f)
 
-        streets_gdf[geom_attributes["data_fields"]["address_field"]] = streets_gdf[
-            geom_attributes["data_fields"]["address_field"]
+        streets_gdf[geom_attributes.data_fields.address_field] = streets_gdf[
+            geom_attributes.data_fields.address_field
         ].replace(street_standardisation, regex=True)
 
-    streets_gdf[geom_attributes["data_fields"]["address_field"]] = streets_gdf[
-        geom_attributes["data_fields"]["address_field"]
+    streets_gdf[geom_attributes.data_fields.address_field] = streets_gdf[
+        geom_attributes.data_fields.address_field
     ].str.strip()
     return streets_gdf

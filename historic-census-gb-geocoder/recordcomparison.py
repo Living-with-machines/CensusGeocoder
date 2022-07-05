@@ -239,8 +239,8 @@ def compare(census, os, os_candidate_links, new_uid, geom_attributes, census_fie
 
         os_comparison.add(
             utils.rapidfuzzy_wratio_comparer(
-                left_on=census_fields["address"],
-                right_on=geom_attributes["data_fields"]["address_field"],
+                left_on=census_fields.address,
+                right_on=geom_attributes.data_fields.address_field,
                 method="rapidfuzzy_wratio",
                 label="rfuzz_score",
             )
@@ -274,7 +274,7 @@ def compare(census, os, os_candidate_links, new_uid, geom_attributes, census_fie
             print(os_census_roads_output.info())
 
             os_census_roads_output = pd.merge(
-                os[[f"{geom_attributes['data_fields']['address_field']}"]],
+                os[[f"{geom_attributes.data_fields.address_field}"]],
                 os_census_roads_output,
                 left_index=True,
                 right_on=new_uid,

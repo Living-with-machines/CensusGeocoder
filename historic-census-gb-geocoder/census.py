@@ -115,18 +115,18 @@ def process_census(
 
 
 def read_census(census_file, census_cols, csv_params):
-    cols_to_use = [*census_cols.values()]
+    cols_to_use = census_cols.list_cols()
     # census_variables = ['safehaven_id','address_anonymised','ConParID','ParID','RegCnty']
     print("Reading census")
 
     census_dd = dd.read_csv(
         census_file,
-        sep=csv_params["sep"],
-        encoding=csv_params["encoding"],
-        na_values=csv_params["na_values"],
+        sep=csv_params.sep,
+        encoding=csv_params.encoding,
+        na_values=csv_params.na_values,
         usecols=cols_to_use,
-        quoting=csv_params["quoting"],
-        blocksize=csv_params["blocksize"],
+        quoting=csv_params.quoting,
+        blocksize=csv_params.blocksize,
         assume_missing=True,
     )
 
@@ -160,25 +160,25 @@ def process_ew_census(
     census_dd[rsd_id_field] = pd.to_numeric(census_dd[rsd_id_field], errors="coerce")
     # Create an id for each unique 'address' + ConParID + CEN_1901 combination
     census_dd["unique_add_id"] = (
-        census_dd[census_fields["address"]].astype(str)
+        census_dd[census_fields.address].astype(str)
         + "_"
-        + census_dd[census_fields["consistentparid"]].astype(str)
+        + census_dd[census_fields.conparid].astype(str)
         + "_"
         + census_dd[rsd_id_field].astype(str)
     )
     print("Merged with RSD dictionary")
     print(census_dd)
 
-    census_blocking_cols = [census_fields["consistentparid"], rsd_id_field]
+    census_blocking_cols = [census_fields.conparid, rsd_id_field]
 
-    census_counties = sorted(census_dd["RegCnty"].unique())
+    census_counties = sorted(census_dd.RegCnty.unique())
 
     return census_dd, census_blocking_cols, census_counties
 
 
 def output_census(census_dd, outputdir, output_params):
     census_dd.to_parquet(
-        f"{outputdir}", partition_on=output_params["partition_on"], engine="pyarrow"
+        f"{outputdir}", partition_on=output_params.partition_on, engine="pyarrow"
     )
     pass
 

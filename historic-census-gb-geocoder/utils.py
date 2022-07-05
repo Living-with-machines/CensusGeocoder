@@ -105,14 +105,14 @@ def compute_tfidf(census, census_fields):
             norm="l2", use_idf=True, lowercase=False
         )  # default is norm l2
         tfidf_sparse = tfidf_vectorizer.fit_transform(
-            census[f"{census_fields['address']}"]
+            census[f"{census_fields.address}"]
         )
         tfidf_array = tfidf_sparse.toarray()
         tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
         census["tfidf"] = tfidf_array_sums
         census["weighting"] = (
-            census["tfidf"] / census[f"{census_fields['address']}"].str.len()
+            census["tfidf"] / census[f"{census_fields.address}"].str.len()
         )
     except ValueError:
         print("Likely error with tf-idf not having any strings to compare")
-    return census[[f"{census_fields['address']}", "weighting"]]
+    return census[[f"{census_fields.address}", "weighting"]]

@@ -1,226 +1,228 @@
 general:
-  input_data_path: "data/input"
-  output_data_path: "data/output"
+  output_data_path: "data/output" # specify output path
 
 census_config:
   EW_1851:
-    runtype: "testing"
-    use_existing_files: "no"
-    census_file: "census_anonymisation_egress/EW1851_anonymised_s.txt"
+    country: "EW"
+    year: 1851
+    runtype: True # set to 'True' to run geo-coding on this census; set 'False'
+    census_file: "data/input/census_anonymisation_egress/EW1851_anonymised_s.txt"
     census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      consistentparid: "ConParID"
-      parid: "ParID"
-      county: "RegCnty"
+      uid: "safehaven_id" # unique person id; for non-Turing implementation will be changed to 'RecID'
+      address: "address_anonymised" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
+      conparid: "ConParID" # see I-CeM documentation and readme
+      parid: "ParID" # see I-CeM documentation and readme
+      county: "RegCnty" # see I-CeM documentation and readme
 
-    csv_params: # parameters passed to dask read_csv
-      sep: "\t"
-      encoding: "latin-1"
-      blocksize: "25e6"
-      quoting: 3
-      na_values: "."
+    csv_params: # parameters passed to dask/pandas read_csv
+      sep: "\t" # passed to 'sep' parameter of dask read_csv
+      encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
+      blocksize: "25e6" # passed to 'blocksize' parameter of dask read_csv
+      quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
+      na_values: "." # Passed to 'na_values' parameter of pandas read_csv
 
-    census_standardisation_file: "icem_street_standardisation.json"
+    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json" # regex replacement file
     census_output_params:
-      partition_on: "RegCnty" # must be in 'census_fields'
+      partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
 
   EW_1861:
-    runtype: "testing"
-    use_existing_files: "no"
-    census_file: "census_anonymisation_egress/EW1861_anonymised.txt"
+    country: "EW"
+    year: 1861
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/EW1861_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
-      consistentparid: "ConParID"
+      conparid: "ConParID"
       parid: "ParID"
       county: "RegCnty"
 
-    csv_params: # parameters passed to dask read_csv
+    csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "icem_street_standardisation.json"
+    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
     census_output_params:
-      partition_on: "RegCnty" # must be in 'census_fields'
+      partition_on: "RegCnty"
 
   EW_1881:
-    runtype: "testing"
-    use_existing_files: "no"
-    census_file: "census_anonymisation_egress/EW1881_anonymised.txt"
+    country: "EW"
+    year: 1881
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/EW1881_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
-      consistentparid: "ConParID"
+      conparid: "ConParID"
       parid: "ParID"
       county: "RegCnty"
 
-    csv_params: # parameters passed to dask read_csv
+    csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "icem_street_standardisation.json"
+    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
     census_output_params:
-      partition_on: "RegCnty" # must be in 'census_fields'
+      partition_on: "RegCnty"
 
   EW_1891:
-    runtype: "testing"
-    use_existing_files: "no"
-    census_file: "census_anonymisation_egress/EW1891_anonymised.txt"
+    country: "EW"
+    year: 1891
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/EW1891_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
-      consistentparid: "ConParID"
+      conparid: "ConParID"
       parid: "ParID"
       county: "RegCnty"
 
-    csv_params: # parameters passed to dask read_csv
+    csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "icem_street_standardisation.json"
+    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
     census_output_params:
-      partition_on: "RegCnty" # must be in 'census_fields'
+      partition_on: "RegCnty"
 
   EW_1901:
-    runtype: "testing"
-    use_existing_files: "no"
-    census_file: "census_anonymisation_egress/EW1901_anonymised.txt"
+    country: "EW"
+    year: 1901
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/EW1901_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
-      consistentparid: "ConParID"
+      conparid: "ConParID"
       parid: "ParID"
       county: "RegCnty"
 
-    csv_params: # parameters passed to dask read_csv
+    csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "icem_street_standardisation.json"
+    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
     census_output_params:
-      partition_on: "RegCnty" # must be in 'census_fields'
+      partition_on: "RegCnty"
 
   EW_1911:
-    runtype: "testing"
-    use_existing_files: "no"
-    census_file: "census_anonymisation_egress/EW1911_anonymised.txt"
+    country: "EW"
+    year: 1911
+    runtype: False
+    census_file: "data/input/census_anonymisation_egress/EW1911_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
-      consistentparid: "ConParID"
+      conparid: "ConParID"
       parid: "ParID"
       county: "RegCnty"
 
-    csv_params: # parameters passed to dask read_csv
+    csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "icem_street_standardisation.json"
+    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
     census_output_params:
-      partition_on: "RegCnty" # must be in 'census_fields'
+      partition_on: "RegCnty"
 
 ew_config:
   parish_gis_config:
-    filepath: "1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp"
-    projection: "EPSG:27700"
-    id_field: "ID"
+    filepath: "data/input/ew/1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp" # path to parish boundary data
+    projection: "EPSG:27700" # projection authority string passed to geopandas
+    id_field: "ID" # unique id field that links to parish icem lookup table 'ukds_id_field'
 
   rsd_gis_config:
-    filepath: "ew/rsd_boundary_data/RSD_1851_1911_JR.shp"
-    projection: "EPSG:27700"
+    filepath: "data/input/ew/rsd_boundary_data/RSD_1851_1911_JR.shp" # path to rsd boundary data
+    projection: "EPSG:27700" # projection authority string passed to geopandas
 
   rsd_dictionary_config:
-    parentdir: "ew/parish_dicts_encoding"
     "1851":
-      filepath: "1851_ICeM_DICTIONARY_CODED.txt"
-      cen_parid_field: "ParID"
-      rsd_id_field: "CEN_1851"
-      encoding: "utf-8"
+      filepath: "data/input/ew/parish_dicts_encoding/1851_ICeM_DICTIONARY_CODED.txt" # path to rsd dictionary lookup table
+      cen_parid_field: "ParID" # ParID field that links to I-CeM ParID
+      rsd_id_field: "CEN_1851" # unique id of rsd unit
+      encoding: "utf-8" # file encoding
 
     "1861":
-      filepath: "1861_ICeM_DICTIONARY_CODED.txt"
+      filepath: "data/input/ew/parish_dicts_encoding/1861_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "ParID"
       rsd_id_field: "CEN_1861"
       encoding: "utf-8"
 
     "1881":
-      filepath: "1881_ICeM_DICTIONARY_CODED.txt"
+      filepath: "data/input/ew/parish_dicts_encoding/1881_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "NEW_ParID"
       rsd_id_field: "CEN_1881"
       encoding: "utf-8"
 
     "1891":
-      filepath: "1891_ICeM_DICTIONARY_CODED.txt"
+      filepath: "data/input/ew/parish_dicts_encoding/1891_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "ParID"
       rsd_id_field: "CEN_1891"
       encoding: "utf-8"
 
     "1901":
-      filepath: "1901_ICeM_DICTIONARY_CODED.txt"
+      filepath: "data/input/ew/parish_dicts_encoding/1901_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "ParID"
       rsd_id_field: "CEN_1901"
       encoding: "utf-8"
 
     "1911":
-      filepath: "1911_ICeM_DICTIONARY_CODED.txt"
+      filepath: "data/input/ew/parish_dicts_encoding/1911_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "ParID"
       rsd_id_field: "CEN_1911"
       encoding: "utf-8"
 
   parish_icem_lkup_config:
-    filepath: "UKDS_GIS_to_icem.xlsx"
-    sheet: "link"
-    ukds_id_field: "UKDS_ID"
-    na_values: "."
-    conparid51-91_field: "conparid_51-91"
-    conparid01-11_field: "conparid_01-11"
+    filepath: "data/input/ew/UKDS_GIS_to_icem.xlsx" # path to parish to icem lookup table
+    sheet: "link" # spreadsheet sheet containing data
+    ukds_id_field: "UKDS_ID" # unique id field that links to parish boundary data 'id_field'
+    na_values: "." # denotes na values in table
+    conparid51_91_field: "conparid_51-91" # consistent parish id field for 1851 to 1891
+    conparid01_11_field: "conparid_01-11" # consistent parish id field for 1901 and 1911
 
 scot_config:
-  parish_boundary_gis_pre1891: "scot_parish_boundary/CivilParish_pre1891/CivilParish_pre1891.shp"
-  parish_boundary_gis_post1891: "scot_parish_boundary/CivilParish1930/CivilParish1930.shp"
-  boundary_lkup_tbl: "scot_parish_boundary/scotboundarylinking.xlsx"
-  boundary_lkup_id: "ParID_link"
+  parish_boundary_gis_pre1891: "data/input/scot/scot_parish_boundary/CivilParish_pre1891/CivilParish_pre1891.shp" # path to pre 1891 boundary data
+  parish_boundary_gis_post1891: "data/input/scot/scot_parish_boundary/CivilParish1930/CivilParish1930.shp" # path to post 1891 boundary data
+  boundary_lkup_tbl: "data/input/scot/scot_parish_boundary/scotboundarylinking.xlsx" # path to post 1891 boundary and icem ParID lookup table
+  boundary_lkup_id: "ParID_link" # field linking scottish boundary data to icem 'ParID'
 
-target_geoms:
-  os_open_roads:
-    data_path: "data/input/oproad_essh_gb-2/data"
-    projection: "EPSG:27700"
-    file_type: "shp"
-    geom_type: "line"
-    geometry_format: ""
-    file_name: "RoadLink.shp"
-    data_fields:
-      uid_field: "nameTOID"
-      address_field: "name1"
-      geometry_field: "geometry"
+target_geoms: # geometry data to link census data to
+  os_open_roads: # name of geometry data
+    path_to_geom: "data/input/target_geoms/oproad_essh_gb-2/data" # path to geometry data; can be directory if multiple files or path to file.
+    projection: "EPSG:27700" # projection authority string passed to geopandas
+    file_type: "shp" # file type;
+    geom_type: "line" # type of geometry, either line or point; determines union operations (see documentation)
+    filename_disamb: "RoadLink.shp" # correct filename to read if multiple files in directory, e.g. OS Open Roads contains 'RoadNode' and 'RoadLink'. We ignore 'RoadNode.shp'.
+    data_fields: # fields to read from file
+      uid_field: "nameTOID" # unique id field
+      address_field: "name1" # address field
+      geometry_field: "geometry" # geometry field
 
-    standardisation_file: ""
-    query_criteria: ""
+    standardisation_file: "" # optional; file to perform regex replacement on address field
+    query_criteria: "" # optional; query to pass to pandas 'df.query'
 
   gb1900:
-    data_path: "data/input/gb1900_gazetteer_complete_july_2018.csv"
+    path_to_geom: "data/input/target_geoms/gb1900_gazetteer_complete_july_2018.csv"
     projection: "EPSG:27700"
     file_type: "csv"
     geom_type: "point"
-    geometry_format: "coords"
-    encoding: "utf-16"
-    file_name: ""
+    geometry_format: "coords" # specifies geometry format when reading geometry files other than shapefiles.
+    encoding: "utf-16" # file encoding passed to pandas read_csv
     data_fields:
       uid_field: "pin_id"
       address_field: "final_text"
