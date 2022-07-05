@@ -21,7 +21,7 @@ census_config:
       quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
       na_values: "." # Passed to 'na_values' parameter of pandas read_csv
 
-    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json" # regex replacement file
+    census_standardisation_file: "inputs/icem_street_standardisation.json" # regex replacement file
     census_output_params:
       partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
 
@@ -44,7 +44,7 @@ census_config:
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
 
@@ -67,7 +67,7 @@ census_config:
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
 
@@ -90,7 +90,7 @@ census_config:
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
 
@@ -113,7 +113,7 @@ census_config:
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
 
@@ -136,7 +136,7 @@ census_config:
       quoting: 3
       na_values: "."
 
-    census_standardisation_file: "data/input/icem_street_standardisation/icem_street_standardisation.json"
+    census_standardisation_file: "inputs/icem_street_standardisation.json"
     census_output_params:
       partition_on: "RegCnty"
 
@@ -229,5 +229,5 @@ target_geoms: # geometry data to link census data to
       long_field: "osgb_east"
       lat_field: "osgb_north"
 
-    standardisation_file: "inputs/street_standardisation.json"
+    standardisation_file: "inputs/gb1900_standardisation.json"
     query_criteria: "final_text.str.len() > 5"
