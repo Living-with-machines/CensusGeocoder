@@ -103,24 +103,6 @@ class CensusGB_geocoder:
         self.census_standardisation_file = census_params.census_standardisation_file
         self.census_output_params = census_params.census_output_params
 
-    # def set_row_limit(self, runtype):
-    #     """
-    #     Checks the `parse_option` value specified in parameters json.
-
-    #     Returns
-    #     ----------
-
-    #     rows: int or None
-    #         Either None, in which case when passed to pandas `read_csv`
-    #         or equivalent the argument is ignored, or an integer
-    #         specifying the number of rows to read.
-
-    #     """
-    #     rows = None
-    #     if runtype == False:
-    #         rows = 1000
-    #     return rows
-
     def set_output_dir(self, outputdirparent, census_country, census_year):
         """
         Set the output directory in the format e.g.
