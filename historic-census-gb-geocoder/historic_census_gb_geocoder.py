@@ -36,13 +36,21 @@ for x, y in geocode_config["census_config"].items():
                     rsd_dictionary_processed,
                     processed_parish_boundary_data,
                     geom_blocking_cols,
-                ) = census_geocoder.create_ew_parishboundaryprocessed()
+                ) = census_geocoder.create_ew_parishboundaryprocessed(
+                    ew_configuration.rsd_dictionary_config,
+                    ew_configuration.rsd_gis_config,
+                    ew_configuration.parish_icem_lkup_config,
+                    ew_configuration.parish_gis_config,
+                )
 
                 (
                     census_blocking_cols,
                     partition_list,
                 ) = census_geocoder.process_ew_census(
-                    rsd_dictionary_processed, tmpcensusdir
+                    rsd_dictionary_processed,
+                    tmpcensusdir,
+                    ew_configuration.rsd_dictionary_config,
+                    census_configuration,
                 )
             for geom, geom_config in geocode_config["target_geoms"].items():
                 print("#" * 88)
@@ -58,6 +66,7 @@ for x, y in geocode_config["census_config"].items():
                     geom,
                     geom_configuration,
                     tmpcensusdir,
+                    census_configuration,
                 )
 
 # for census, census_params in geocode_config["census_config"].items():

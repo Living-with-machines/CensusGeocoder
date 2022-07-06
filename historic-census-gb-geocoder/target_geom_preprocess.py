@@ -19,9 +19,10 @@ def set_geom_files(geom_attributes):
 
 
 def process_raw_geo_data(
-    geom_name, boundary_data, geom_attributes, census_year, output_dir
+    geom_name, boundary_data, geom_attributes, census_params, output_dir
 ):
-
+    print("*" * 100)
+    print(output_dir)
     print(f"Reading {geom_name} geometry data")
     print(geom_attributes)
     cols_to_keep = geom_attributes.data_fields.list_cols()
@@ -37,7 +38,7 @@ def process_raw_geo_data(
 
     filelist = set_geom_files(geom_attributes)
 
-    new_uid = str(geom_name) + "_" + str(census_year)
+    new_uid = str(geom_name) + "_" + str(census_params.year)
 
     if geom_attributes.file_type == "shp":
 
@@ -134,7 +135,7 @@ def process_raw_geo_data(
     # pathlib.Path(geom_outputdir).mkdir(parents=True, exist_ok=True)
 
     streets_gdf_processed.to_csv(
-        f"{output_dir}/{geom_name}_{census_year}.tsv", sep="\t"
+        f"{output_dir}/{geom_name}_{census_params.year}.tsv", sep="\t"
     )
     streets_gdf_processed_small = streets_gdf_processed.drop(columns=["geometry"])
     print(streets_gdf_processed_small.info())

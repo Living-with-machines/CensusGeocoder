@@ -337,3 +337,8 @@ def validate_configs(config_dict):
     for geom, geom_config in config_dict["target_geoms"].items():
         Target_geom(**geom_config)
     pass
+
+
+def create_outputdirs():
+    "put code here to create output directories"
+    pass
