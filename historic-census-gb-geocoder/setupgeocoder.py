@@ -6,43 +6,13 @@ import target_geom_preprocess
 import census
 import utils
 import recordcomparison
-import pathlib
 
 
 class CensusGB_geocoder:
     """Base Class to geo-code census data
 
-    Attributes
-    ----------
-    census_year : int
-        The census year to be geo-coded, specified in census_config in
-         `input_config.yaml`.
-
-    census_country: str
-        The country to be geo-coded, specified in census_config in
-         `input_config.yaml`.
-
-    output_data_path: str
-        Parent directory of outputs, specified in 'general' in `input_config.yaml`.
-
-    census_file: pathlib.Path
-        Path to the census file to be geocoded, specified in census_config in
-         `input_config.yaml`.
-
-    target_geoms: dict
-        Dictionary containing information about the target geometry
-        to be linked to the census.
-
     Methods
     ----------
-
-    set_row_limit()
-        Sets the number of rows to read from OS Open Roads, GB1900,
-        and Census file.
-    set_output_dir()
-        Sets the output directory to which all outputs are written.
-        Creates directory if none exists.
-
 
     preprocessing()
         Pre-processes input files, returning OS Open Road data, GB1900,
@@ -58,61 +28,6 @@ class CensusGB_geocoder:
 
     """
 
-    def __init__(self, census_params, general_params):
-
-        """
-        Parameters
-        ----------
-        census_year :func:`link_geocode_to_icem`
-            The census year to be geo-coded, e.g. 1851, 1861, 1871,
-            1881, 1891, 1901, or 1911. Warning, no census data for
-            England and Wales for 1871, and no Scottish census data
-            for 1911. Specified in parameters json.
-        runtype: str
-            Specify type of geo-coding, use 'full' to geo-code entire
-            year and country specified, or 'testing' to geo-code sample
-            for testing/debugging purposes. Specified in parameters json.
-        input_data_path: str
-            Specify the path to the `data/` folder, where the datasets
-            needed to perform the geocoding are stored.
-        output_data_path: str
-            Specify the path to the outputs folder, where the outputs
-            are stored.
-        """
-
-        self.census_country = census_params.country
-        self.census_year = census_params.year
-        # self.row_limit = self.set_row_limit(census_params.runtype)
-        # self.census_file = census_params.census_file
-        # self.general_params = general_params
-        self.output_dir = self.set_output_dir(
-            general_params.output_data_path, self.census_country, self.census_year
-        )
-
-        # self.target_geoms = target_geoms
-        # self.census_fields = census_params.census_fields
-        # self.census_csv_params = census_params.csv_params
-        # self.census_standardisation_file = census_params.census_standardisation_file
-        # self.census_output_params = census_params.census_output_params
-
-    def set_output_dir(self, outputdirparent, census_country, census_year):
-        """
-        Set the output directory in the format e.g.
-        `data/output/1901/EW/full`. Checks if output directory exists,
-        if it doesn't it creates a directory.
-
-        Returns
-        ----------
-        output_dir: str
-            Path to output directory.
-        """
-
-        output_dir = pathlib.Path(
-            outputdirparent + f"{str(census_year)}/{census_country}"
-        )
-        pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
-        return output_dir
-
     def link_geocode_to_icem(
         self,
         linked,
@@ -122,6 +37,8 @@ class CensusGB_geocoder:
         census_fields,
         census_output_params,
         tmpcensusdir,
+        output_dir,
+        census_year,
     ):
 
         census = pd.read_parquet(
@@ -136,8 +53,8 @@ class CensusGB_geocoder:
         )
         new_trial = new_trial[[census_fields.uid, new_uid]]
         new_trial.to_csv(
-            utils.make_path(self.output_dir, geom_name)
-            / f"{self.census_year}_{geom_name}_{partition}_lkup.tsv",
+            utils.make_path(output_dir, geom_name)
+            / f"{census_year}_{geom_name}_{partition}_lkup.tsv",
             sep="\t",
             index=False,
         )
@@ -153,6 +70,7 @@ class CensusGB_geocoder:
         geom_config,
         tmpcensusdir,
         census_params,
+        output_dir,
     ):
         """
         Needs editing Links census addresses to the geometry data for
@@ -186,7 +104,7 @@ class CensusGB_geocoder:
         """
 
         processed_geom_data, new_uid = target_geom_preprocess.process_raw_geo_data(
-            geom, parish_data_processed, geom_config, census_params, self.output_dir,
+            geom, parish_data_processed, geom_config, census_params, output_dir,
         )
 
         for partition in partition_list:
@@ -223,13 +141,13 @@ class CensusGB_geocoder:
                     continue
                 else:
                     linked.to_csv(
-                        utils.make_path(self.output_dir, geom, "linked")
+                        utils.make_path(output_dir, geom, "linked")
                         / f"{census_params.year}_{geom}_{partition}.tsv",
                         sep="\t",
                         index=False,
                     )
                     duplicates.to_csv(
-                        utils.make_path(self.output_dir, geom, "duplicate")
+                        utils.make_path(output_dir, geom, "duplicate")
                         / f"{census_params.year}_{geom}_{partition}.tsv",
                         sep="\t",
                         index=False,
@@ -242,6 +160,8 @@ class CensusGB_geocoder:
                         census_params.census_fields,
                         census_params.census_output_params,
                         tmpcensusdir,
+                        output_dir,
+                        census_params.year,
                     )  # need to add in census output params here
         pass
 
@@ -250,56 +170,8 @@ class EW_geocoder(CensusGB_geocoder):
     """
         set_rsd_dictionary() Sets filepath to the England and Wales
         Registration Sub-District (RSD) dictionary lookup file.
-    #### ENGLAND & WALES SPECIFIC conparid: str
-        The 'ConParID' column name, either 'conparid_51-91' for 1851 to
-        1891 or 'conparid_01-11' for 1901 to 1911.
-    cen: str
-        The cen field found in the RSD Dictionary lookup files and RSD
-        Boundary Shapefiles. Created using 'cen' + `census_year`
-        attribute, e.g. 'CEN_1901'. Used to dissolve the RSD Shapefile
-        to create the correct RSD boundaries for specified census year
-        and to link these to RSD Dictionary lookup.
-    rsd_shapefile_path: str
-        Path to the England and Wales RSD Boundary Shapefile.
-    rsd_dictionary_path: str
-        Path to the England and Wales RSD Dictionary lookup file for the
-        specified census year.
-    ukds_gis_to_icem_path: str
-        Path to lookup table that links England and Wales Parish
-        Boundary Shapefile to the Consistent Parish Geographies
-        (`ConParID` field) in I-CeM
-    parid_for_rsd_dict: str
-        Name of the `Par_ID` column in the England and Wales RSD
-        Dictionary lookup file. For 1851,1861,1891,1901, and 1911 the
-        column is labelled 'ParID'. The 1881 RSD Dictionary lookup file
-        has two columns 'OLD_ParID' and 'NEW_ParID', we use 'NEW_ParID'.
+
     """
-
-    def __init__(
-        self, census_params, general_params, ew_config,
-    ):
-        super().__init__(census_params, general_params)
-
-        # self.conparid = census_params['conparid']
-
-        self.rsd_dictionary_config = ew_config.rsd_dictionary_config
-
-        # self.rsd_gis_config = ew_config.rsd_gis_config
-
-        self.parish_icem_lkup_config = ew_config.parish_icem_lkup_config
-
-        self.conparid = self.create_conparid(
-            self.parish_icem_lkup_config, self.census_year
-        )
-
-        # self.parish_gis_config = ew_config.parish_gis_config
-
-    def create_conparid(self, parish_icem_lkup_config, census_year):
-        if census_year < 1901:
-            conparid = parish_icem_lkup_config.conparid51_91_field
-        else:
-            conparid = parish_icem_lkup_config.conparid01_11_field
-        return conparid
 
     def create_ew_parishboundaryprocessed(
         self,
@@ -307,6 +179,7 @@ class EW_geocoder(CensusGB_geocoder):
         rsd_gis_config,
         parish_icem_lkup_config,
         parish_gis_config,
+        conparid,
     ):
         rsd_dictionary_processed = ew_geom_preprocess.read_rsd_dictionary(
             rsd_dictionary_config,
@@ -317,13 +190,13 @@ class EW_geocoder(CensusGB_geocoder):
         )
 
         ukds_link = ew_geom_preprocess.read_gis_to_icem(
-            parish_icem_lkup_config, self.conparid
+            parish_icem_lkup_config, conparid
         )
 
         parish = ew_geom_preprocess.process_parish_boundary_data(
             parish_gis_config,
             ukds_link,
-            self.conparid,
+            conparid,
             parish_icem_lkup_config.ukds_id_field,
         )
 
@@ -331,7 +204,7 @@ class EW_geocoder(CensusGB_geocoder):
             parish_data_processed,
             geom_blocking_cols,
         ) = ew_geom_preprocess.join_parish_rsd_boundary(
-            parish, processed, self.conparid, rsd_dictionary_config.rsd_id_field
+            parish, processed, conparid, rsd_dictionary_config.rsd_id_field
         )
         # print(parish_data_processed)
         return rsd_dictionary_processed, parish_data_processed, geom_blocking_cols
@@ -381,18 +254,18 @@ class EW_geocoder(CensusGB_geocoder):
 
 
 class SCOT_geocoder(CensusGB_geocoder):
-    def __init__(
-        self,
-        census_country,
-        census_year,
-        census_params,
-        target_geoms,
-        path_to_data,
-        scot_config,
-    ):
-        super().__init__(
-            census_country, census_year, census_params, target_geoms, path_to_data
-        )
+    # def __init__(
+    #     self,
+    #     census_country,
+    #     census_year,
+    #     census_params,
+    #     target_geoms,
+    #     path_to_data,
+    #     scot_config,
+    # ):
+    #     super().__init__(
+    #         census_country, census_year, census_params, target_geoms, path_to_data
+    # )
 
     # 		#### SCOTLAND SPECIFIC
     def create_scot_parishboundaryprocessed(self):

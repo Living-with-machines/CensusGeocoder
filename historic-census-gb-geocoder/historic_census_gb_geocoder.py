@@ -24,14 +24,20 @@ for x, y in geocode_config["census_config"].items():
             print("#" * 88)
             print(census_configuration.year, census_configuration.country)
             print("#" * 88)
+            output_dir = config.create_outputdirs(
+                gen.output_data_path,
+                census_configuration.country,
+                census_configuration.year,
+            )
 
             if census_configuration.country == "EW":
                 ew_configuration = config.EW_configuration(
                     census_configuration.year, **geocode_config["ew_config"]
                 )
-                census_geocoder = setupgeocoder.EW_geocoder(
-                    census_configuration, gen, ew_configuration,
+                conparid = config.create_conparid(
+                    ew_configuration.parish_icem_lkup_config, census_configuration.year
                 )
+                census_geocoder = setupgeocoder.EW_geocoder()
                 (
                     rsd_dictionary_processed,
                     processed_parish_boundary_data,
@@ -41,6 +47,7 @@ for x, y in geocode_config["census_config"].items():
                     ew_configuration.rsd_gis_config,
                     ew_configuration.parish_icem_lkup_config,
                     ew_configuration.parish_gis_config,
+                    conparid,
                 )
 
                 (
@@ -67,6 +74,7 @@ for x, y in geocode_config["census_config"].items():
                     geom_configuration,
                     tmpcensusdir,
                     census_configuration,
+                    output_dir,
                 )
 
 # for census, census_params in geocode_config["census_config"].items():

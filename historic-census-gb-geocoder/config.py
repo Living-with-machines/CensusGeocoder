@@ -339,6 +339,24 @@ def validate_configs(config_dict):
     pass
 
 
-def create_outputdirs():
-    "put code here to create output directories"
-    pass
+def create_outputdirs(output_data_path, country, year):
+    """Set the output directory in the format e.g.
+    `data/output/1901/EW/`. Checks if output directory exists,
+    if it doesn't it creates a directory.
+
+    Returns
+    ----------
+    output_dir: str
+        Path to output directory.
+    """
+    output_dir = pathlib.Path(output_data_path + f"{str(year)}/{country}")
+    pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    return output_dir
+
+def create_conparid(parish_icem_lkup_config, census_year):
+    if census_year < 1901:
+        conparid = parish_icem_lkup_config.conparid51_91_field
+    else:
+        conparid = parish_icem_lkup_config.conparid01_11_field
+    return conparid
