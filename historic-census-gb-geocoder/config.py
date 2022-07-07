@@ -146,6 +146,9 @@ class Csv_params:
 class Census_output_params:
     partition_on: str
     new_uid: str
+    sep: str
+    index: bool
+    filetype: str
 
     def __post_init__(self):
         first_validate(self)
@@ -284,6 +287,7 @@ class Target_geom:
     filename_disamb: str = ""
     geometry_format: str = ""
     encoding: str = ""
+    sep: str = ","
 
     def __post_init__(self):
         if isinstance(self.data_fields, dict):
@@ -292,6 +296,7 @@ class Target_geom:
         validate_projection(self.projection)
 
         validate_paths(self.path_to_geom)
+        validate_sep(self.sep)
 
 
 @dataclass
@@ -339,7 +344,7 @@ def validate_configs(config_dict):
     pass
 
 
-def create_outputdirs(output_data_path, country, year):
+def create_outputdirs(*args):
     """Set the output directory in the format e.g.
     `data/output/1901/EW/`. Checks if output directory exists,
     if it doesn't it creates a directory.
@@ -349,10 +354,12 @@ def create_outputdirs(output_data_path, country, year):
     output_dir: str
         Path to output directory.
     """
-    output_dir = pathlib.Path(output_data_path + f"{str(year)}/{country}")
+    args1 = [str(arg) for arg in args]
+    output_dir = pathlib.Path(*args1)
     pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     return output_dir
+
 
 def create_conparid(parish_icem_lkup_config, census_year):
     if census_year < 1901:

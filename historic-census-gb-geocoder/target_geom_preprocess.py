@@ -4,173 +4,98 @@ import json
 import pathlib
 
 
-def set_geom_files(geom_attributes):
+def set_geom_files(geom_config):
+    """Create list of file(s) containing target geometry data
+
+    Returns
+    ----------
+    geom_files: list
+        List containing file(s) of target geometry data.
+    """
 
     geom_files = []
-    p = pathlib.Path(geom_attributes.path_to_geom)
+    p = pathlib.Path(geom_config.path_to_geom)
     if p.is_file():
         geom_files.append(str(p))
     else:
         for file_p in p.iterdir():
-            if geom_attributes.filename_disamb in str(file_p):
+            if geom_config.filename_disamb in str(file_p):
                 geom_files.append(str(file_p))
 
     return geom_files
 
 
 def process_raw_geo_data(
-    geom_name, boundary_data, geom_attributes, census_params, output_dir
+    geom_name, boundary_data, geom_config, census_params, output_dir
 ):
+    """"""
     print("*" * 100)
-    print(output_dir)
     print(f"Reading {geom_name} geometry data")
-    print(geom_attributes)
-    cols_to_keep = geom_attributes.data_fields.list_cols()
+    cols_to_keep = geom_config.data_fields.list_cols()
 
-    # for k,v in geom_attributes.items():
-    # 	if 'field' in k:
-    # 		if isinstance(v, list):
-    # 			cols_to_keep.extend(v)
-    # 		else:
-    # 			cols_to_keep.append(v)
-
-    print(cols_to_keep)
-
-    filelist = set_geom_files(geom_attributes)
+    filelist = set_geom_files(geom_config)
 
     new_uid = str(geom_name) + "_" + str(census_params.year)
 
-    if geom_attributes.file_type == "shp":
+    if geom_config.file_type == "shp":
+        target_gdf = read_shp(filelist, cols_to_keep, geom_config)
+        # print(target_gdf)
 
-        tmp_file = gpd.read_file(filelist[0], rows=1)
-        list_of_all_cols = tmp_file.columns.values.tolist()
+    elif geom_config.file_type == "csv":
+        target_df = read_csv(geom_config, cols_to_keep, filelist)
+        if geom_config.geometry_format == "coords":
+            target_gdf = process_coords(target_df, geom_config)
+        elif geom_config.geometry_format == "wkt":
+            target_gdf = process_wkt(target_df, geom_config)
 
-        unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
-
-        streets_gdf = gpd.GeoDataFrame(
-            pd.concat(
-                [
-                    gpd.read_file(
-                        road_shp,
-                        ignore_fields=unwanted_cols,
-                        crs=geom_attributes.projection,
-                        rows=1000,
-                    )
-                    for road_shp in filelist
-                ]
-            ),
-            crs=geom_attributes.projection,
-        )
-        # print(streets_gdf)
-        streets_gdf = streets_gdf.dissolve(
-            by=geom_attributes.data_fields.uid_field, as_index=False
-        )
-        # print(streets_gdf)
-
-    elif geom_attributes.file_type == "csv":
-
-        streets_df = pd.concat(
-            [
-                pd.read_csv(
-                    csv_file,
-                    sep=",",
-                    encoding=geom_attributes.encoding,
-                    usecols=cols_to_keep,
-                    nrows=1000,
-                )
-                for csv_file in filelist
-            ]
-        )
-
-        if geom_attributes.geometry_format == "coords":
-
-            streets_gdf = gpd.GeoDataFrame(
-                streets_df,
-                geometry=gpd.points_from_xy(
-                    streets_df[geom_attributes.data_fields.long_field],
-                    streets_df[geom_attributes.data_fields.lat_field],
-                ),
-                crs=geom_attributes.projection,
-            ).drop(
-                columns=[
-                    geom_attributes.data_fields.long_field,
-                    geom_attributes.data_fields.lat_field,
-                ]
-            )
-
-            # print(streets_gdf.info())
-
-        elif geom_attributes.geometry_format == "wkt":
-
-            streets_gdf = gpd.GeoDataFrame(
-                streets_df,
-                geometry=gpd.GeoSeries.from_wkt(streets_df["wkt"]),
-                crs=geom_attributes.projection,
-            )
-        # print(streets_gdf)
-
-    streets_gdf = (
-        streets_gdf.dropna().copy()
+    target_gdf = (
+        target_gdf.dropna().copy()
     )  # need to check the effect this is having by not using subset any more.
-    # print(streets_gdf)
+    # print(target_gdf)
 
-    # print(streets_gdf.info())
-
-    if geom_attributes.geom_type == "line":
-        streets_gdf_processed = process_linstring(
-            streets_gdf, boundary_data, geom_attributes, new_uid
+    if geom_config.geom_type == "line":
+        target_gdf_processed = process_linstring(
+            target_gdf, boundary_data, geom_config, new_uid
         )
 
-    elif geom_attributes.geom_type == "point":
-        streets_gdf_processed = process_point(
-            streets_gdf, boundary_data, geom_attributes, new_uid
+    elif geom_config.geom_type == "point":
+        target_gdf_processed = process_point(
+            target_gdf, boundary_data, geom_config, new_uid
         )
-        # print(streets_gdf_processed.info())
+        # print(target_gdf_processed.info())
 
-    streets_gdf_processed = parse_address(streets_gdf_processed, geom_attributes)
+    target_gdf_processed = parse_address(target_gdf_processed, geom_config)
 
-    print(streets_gdf_processed.info())
+    print(target_gdf_processed.info())
 
-    # geom_outputdir = f"{output_dir}/{geom_name}
-    # pathlib.Path(geom_outputdir).mkdir(parents=True, exist_ok=True)
-
-    streets_gdf_processed.to_csv(
+    target_gdf_processed.to_csv(
         f"{output_dir}/{geom_name}_{census_params.year}.tsv", sep="\t"
     )
-    streets_gdf_processed_small = streets_gdf_processed.drop(columns=["geometry"])
-    print(streets_gdf_processed_small.info())
+    target_gdf_processed_small = target_gdf_processed.drop(
+        columns=[target_gdf_processed.geometry.name]
+    )
+    print(target_gdf_processed_small.info())
 
-    # print(streets_gdf_lnk.info())
-
-    return streets_gdf_processed_small, new_uid
+    return target_gdf_processed_small, new_uid
 
 
-def drop_outside_country(streets_gdf, new_id):
+def drop_outside_country(target_gdf, new_id):
     """Drop roads outside country (i.e. with
     no associated parish info from the union"""
-    # subset_fields = []
 
-    # if field_dict['country'] == 'SCOT':
-    # 	subset_fields.append(field_dict['scot_parish'])
-    # elif field_dict['country'] == 'EW':
-    # 	subset_fields.append(field_dict['conparid'])
-    # 	subset_fields.append(field_dict['cen'])
-
-    tmp = streets_gdf.dropna(subset=new_id).copy()
+    tmp = target_gdf.dropna(subset=new_id).copy()
     return tmp
 
 
-def process_linstring(line_string_gdf, boundary_data, geom_attributes, new_uid):
-    tmp = line_string_gdf.dissolve(
-        by=geom_attributes.data_fields.uid_field, as_index=False
-    )
+def process_linstring(line_string_gdf, boundary_data, geom_config, new_uid):
+    tmp = line_string_gdf.dissolve(by=geom_config.data_fields.uid_field, as_index=False)
     print(tmp)
     tmp2 = gpd.overlay(tmp, boundary_data, how="identity", keep_geom_type=True)
     print(tmp2.info())
     tmp2 = drop_outside_country(tmp2, "new_id")
 
     tmp2[new_uid] = (
-        tmp2[geom_attributes.data_fields.uid_field].astype(str)
+        tmp2[geom_config.data_fields.uid_field].astype(str)
         + "_"
         + tmp2["new_id"].astype(str)
     )
@@ -178,12 +103,12 @@ def process_linstring(line_string_gdf, boundary_data, geom_attributes, new_uid):
     tmp3 = tmp2.dissolve(by=new_uid)
     print(tmp3)
     tmp4 = tmp3.drop_duplicates(
-        subset=[geom_attributes.data_fields.address_field, "new_id"], keep=False
+        subset=[geom_config.data_fields.address_field, "new_id"], keep=False
     ).copy()
     return tmp4
 
 
-def process_point(point_gdf, boundary_data, geom_attributes, new_uid):
+def process_point(point_gdf, boundary_data, geom_config, new_uid):
     tmp = gpd.sjoin(
         left_df=point_gdf, right_df=boundary_data, predicate="intersects", how="inner"
     ).drop(columns=["index_right"])
@@ -191,7 +116,7 @@ def process_point(point_gdf, boundary_data, geom_attributes, new_uid):
     tmp = drop_outside_country(tmp, "new_id")
 
     tmp[new_uid] = (
-        tmp[geom_attributes.data_fields.uid_field].astype(str)
+        tmp[geom_config.data_fields.uid_field].astype(str)
         + "_"
         + tmp["new_id"].astype(str)
     )
@@ -200,24 +125,86 @@ def process_point(point_gdf, boundary_data, geom_attributes, new_uid):
     return tmp3
 
 
-def parse_address(streets_gdf, geom_attributes):
+def parse_address(target_gdf, geom_config):
 
-    streets_gdf[geom_attributes.data_fields.address_field] = streets_gdf[
-        geom_attributes.data_fields.address_field
+    target_gdf[geom_config.data_fields.address_field] = target_gdf[
+        geom_config.data_fields.address_field
     ].str.upper()
 
-    if geom_attributes.query_criteria != "":
-        streets_gdf = streets_gdf.query(geom_attributes.query_criteria).copy()
+    if geom_config.query_criteria != "":
+        target_gdf = target_gdf.query(geom_config.query_criteria).copy()
 
-    if geom_attributes.standardisation_file != "":
-        with open(geom_attributes.standardisation_file) as f:
+    if geom_config.standardisation_file != "":
+        with open(geom_config.standardisation_file) as f:
             street_standardisation = json.load(f)
 
-        streets_gdf[geom_attributes.data_fields.address_field] = streets_gdf[
-            geom_attributes.data_fields.address_field
+        target_gdf[geom_config.data_fields.address_field] = target_gdf[
+            geom_config.data_fields.address_field
         ].replace(street_standardisation, regex=True)
 
-    streets_gdf[geom_attributes.data_fields.address_field] = streets_gdf[
-        geom_attributes.data_fields.address_field
+    target_gdf[geom_config.data_fields.address_field] = target_gdf[
+        geom_config.data_fields.address_field
     ].str.strip()
-    return streets_gdf
+    return target_gdf
+
+
+def read_shp(filelist, cols_to_keep, geom_config):
+    tmp_file = gpd.read_file(filelist[0], rows=1)
+    list_of_all_cols = tmp_file.columns.values.tolist()
+
+    unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
+
+    target_gdf = gpd.GeoDataFrame(
+        pd.concat(
+            [
+                gpd.read_file(
+                    target_shp,
+                    ignore_fields=unwanted_cols,
+                    crs=geom_config.projection,
+                    rows=1000,
+                )
+                for target_shp in filelist
+            ]
+        ),
+        crs=geom_config.projection,
+    )
+    return target_gdf
+
+
+def read_csv(geom_config, cols_to_keep, filelist):
+    target_df = pd.concat(
+        [
+            pd.read_csv(
+                csv_file,
+                sep=geom_config.sep,
+                encoding=geom_config.encoding,
+                usecols=cols_to_keep,
+                nrows=1000,
+            )
+            for csv_file in filelist
+        ]
+    )
+    return target_df
+
+
+def process_coords(target_df, geom_config):
+    target_gdf = gpd.GeoDataFrame(
+        target_df,
+        geometry=gpd.points_from_xy(
+            target_df[geom_config.data_fields.long_field],
+            target_df[geom_config.data_fields.lat_field],
+        ),
+        crs=geom_config.projection,
+    ).drop(
+        columns=[geom_config.data_fields.long_field, geom_config.data_fields.lat_field,]
+    )
+    return target_gdf
+
+
+def process_wkt(target_df, geom_config):
+    target_gdf = gpd.GeoDataFrame(
+        target_df,
+        geometry=gpd.GeoSeries.from_wkt(target_df["wkt"]),
+        crs=geom_config.projection,
+    )
+    return target_gdf

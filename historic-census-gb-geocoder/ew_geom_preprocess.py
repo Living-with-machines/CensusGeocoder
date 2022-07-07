@@ -94,7 +94,7 @@ def join_parish_rsd_boundary(par_boundary, rsd_boundary, conparid, rsd_id_field)
 
     print("Joining Parish Boundary and RSD Boundary")
     # print(par_boundary['geometry'].is_valid.all())
-    # print(rsd_boundary['geometry'].is_valid.all())
+
     par_rsd_boundary = gpd.overlay(
         par_boundary, rsd_boundary, how="intersection", keep_geom_type=True
     )
@@ -106,94 +106,9 @@ def join_parish_rsd_boundary(par_boundary, rsd_boundary, conparid, rsd_id_field)
         + par_rsd_boundary[rsd_id_field].astype(str)
     )
     par_rsd_boundary = par_rsd_boundary.dissolve(by="new_id").reset_index()
-    # print(par_rsd_boundary.info()) to delete
+
     geom_blocking_cols = [conparid, rsd_id_field]
     return par_rsd_boundary, geom_blocking_cols
-
-
-def icem_linking_prep(
-    segmented_roads, field_dict, name1="name1", nameTOID="nameTOID", new_id="new_id"
-):
-    # TO DO add in output for roads that get dropped due to duplication
-    """Prepare the segmented OS Open Road Data for linking to I-CeM. Conducts the following
-    steps: 1. Converts road names to uppercase, to match uppercase of ICeM addresses. 2.
-    Creates new ids for each road segment per parish boundary or for England and Wales
-    per Parish/RSD boundary 3. Dissolves on this new id so that roads with multiple
-    segments in the same Parish/RSD are one geography
-
-    Parameters
-    ----------
-    segmented_roads: geopandas.GeoDataFrame
-        GeoDataframe of OS Open Road Data segmented by Parish/RSD Boundaries.
-    census_year integer
-        Year of census; used for generating the new unique id for each road within a
-        Parish/RSD
-    nameTOID: pandas.series.name; default 'nameTOID'
-        Column label of 'nameTOID' column from OS Open Roads Dataset
-    new_id: pandas.series.name; default 'new_id'
-        Column label of 'new_id' column from ?? overlay of OS Open Roads and Parish/RSD
-        Boundary;
-
-    Returns
-    -------
-    geopandas.GeoDataFrame
-        A geopandas geodataframe containing the OS Open Road data ready for linking to
-        I-CeM.
-    """
-
-    # Create new road_id for each road segment per ConParID
-    # (one set of ids for 1851-1891; another for 1901-1911)
-    segmented_roads[field_dict["os_road_id"]] = (
-        segmented_roads[nameTOID].astype(str)
-        + "_"
-        + segmented_roads[new_id].astype(str)
-    )
-
-    # Dissolve multiple segments of roads with the same road_id
-    # (e.g. where there are two line segments of the same road in a parish)
-    print("Dissolving on road_ids")
-    segmented_os_roads_to_icem_aggregated = segmented_roads.dissolve(
-        by=field_dict["os_road_id"]
-    )
-
-    # Ensure ids match the datatype int64 otherwise error produced
-    # when linking to ConParID in I-CeM
-    # Drop duplicate roads (roads with same name and same ConParID
-    # e.g. two roads with the same name in the same parish with
-    # currently no way to distinguish them)
-    # print('before de-duplicating: ',len(os_vector_data_01_11))
-    segmented_os_roads_to_icem_aggregated_deduplicated = segmented_os_roads_to_icem_aggregated.drop_duplicates(
-        subset=["name1", "new_id"], keep=False
-    ).copy()
-
-    print(segmented_os_roads_to_icem_aggregated_deduplicated.info())
-    if field_dict["country"] == "SCOT":
-        segmented_os_roads_to_icem_aggregated_deduplicated[
-            field_dict["scot_parish"]
-        ] = pd.to_numeric(
-            segmented_os_roads_to_icem_aggregated_deduplicated[
-                field_dict["scot_parish"]
-            ],
-            errors="coerce",
-        )
-    elif field_dict["country"] == "EW":
-        segmented_os_roads_to_icem_aggregated_deduplicated[
-            field_dict["cen"]
-        ] = pd.to_numeric(
-            segmented_os_roads_to_icem_aggregated_deduplicated[field_dict["cen"]],
-            errors="coerce",
-        )
-        segmented_os_roads_to_icem_aggregated_deduplicated[
-            field_dict["conparid"]
-        ] = pd.to_numeric(
-            segmented_os_roads_to_icem_aggregated_deduplicated[field_dict["conparid"]],
-            errors="coerce",
-        )
-
-    print(
-        segmented_os_roads_to_icem_aggregated_deduplicated
-    )  # remove once testing finished
-    return segmented_os_roads_to_icem_aggregated_deduplicated
 
 
 def read_rsd_dictionary(rsd_dictionary_config):

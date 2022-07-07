@@ -2,6 +2,13 @@ general:
   output_data_path: "data/output/" # specify output path
   # linked_subdir: "linked/" # subdir of 'output_data_path' to write linked census records to;
   # duplicate_subdir: "duplicate/" # subdir of 'output_data_path' to write duplicate matches to;
+  # census_output_params:
+  #   partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
+  #   new_uid: "unique_add_id" # name of new unique id field (see documentation)
+  # geom_output_params:
+  #   sep: "\t"
+  #   index: False
+  #   filetype: ".tsv"
 
 census_config:
   EW_1851:
@@ -27,6 +34,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
       new_uid: "unique_add_id" # name of new unique id field (see documentation)
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   EW_1861:
     country: "EW"
@@ -51,6 +61,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   EW_1881:
     country: "EW"
@@ -75,6 +88,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   EW_1891:
     country: "EW"
@@ -99,6 +115,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   EW_1901:
     country: "EW"
@@ -123,6 +142,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   EW_1911:
     country: "EW"
@@ -147,6 +169,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   SCOT_1851:
     country: "SCOT"
@@ -170,6 +195,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   SCOT_1861:
     country: "SCOT"
@@ -193,6 +221,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   SCOT_1871:
     country: "SCOT"
@@ -216,6 +247,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   SCOT_1881:
     country: "SCOT"
@@ -239,6 +273,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   SCOT_1891:
     country: "SCOT"
@@ -262,6 +299,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
   SCOT_1901:
     country: "SCOT"
@@ -285,6 +325,9 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
 
 ew_config:
   parish_gis_config:
@@ -369,6 +412,7 @@ target_geoms: # geometry data to link census data to
     geom_type: "point"
     geometry_format: "coords" # specifies geometry format when reading geometry files other than shapefiles.
     encoding: "utf-16" # file encoding passed to pandas read_csv
+    sep: ","
     data_fields:
       uid_field: "pin_id"
       address_field: "final_text"

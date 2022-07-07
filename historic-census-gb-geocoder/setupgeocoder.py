@@ -18,13 +18,16 @@ class CensusGB_geocoder:
         Pre-processes input files, returning OS Open Road data, GB1900,
         Census, and a list of census counties. Writes OS Open Road and
         GB1900 datasets segmented by historic parish/RSD boundaries.
-    geocoding()
-        Loops over each county in the census, geo-coding the census data
-        for that county using OS Open Road Data and GB1900. Writes output
-        files containing....
-    summary_stats()
-        Produces summary statistics, detailing the contents of the,
-        geo-coded outputs.
+
+    geocode()
+        Links census addresses to target geometries using geo-blocking and
+        fuzzy string matching.
+
+    link_geocode_to_icem()
+        Links geocoded census output (unique census addresses with corresponding
+        linked street geometry) to individuals in the census; creates dataframe
+        containing all unique individual census ids and the id of the street
+        geometry that person has been linked to.
 
     """
 
@@ -46,21 +49,20 @@ class CensusGB_geocoder:
             filters=[[(census_output_params.partition_on, "=", f"{partition}")]],
             columns=[census_output_params.new_uid, census_fields.uid],
         )
-        print(census.info())
-        print(linked.info())
+
         new_trial = pd.merge(
             left=census, right=linked, on=census_output_params.new_uid, how="inner"
         )
         new_trial = new_trial[[census_fields.uid, new_uid]]
         new_trial.to_csv(
-            utils.make_path(output_dir, geom_name)
+            utils.make_path(output_dir)
             / f"{census_year}_{geom_name}_{partition}_lkup.tsv",
             sep="\t",
             index=False,
         )
         pass
 
-    def geocoding_new(
+    def geocode(
         self,
         parish_data_processed,
         census_blocking_cols,
@@ -141,16 +143,16 @@ class CensusGB_geocoder:
                     continue
                 else:
                     linked.to_csv(
-                        utils.make_path(output_dir, geom, "linked")
-                        / f"{census_params.year}_{geom}_{partition}.tsv",
-                        sep="\t",
-                        index=False,
+                        utils.make_path(output_dir, "linked")
+                        / f"{census_params.year}_{geom}_{partition}{census_params.census_output_params.filetype}",
+                        sep=census_params.census_output_params.sep,
+                        index=census_params.census_output_params.index,
                     )
                     duplicates.to_csv(
-                        utils.make_path(output_dir, geom, "duplicate")
-                        / f"{census_params.year}_{geom}_{partition}.tsv",
-                        sep="\t",
-                        index=False,
+                        utils.make_path(output_dir, "duplicate")
+                        / f"{census_params.year}_{geom}_{partition}{census_params.census_output_params.filetype}",
+                        sep=census_params.census_output_params.sep,
+                        index=census_params.census_output_params.index,
                     )
                     self.link_geocode_to_icem(
                         linked,
@@ -168,8 +170,11 @@ class CensusGB_geocoder:
 
 class EW_geocoder(CensusGB_geocoder):
     """
-        set_rsd_dictionary() Sets filepath to the England and Wales
-        Registration Sub-District (RSD) dictionary lookup file.
+        create_ew_parishboundaryprocessed()
+            Creates new boundary dataset from union of RSD and Parish boundaries.
+
+        process_ew_census()
+            Process census data ready for linking.
 
     """
 
@@ -206,7 +211,7 @@ class EW_geocoder(CensusGB_geocoder):
         ) = ew_geom_preprocess.join_parish_rsd_boundary(
             parish, processed, conparid, rsd_dictionary_config.rsd_id_field
         )
-        # print(parish_data_processed)
+
         return rsd_dictionary_processed, parish_data_processed, geom_blocking_cols
 
     def process_ew_census(
@@ -216,28 +221,20 @@ class EW_geocoder(CensusGB_geocoder):
         rsd_dictionary_config,
         census_params,
     ):
-        print("*" * 100)
-        print(rsd_dictionary_processed)
-        print("*" * 100)
-        print(tmpcensusdir)
-        print("*" * 100)
-        print(rsd_dictionary_config)
-        print("*" * 100)
-        print(census_params)
 
         census_data = census.read_census(
             census_params.census_file,
             census_params.census_fields,
             census_params.csv_params,
         )
-        # print(census_data)
+
         census_cleaned = census.clean_census_address_data(
             census_data,
             census_params.census_fields.address,
             census_params.census_standardisation_file,
         )
-        # print(census_cleaned)
-        census_linked, census_blocking_cols, census_counties = census.process_ew_census(
+
+        census_linked, census_blocking_cols, partition_list = census.process_ew_census(
             census_cleaned,
             rsd_dictionary_processed,
             census_params.census_fields.parid,
@@ -250,7 +247,7 @@ class EW_geocoder(CensusGB_geocoder):
             census_linked, tmpcensusdir, census_params.census_output_params
         )
 
-        return census_blocking_cols, census_counties
+        return census_blocking_cols, partition_list
 
 
 class SCOT_geocoder(CensusGB_geocoder):
