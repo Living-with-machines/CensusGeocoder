@@ -1,14 +1,5 @@
 general:
   output_data_path: "data/output/" # specify output path
-  # linked_subdir: "linked/" # subdir of 'output_data_path' to write linked census records to;
-  # duplicate_subdir: "duplicate/" # subdir of 'output_data_path' to write duplicate matches to;
-  # census_output_params:
-  #   partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
-  #   new_uid: "unique_add_id" # name of new unique id field (see documentation)
-  # geom_output_params:
-  #   sep: "\t"
-  #   index: False
-  #   filetype: ".tsv"
 
 census_config:
   EW_1851:
@@ -31,6 +22,9 @@ census_config:
       na_values: "." # Passed to 'na_values' parameter of pandas read_csv
 
     census_standardisation_file: "inputs/icem_street_standardisation.json" # regex replacement file
+    comparison_params:
+      sim_thresh: 90 # similarity threshold for string comparison
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
       new_uid: "unique_add_id" # name of new unique id field (see documentation)
@@ -58,6 +52,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -85,6 +82,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -112,6 +112,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -139,6 +142,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -166,6 +172,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -192,6 +201,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -218,6 +230,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -244,6 +259,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -270,6 +288,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -296,6 +317,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -322,6 +346,9 @@ census_config:
       na_values: "."
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
+    comparison_params:
+      sim_thresh: 90
+      string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
@@ -416,7 +443,10 @@ target_geoms: # geometry data to link census data to
 
     standardisation_file: "" # optional; file to perform regex replacement on address field
     query_criteria: "" # optional; query to pass to pandas 'df.query'
-
+    output_params: # parameters to pass to geopandas `to_file`
+      file_type: ".geojson"
+      crs: "EPSG:27700"
+      driver: "GeoJSON"
   gb1900:
     path_to_geom: "data/input/target_geoms/gb1900_gazetteer_complete_july_2018.csv"
     projection: "EPSG:27700"
@@ -433,3 +463,7 @@ target_geoms: # geometry data to link census data to
 
     standardisation_file: "inputs/gb1900_standardisation.json"
     query_criteria: "final_text.str.len() > 5"
+    output_params:
+      file_type: ".geojson"
+      crs: "EPSG:27700"
+      driver: "GeoJSON"

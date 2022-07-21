@@ -68,8 +68,20 @@ def process_raw_geo_data(
 
     print(target_gdf_processed.info())
 
-    target_gdf_processed.to_csv(
-        f"{output_dir}/{geom_name}_{census_params.year}.tsv", sep="\t"
+    # print(
+    #     f"{output_dir}/{geom_name}_{census_params.year}{geom_config.output_params.file_type}"
+    # )
+    # print(geom_config.output_params.driver)
+
+    if target_gdf_processed.crs != geom_config.output_params.crs:
+        target_gdf_processed = target_gdf_processed.to_crs(
+            geom_config.output_params.crs
+        )
+
+    target_gdf_processed.to_file(
+        f"{output_dir}/{geom_name}_{census_params.year}{geom_config.output_params.file_type}",
+        driver=geom_config.output_params.driver,
+        crs=geom_config.output_params.crs,
     )
     target_gdf_processed_small = target_gdf_processed.drop(
         columns=[target_gdf_processed.geometry.name]
@@ -92,18 +104,18 @@ def process_linstring(line_string_gdf, boundary_data, geom_config, new_uid):
     print(tmp)
     tmp2 = gpd.overlay(tmp, boundary_data, how="identity", keep_geom_type=True)
     print(tmp2.info())
-    tmp2 = drop_outside_country(tmp2, "new_id")
+    tmp2 = drop_outside_country(tmp2, "tmp_id")
 
     tmp2[new_uid] = (
         tmp2[geom_config.data_fields.uid_field].astype(str)
         + "_"
-        + tmp2["new_id"].astype(str)
+        + tmp2["tmp_id"].astype(str)
     )
 
     tmp3 = tmp2.dissolve(by=new_uid)
     print(tmp3)
     tmp4 = tmp3.drop_duplicates(
-        subset=[geom_config.data_fields.address_field, "new_id"], keep=False
+        subset=[geom_config.data_fields.address_field, "tmp_id"], keep=False
     ).copy()
     return tmp4
 
@@ -113,12 +125,12 @@ def process_point(point_gdf, boundary_data, geom_config, new_uid):
         left_df=point_gdf, right_df=boundary_data, predicate="intersects", how="inner"
     ).drop(columns=["index_right"])
 
-    tmp = drop_outside_country(tmp, "new_id")
+    tmp = drop_outside_country(tmp, "tmp_id")
 
     tmp[new_uid] = (
         tmp[geom_config.data_fields.uid_field].astype(str)
         + "_"
-        + tmp["new_id"].astype(str)
+        + tmp["tmp_id"].astype(str)
     )
     tmp2 = tmp.drop_duplicates(subset=[new_uid], keep=False)
     tmp3 = tmp2.set_index(new_uid)

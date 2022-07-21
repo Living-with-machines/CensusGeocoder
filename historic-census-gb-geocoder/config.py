@@ -3,6 +3,15 @@ import pathlib
 import pandas as pd
 
 
+def validate_sim_thresh(sim_thresh):
+    """Checks that similarity threshold is between 0 and 100"""
+    if 0 <= sim_thresh <= 100:
+        pass
+    else:
+        msg = f"Threshold must be between 0 and 100, you specified {sim_thresh}"
+        raise ValueError(msg)
+
+
 def validate_sep(sep):
     """Checks that separator provided is valid by
     comparing against commonly used seperators"""
@@ -93,6 +102,13 @@ def validate_partition(partition_field, col_list):
 
 
 @dataclass
+class Comparison_params:
+
+    sim_thresh: int
+    string_comp_alg: str
+
+
+@dataclass
 class Census_fields:
     uid: str
     address: str
@@ -165,6 +181,7 @@ class Censusconfiguration:
     csv_params: Csv_params  # parameters passed to dask read_csv
 
     census_standardisation_file: str
+    comparison_params: Comparison_params
     census_output_params: Census_output_params
 
     def __post_init__(self):
@@ -182,6 +199,8 @@ class Censusconfiguration:
             self.census_output_params = Census_output_params(
                 **self.census_output_params
             )
+        if isinstance(self.comparison_params, dict):
+            self.comparison_params = Comparison_params(**self.comparison_params)
         validate_censuscols(self.census_fields, self.census_file, self.csv_params)
         first_validate(self)
         validate_partition(
@@ -280,12 +299,20 @@ class Data_fields:
 
 
 @dataclass
+class Output_params:
+    file_type: str
+    crs: str
+    driver: str
+
+
+@dataclass
 class Target_geom:
     path_to_geom: str
     projection: str
     file_type: str
     geom_type: str
     data_fields: Data_fields
+    output_params: Output_params
     standardisation_file: str
     query_criteria: str
     filename_disamb: str = ""
@@ -296,6 +323,8 @@ class Target_geom:
     def __post_init__(self):
         if isinstance(self.data_fields, dict):
             self.data_fields = Data_fields(**self.data_fields)
+        if isinstance(self.output_params, dict):
+            self.output_params = Output_params(**self.output_params)
 
         validate_projection(self.projection)
 

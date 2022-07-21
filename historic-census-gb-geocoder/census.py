@@ -38,7 +38,13 @@ def clean_census_address_data(census_dd, address_field, standarisation_file):
 
 
 def process_ew_census(
-    census_dd, rsd_dictionary, parid_field, parid_rsd_field, rsd_id_field, census_fields
+    census_dd,
+    rsd_dictionary,
+    parid_field,
+    parid_rsd_field,
+    rsd_id_field,
+    census_fields,
+    census_output_params,
 ):
     census_dd = dd.merge(
         left=census_dd,
@@ -49,7 +55,7 @@ def process_ew_census(
     )
     census_dd[rsd_id_field] = pd.to_numeric(census_dd[rsd_id_field], errors="coerce")
     # Create an id for each unique 'address' + ConParID + CEN_1901 combination
-    census_dd["unique_add_id"] = (
+    census_dd[census_output_params.new_uid] = (
         census_dd[census_fields.address].astype(str)
         + "_"
         + census_dd[census_fields.conparid].astype(str)

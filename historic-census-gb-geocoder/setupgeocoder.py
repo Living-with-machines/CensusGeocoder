@@ -137,6 +137,8 @@ class CensusGB_geocoder:
                     new_uid,
                     geom_config,
                     census_params.census_fields,
+                    census_params.comparison_params,
+                    census_params.census_output_params,
                 )
                 # print(linked.info())
                 if linked.empty:
@@ -241,6 +243,7 @@ class EW_geocoder(CensusGB_geocoder):
             rsd_dictionary_config.cen_parid_field,
             rsd_dictionary_config.rsd_id_field,
             census_params.census_fields,
+            census_params.census_output_params,
         )
 
         census.output_census(

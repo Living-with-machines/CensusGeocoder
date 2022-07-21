@@ -32,7 +32,7 @@ def process_rsd_boundary_data(rsd_id_field, rsd_gis_config):
 
     tmp_file = gpd.read_file(rsd_gis_config.filepath, rows=1)
     list_of_all_cols = tmp_file.columns.values.tolist()
-    cols_to_keep = [rsd_id_field, "geometry"]
+    cols_to_keep = [rsd_id_field, tmp_file.geometry.name]
     unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
 
     par_rsd_boundary = gpd.read_file(
@@ -63,7 +63,7 @@ def process_parish_boundary_data(
     print("Reading Parish Boundary Data")
     tmp_file = gpd.read_file(parish_gis_config.filepath, rows=1)
     list_of_all_cols = tmp_file.columns.values.tolist()
-    cols_to_keep = [parish_gis_config.id_field, "geometry"]
+    cols_to_keep = [parish_gis_config.id_field, tmp_file.geometry.name]
     unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
 
     par_boundary = gpd.read_file(
@@ -72,10 +72,10 @@ def process_parish_boundary_data(
         crs=parish_gis_config.projection,
     )
     # Buffer to ensure valid geometries
-    par_boundary["geometry"] = par_boundary["geometry"].buffer(0)
+    par_boundary.geometry = par_boundary.geometry.buffer(0)
     # Set precision of coordinates so overlay operations
     # between parish boundary and rsd boundary work properly
-    par_boundary["geometry"] = pg.set_precision(par_boundary["geometry"].values.data, 0)
+    par_boundary.geometry = pg.set_precision(par_boundary.geometry.values.data, 0)
 
     par_boundary_conparid = pd.merge(
         left=par_boundary,
@@ -85,7 +85,9 @@ def process_parish_boundary_data(
         how="left",
     )
     par_boundary_conparid = par_boundary_conparid.dissolve(by=conparid).reset_index()
-    par_boundary_conparid = par_boundary_conparid[[conparid, "geometry"]]
+    par_boundary_conparid = par_boundary_conparid[
+        [conparid, par_boundary_conparid.geometry.name]
+    ]
 
     return par_boundary_conparid
 
@@ -100,12 +102,12 @@ def join_parish_rsd_boundary(par_boundary, rsd_boundary, conparid, rsd_id_field)
     )
 
     par_rsd_boundary = par_rsd_boundary.dropna(subset=[conparid, rsd_id_field]).copy()
-    par_rsd_boundary[f"new_id"] = (
+    par_rsd_boundary["tmp_id"] = (
         par_rsd_boundary[conparid].astype(str)
         + "_"
         + par_rsd_boundary[rsd_id_field].astype(str)
     )
-    par_rsd_boundary = par_rsd_boundary.dissolve(by="new_id").reset_index()
+    par_rsd_boundary = par_rsd_boundary.dissolve(by="tmp_id").reset_index()
 
     geom_blocking_cols = [conparid, rsd_id_field]
     return par_rsd_boundary, geom_blocking_cols

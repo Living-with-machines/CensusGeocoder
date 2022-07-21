@@ -112,12 +112,12 @@ def compute_tfidf(census, census_fields):
         tfidf_array = tfidf_sparse.toarray()
         tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
         census["tfidf"] = tfidf_array_sums
-        census["weighting"] = (
+        census["tfidf_weighting"] = (
             census["tfidf"] / census[f"{census_fields.address}"].str.len()
         )
     except ValueError:
         print("Likely error with tf-idf not having any strings to compare")
-    return census[[f"{census_fields.address}", "weighting"]]
+    return census[[f"{census_fields.address}", "tfidf_weighting"]]
 
 
 def make_path(*dirs):
