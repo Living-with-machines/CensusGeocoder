@@ -100,7 +100,7 @@ def join_parish_rsd_boundary(par_boundary, rsd_boundary, conparid, rsd_id_field)
     )
 
     par_rsd_boundary = par_rsd_boundary.dropna(subset=[conparid, rsd_id_field]).copy()
-    par_rsd_boundary["new_id"] = (
+    par_rsd_boundary[f"new_id"] = (
         par_rsd_boundary[conparid].astype(str)
         + "_"
         + par_rsd_boundary[rsd_id_field].astype(str)
@@ -135,8 +135,8 @@ def read_rsd_dictionary(rsd_dictionary_config):
 
     rsd_dict = pd.read_csv(
         rsd_dictionary_config.filepath,
-        sep="\t",
-        quoting=3,
+        sep=rsd_dictionary_config.sep,
+        quoting=rsd_dictionary_config.quoting,
         usecols=rsd_variables,
         encoding=rsd_dictionary_config.encoding,
     )

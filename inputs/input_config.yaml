@@ -345,36 +345,48 @@ ew_config:
       cen_parid_field: "ParID" # ParID field that links to I-CeM ParID
       rsd_id_field: "CEN_1851" # unique id of rsd unit
       encoding: "utf-8" # file encoding
+      sep: "\t"
+      quoting: 3
 
     "1861":
       filepath: "data/input/ew/parish_dicts_encoding/1861_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "ParID"
       rsd_id_field: "CEN_1861"
       encoding: "utf-8"
+      sep: "\t"
+      quoting: 3
 
     "1881":
       filepath: "data/input/ew/parish_dicts_encoding/1881_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "NEW_ParID"
       rsd_id_field: "CEN_1881"
       encoding: "utf-8"
+      sep: "\t"
+      quoting: 3
 
     "1891":
       filepath: "data/input/ew/parish_dicts_encoding/1891_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "ParID"
       rsd_id_field: "CEN_1891"
       encoding: "utf-8"
+      sep: "\t"
+      quoting: 3
 
     "1901":
       filepath: "data/input/ew/parish_dicts_encoding/1901_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "ParID"
       rsd_id_field: "CEN_1901"
       encoding: "utf-8"
+      sep: "\t"
+      quoting: 3
 
     "1911":
       filepath: "data/input/ew/parish_dicts_encoding/1911_ICeM_DICTIONARY_CODED.txt"
       cen_parid_field: "ParID"
       rsd_id_field: "CEN_1911"
       encoding: "utf-8"
+      sep: "\t"
+      quoting: 3
 
   parish_icem_lkup_config:
     filepath: "data/input/ew/UKDS_GIS_to_icem.xlsx" # path to parish to icem lookup table
