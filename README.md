@@ -22,7 +22,7 @@ Geocode Historic Great British Census Data 1851-1911
       - [OS Open Roads](#os-open-roads)
 
 - [How to cite historic-census-gb-geocoder](#how-to-cite-historic-census-gb-geocoder)
-- [Credit and re-use terms](#credit-and-re-use-terms)
+- [Credit, re-use terms, and how to cite](#credit-re-use-terms-and-how-to-cite)
 
 - [Acknowledgements](#acknowledgements)
 
@@ -78,32 +78,14 @@ Edit `/path/to/` as appropriate to the directory that you cloned `historic-censu
 ### Set parameters
 
 #### General parameters
-The `input_config.yaml` file allows you to adjust many variables for each census year. Some of the key ones are detailed below:
+The `input_config.yaml` file allows you to adjust many variables for each census year, the other input files, and the target geometry datasets. These are detailed in the respective section under [Data Inputs](#data-inputs)
 
-Set the directory where outputs should be saved: 
+First, set the directory where outputs should be saved:
 
 ```yaml
 general:
   output_data_path: "data/output/"
 ```
-
-#### England and Wales parameters
-
-
-
-
-
-
-Set the file path to the 1851EngWalesParishandPlace I-CeM Lookup Table
-
-```yaml
-parish_icem_lkup_config:
-  filepath: "data/input/ew/UKDS_GIS_to_icem.xlsx"
-```
-
-#### Scotland parameters
-
-
 
 ### Folder structure and data
 *to edit*
@@ -156,9 +138,6 @@ parish_icem_lkup_config:
 python3 historic_census_gb_geocoder.py
 ```
 
-## Outputs
-
-
 ## Overview
 
 Something here
@@ -206,7 +185,7 @@ Schurer, K., Higgs, E. (2022). Integrated Census Microdata (I-CeM) Names and Add
 
 #### Parameters in `input_config.yaml`
 
-Under the `census_config` settings for each census year (in this case England and Wales 1851):
+Under the `census_config` are the settings for each census year (in this case England and Wales 1851):
 
 Set `runtype` to `True` if you want to geocode this census year, or set to `False` if you want to skip this year.
 
@@ -215,8 +194,52 @@ Set `census_file` to the path of the census data file, you need to set this for 
 ```yaml
 census_config:
   EW_1851:
-    runtype: True
+    country: "EW"
+    year: 1851
+    runtype: True # set to 'True' to run geo-coding on this census; set 'False'
+
+# Parameters for input census file
+
     census_file: "data/input/census_anonymisation_egress/EW1851_anonymised_s.txt"
+    census_fields:
+      uid: "safehaven_id" # unique person id; for non-Turing implementation will be changed to 'RecID'
+      address: "address_anonymised" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
+      conparid: "ConParID" # see I-CeM documentation and readme
+      parid: "ParID" # see I-CeM documentation and readme
+      county: "RegCnty" # see I-CeM documentation and readme
+
+    csv_params: # parameters passed to dask/pandas read_csv
+      sep: "\t" # passed to 'sep' parameter of dask read_csv
+      encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
+      blocksize: "25e6" # passed to 'blocksize' parameter of dask read_csv
+      quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
+      na_values: "." # Passed to 'na_values' parameter of pandas read_csv
+
+# File containing regex patterns to apply to the address field
+
+    census_standardisation_file: "inputs/icem_street_standardisation.json" # regex replacement file
+
+# Parameters for output files
+    census_output_params:
+      partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
+      new_uid: "unique_add_id" # name of new unique id field (see documentation)
+      sep: "\t"
+      index: False
+      filetype: ".tsv"
+```
+
+Optionally, set `census_standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the census data.
+
+For example:
+
+```json
+{
+	"\\sST\\.$|\\sST$":" STREET",
+	"\\sRD\\.$|\\sRD$":" ROAD",
+	"\\sPL\\.$|\\sPL$":" PLACE",
+	"[^A-Z\\s]":"",
+	"^\\s*$":null
+}
 ```
 
 ### Parish Boundary Data (EW ONLY)
@@ -426,11 +449,13 @@ target_geoms: # geometry data to link census data to
     file_type: "" # file type; accepts 'shp' or 'csv'
     geom_type: "" # type of geometry, accepts either 'line' or 'point'; determines union operations (see documentation)
 
-    filename_disamb: "" # optional (for multiple .shp files); correct filename to read if multiple files in directory, e.g. OS Open Roads contains 'RoadNode' and 'RoadLink'. If 'RoadLink.shp' provided, it will ignore 'RoadNode.shp'.
+    filename_disamb: "" # optional (for multiple files); correct filename to read if multiple files in directory, e.g. OS Open Roads contains 'RoadNode' and 'RoadLink'. If 'RoadLink.shp' provided, it will ignore 'RoadNode.shp'.
     data_fields: # fields to read from file
       uid_field: "" # unique id field, e.g. 'nameTOID'
       address_field: "" # address field, e.g. 'name1'
-      geometry_fields: "" # geometry field, e.g. 'geometry'
+      geometry_field: "" # if shapefile or csv with one geometry column (e.g. wkt string) give name of field here e.g. 'geometry'
+      long_field: "" # optional; defaults to ""; for use with csv geometry in lat/long format across 2 columns; `geometry_format` must be set to 'coords' when using long and lat fields.
+      lat_field: "" # same as long_field
     standardisation_file: "" # optional; file to perform regex replacement on address field
     query_criteria: "" # optional; query to pass to pandas 'df.query'
 
@@ -441,6 +466,19 @@ target_geoms: # geometry data to link census data to
     sep: "," # for 'csv' only; seperator value passed to pandas read_csv
     geometry_format: "" # only for 'csv'; if  for use with 'csv' 
 ```
+
+Optionally, set `standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the target geometry data.
+
+For example:
+
+```json
+{
+	"\\sST\\.$|\\sST$":" STREET",
+	"\\sRD\\.$|\\sRD$":" ROAD",
+	"\\sPL\\.$|\\sPL$":" PLACE"
+}
+```
+
 
 #### GB1900 Gazetteer
 
@@ -482,10 +520,7 @@ We simply ask that you acknowledge the copyright and the source of the data by i
 
 Insert once these geometry field changes have been made.
 
-
-
-## How to cite historic-census-gb-geocoder
-## Credit and re-use terms
+## Credit, re-use terms, and how to cite
 `historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
 
 #### 8. Street Standardisation
