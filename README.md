@@ -7,16 +7,20 @@ Geocode Historic Great British Census Data 1851-1911
   - [Set up a conda environment](#set-up-a-conda-environment)
   - [Method 1: pip](#method-1)
   - [Method 2: source code (for developers)](#method-2)
-- [How it works](#how-historic-census-gb-geocoder-works)
-  - [Overview](#overview)
-  - [Data Inputs](#data-inputs)
-    - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
-    - [1851 Parish Boundary Data for England and Wales](#1851-parish-boundary-data-for-england-and-wales)
-    - [Registration Sub-District (RSD) Boundary Data and Lookup Table](#registration-sub-district-rsd-boundary-data)
-    - [GB1900 Gazetteer](#gb1900-gazetteer)
-    - [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
-    - [OS Open Roads](#os-open-roads)
-    - [National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table](#national-records-of-scotland---historic-civil-parishes-pre-1891-and-civil-parishes-post-1891-boundary-data-and-lookup-table)
+- [Overview](#overview)
+- [Data Inputs](#data-inputs)
+  - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
+  - [Parish Boundary Data (EW ONLY)](#Parish-Boundary-Data-(EW-ONLY))
+  - [1851EngWalesParishandPlace I-CeM Lookup Table (EW ONLY)](#1851engwalesparishandplace-i-cem-lookup-table-(EW-ONLY))
+
+  - [Registration Sub-District (RSD) Boundary Data (EW ONLY)](#registration-sub-district-rsd-boundary-data-(ew-only))
+  - [Registration Sub-District (RSD) Lookup Table (EW ONLY)](#registration-sub-district-rsd-lookup-table-ew-only)
+  - [National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table](#national-records-of-scotland---historic-civil-parishes-pre-1891-and-civil-parishes-post-1891-boundary-data-and-lookup-table)
+
+  - [Target Geometry Data](#target-geometry-data)
+      - [GB1900 Gazetteer](#gb1900-gazetteer)
+      - [OS Open Roads](#os-open-roads)
+
 - [How to cite historic-census-gb-geocoder](#how-to-cite-historic-census-gb-geocoder)
 - [Credit and re-use terms](#credit-and-re-use-terms)
 
@@ -85,27 +89,10 @@ general:
 
 #### England and Wales parameters
 
-Set the file path to the 1851 Parish Boundary Data for England and Wales Data
 
-```yaml
-ew_config:
-  parish_gis_config:
-    filepath: "data/input/ew/1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp"
-```
 
-Set the file path to the Registration Sub-District (RSD) Boundary Data 
-```yaml
-rsd_gis_config:
-  filepath: "data/input/ew/rsd_boundary_data/RSD_1851_1911_JR.shp"
-```
 
-Set the file path to the Registration Sub-District (RSD) Lookup Table. This needs to be done for each census year.
 
-```yaml
-rsd_dictionary_config:
-  "1851":
-    filepath: "data/input/ew/parish_dicts_encoding/1851_ICeM_DICTIONARY_CODED.txt"
-```
 
 Set the file path to the 1851EngWalesParishandPlace I-CeM Lookup Table
 
@@ -171,12 +158,18 @@ python3 historic_census_gb_geocoder.py
 
 ## Outputs
 
-## How historic-census-gb-geocoder works
-### Overview
-### Data Inputs
+
+## Overview
+
+Something here
+
+## Data Inputs
 This is a list and discription of the datasets you need to download and save locally in order to run the scripts correctly. Each section below describes the dataset, citation and copyright details, and how to set parameters in the relevant section of [input_config.yaml](inputs/input_config.yaml).
 
-#### Integrated Census Microdata (I-CeM)
+
+### Integrated Census Microdata (I-CeM)
+
+#### Description
 
 I-CeM census datasets, which are digitised individual-level 19th and early 20th century census data for Great Britain, covering England and Wales 1851-1911 (except 1871), and Scotland 1851-1901. They are 12 `.txt` files in total, each containing tab delimited census data.
 
@@ -206,16 +199,18 @@ RecID|Address|ConParID*|ParID|RegCnty
 5|25 High Street|12|21|Essex
 6|25 High Street|12|21|Essex
 
-Citation
+#### Citation
 
 >Schurer, K., Higgs, E. (2020). Integrated Census Microdata (I-CeM), 1851-1911. [data collection]. UK Data Service. SN: 7481, DOI: 10.5255/UKDA-SN-7481-2
 Schurer, K., Higgs, E. (2022). Integrated Census Microdata (I-CeM) Names and Addresses, 1851-1911: Special Licence Access. [data collection]. 2nd Edition. UK Data Service. SN: 7856, DOI: 10.5255/UKDA-SN-7856-2
+
+#### Parameters in `input_config.yaml`
 
 Under the `census_config` settings for each census year (in this case England and Wales 1851):
 
 Set `runtype` to `True` if you want to geocode this census year, or set to `False` if you want to skip this year.
 
-Set `census_file` to the path of the census data file.
+Set `census_file` to the path of the census data file, you need to set this for each census year.
 
 ```yaml
 census_config:
@@ -224,13 +219,15 @@ census_config:
     census_file: "data/input/census_anonymisation_egress/EW1851_anonymised_s.txt"
 ```
 
+### Parish Boundary Data (EW ONLY)
 
-#### 1851 Parish Boundary Data for England and Wales (ENGLAND AND WALES ONLY)
-`data/input/1851EngWalesParishandPlace` contains a shapefile (`.shp`) and associated files of 1851 Parish Boundary data for England and Wales. The boundary dataset looks like this:
+#### Description
+
+A shapefile (`.shp`) and associated files of 1851 Parish Boundary data for England and Wales. The boundary dataset looks like this:
 
 ![1851EngWalesParishandPlace](documentation/1851EngWalesParishandPlace.png "1851EngWalesParishandPlace")
 
-This boundary dataset can be linked to I-CeM using `UKDS_GIS_to_icem.xlsx` (see point below) to create consistent parish geographies for England and Wales across the period 1851-1911. The consistent parish geographies are used by `historic-census-gb-geocoder` in conjunction with boundary datasets for Registration Sub Districts (RSD) to assign streets in OS Open Roads and Gb1900 to a historic parish/RSD administrative unit (see [Overview](#overview) for more details.)
+This boundary dataset can be linked to I-CeM using [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only) to create consistent parish geographies for England and Wales across the period 1851-1911. The consistent parish geographies are used by `historic-census-gb-geocoder` in conjunction with boundary datasets for Registration Sub Districts (RSD) to assign streets in target geometry datasets to a historic parish/RSD administrative unit (see [Overview](#overview) for more details.)
 
 FIELD|DESCRIPTION
 --|--
@@ -248,20 +245,32 @@ ID|geometry
 
 The files and documentation explaining the creation of the boundaries and the fields in the dataset are available from the UKDS [here](https://reshare.ukdataservice.ac.uk/852816/). Access to the files requires registration with the UKDS.
 
-Citation:
+#### Citation:
 
 >Satchell, A.E.M and Kitson, P.K and Newton, G.H and Shaw-Taylor, L. and Wrigley, E.A (2018). 1851 England and Wales census parishes, townships and places. [Data Collection]. Colchester, Essex: UK Data Archive. 10.5255/UKDA-SN-852232
 
+#### Parameters in `input_config.yaml`
 
-#### 1851EngWalesParishandPlace I-CeM Lookup Table (ENGLAND AND WALES ONLY)
+You need to set thepath to the 1851 Parish Boundary Data for England and Wales Data in the `filepath` setting. If accessing this data via UKDS, the `projection` and `id_field` should remain the same as below.
 
-`data/input/UKDS_GIS_to_icem.xlsx` is a lookup table that links I-CeM to parish boundary data. A full description of the dataset and how its intended uses can be found [here - Consistent Parish Geographies](https://www.essex.ac.uk/research-projects/integrated-census-microdata)
+```yaml
+ew_config:
+  parish_gis_config:
+    filepath: "data/input/ew/1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp" # path to parish boundary data
+    projection: "EPSG:27700" # projection authority string passed to geopandas
+    id_field: "ID" # unique id field that links to parish icem lookup table 'ukds_id_field'
+```
+
+### 1851EngWalesParishandPlace I-CeM Lookup Table (EW ONLY)
+
+#### Description
+A lookup table that links I-CeM to parish boundary data. A full description of the dataset and its intended uses can be found [here - Consistent Parish Geographies](https://www.essex.ac.uk/research-projects/integrated-census-microdata)
 
 `historic-census-gb-geocoder` only uses three fields from the lookup table, which are:
 
 FIELD|DESCRIPTION
 --|--
-UKDS_ID|ID that links to `ID` [1851 Parish Boundary Data for England and Wales](#1851-parish-boundary-data-for-england-and-wales)
+UKDS_ID|ID that links to `ID` [1851 Parish Boundary Data for England and Wales](#parish-boundary-data-(EW-ONLY))
 conparid_51-91|Consistent parish ID for census years 1851 to 1891; links to `ConParID` in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 conparid_01-11|Consistent parish ID for census years 1901 and 1911; links to `ConParID` in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 
@@ -271,9 +280,28 @@ UKDS_ID|conparid_51-91|conparid_01-11
 909|1|100001
 925|2|100001
 
-#### Registration Sub-District (RSD) Boundary Data and Lookup Table (ENGLAND AND WALES ONLY)
+#### Citation
 
-`data/input/rsd_boundary_data` contains a shapefile and associated files of boundary data for Registration Sub-Districts in England and Wales 1851-1911. The correct RSD boundaries for each year are created by 'dissolving' the geometries on the appropriate `CEN` field, e.g. `CEN_1851` to create 1851 boundaries or `CEN_1901` to create 1901 boundaries. The boundary dataset looks like this:
+The I-CeM website doesn't provide a citation for this lookup dictionary. The link to the data is under the heading 'Consistent Parish Geographies' [here](https://www.essex.ac.uk/research-projects/integrated-census-microdata)
+
+#### Parameters in `input_config.yaml`
+
+You need to set the path to the lookup file under `filepath`. The other settings should work with a version of the lookup table downloaded from the I-CeM website.
+
+```yaml
+parish_icem_lkup_config:
+  filepath: "data/input/ew/UKDS_GIS_to_icem.xlsx" # path to parish to icem lookup table
+  sheet: "link" # spreadsheet sheet containing data
+  ukds_id_field: "UKDS_ID" # unique id field that links to parish boundary data 'id_field'
+  na_values: "." # denotes na values in table
+  conparid51_91_field: "conparid_51-91" # consistent parish id field for 1851 to 1891
+  conparid01_11_field: "conparid_01-11" # consistent parish id field for 1901 and 1911
+```
+
+### Registration Sub-District (RSD) Boundary Data (EW ONLY)
+
+#### Description
+A shapefile and associated files of boundary data for Registration Sub-Districts in England and Wales 1851-1911. The correct RSD boundaries for each year are created by 'dissolving' the geometries on the appropriate `CEN` field, e.g. `CEN_1851` to create 1851 boundaries or `CEN_1901` to create 1901 boundaries. The boundary dataset looks like this:
 
 ![RSD Boundary Data](documentation/RSD_boundary.png "RSD Boundary Data")
 
@@ -297,19 +325,31 @@ CEN_1851|CEN_1861|CEN_1871|CEN_1881|CEN_1891|CEN_1901|CEN_1911|geometry
 10002|10002|10002|10002|10102|10102|10002|MultiPolygon (((525407.86180000007152557 180858.28729999996721745...)))
 10001|10001|10001|10001|10101|10101|10002|MultiPolygon (((525405 181928, 525420 181906, 525487...)))
 
-Citation
+#### Citation
 >Day, J.D. Registration sub-district boundaries for England and Wales 1851-1911 (2016). This dataset was created by the 'Atlas of Victorian Fertility Decline' project (PI: A.M. Reid) with funding from the ESRC (ES/L015463/1).
 
 The RSD Boundaries were supplied directly by Joe Day at the University of Bristol and Alice Reid at the University of Cambridge. They are in the process of being deposited with UKDS and the citation may change to reflect this in due course.
 
-`data/input/parish_rsd_lookup` contains a series of data dictionaries for linking I-CeM to the RSD Boundary Data. You can ignore `finalEWnondiss1851_1911.txt`, `PAR1851_RSD_MATCH.txt` and `1871_DICTIONARY_CODED.txt`. There are 6 other files - one for each census year in I-CeM - that link the `ParID` field in I-CeM to a `CEN_****` (e.g. `CEN_1851`) field in the RSD Boundary data above. 
+#### Parameters in `input_config.yaml`
+
+Set the path to the RSD Boundary shapefile (with associated files in the same directory). The `projection` should be the same as below when this file is accessible via UKDS.
+
+```yaml
+rsd_gis_config:
+  filepath: "data/input/ew/rsd_boundary_data/RSD_1851_1911_JR.shp" # path to rsd boundary data
+  projection: "EPSG:27700" # projection authority string passed to geopandas
+```
+### Registration Sub-District (RSD) Lookup Table (EW ONLY)
+
+#### Description
+A series of data dictionaries for linking I-CeM to the RSD Boundary Data. You can ignore `finalEWnondiss1851_1911.txt`, `PAR1851_RSD_MATCH.txt` and `1871_DICTIONARY_CODED.txt`. There are 6 other files - one for each census year in I-CeM - that link the `ParID` field in I-CeM to a `CEN_****` (e.g. `CEN_1851`) field in the RSD Boundary data above. 
 
 `historic-census-gb-geocoder` uses the following fields from the lookup tables (this example is taken from the 1851 file):
 
 FIELD|DESCRIPTION
 --|--
 ParID|Parish ID in [I-CeM](#integrated-census-microdata-i-cem)
-CEN_1851|RSD ID in [RSD Boundary Data](#registration-sub-district-rsd-boundary-data-and-lookup-table-england-and-wales-only)
+CEN_1851|RSD ID in [RSD Boundary Data](#registration-sub-district-rsd-boundary-data-ew-only)
 
 *Sample Data*
 
@@ -318,21 +358,25 @@ ParID|CEN_1851
 1|10001
 2|10002
 
+#### Citation
+>Day, J.D. Registration sub-district boundaries for England and Wales 1851-1911 (2016). This dataset was created by the 'Atlas of Victorian Fertility Decline' project (PI: A.M. Reid) with funding from the ESRC (ES/L015463/1).
 
+The RSD Lookup Dictionaries were supplied directly by Joe Day at the University of Bristol and Alice Reid at the University of Cambridge. They are in the process of being deposited with UKDS and the citation may change to reflect this in due course.
 
+#### Parameters in `input_config.yaml`
 
-#### GB1900 Gazetteer
+Set the file path to the Registration Sub-District (RSD) Lookup Table under the `filepath` setting. This needs to be done for each census year. The other settings work for the files supplied at time of writing - they can be changed if necessary once these files are available via UKDS.
 
-`gb1900_gazetteer_complete_july_2018.csv` contains transcriptions of text labels from the Second Edition County Series six-inch-to-one-mile maps covering the whole of Great Britain, published by the Ordnance Survey between 1888 and 1914. As well as the labels, GB1900 Gazetteer contains the geographic coordinates of the labels (usually taken from the upper, left-hand corner of the label).
-
-The version of the GB1900 Gazetteer used in this repo is the 'COMPLETE GB1900 GAZETTEER', which can be downloaded from [here](http://www.visionofbritain.org.uk/data/#tabgb1900). It is available on a CC-BY-SA licence.
-
-
-#### OS Open Roads
-
-`data/input/oproad_essh_gb-2` contains shapefiles and documentation from the Ordnance Survey's Open access modern road vector data. Available here to download: https://www.ordnancesurvey.co.uk/business-government/products/open-map-roads.
-
-`oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. historic-census-gb-geocoder only requires the `RoadLink` files.
+```yaml
+rsd_dictionary_config:
+  "1851":
+    filepath: "data/input/ew/parish_dicts_encoding/1851_ICeM_DICTIONARY_CODED.txt" # path to rsd dictionary lookup table
+    cen_parid_field: "ParID" # ParID field that links to I-CeM ParID
+    rsd_id_field: "CEN_1851" # unique id of rsd unit
+    encoding: "utf-8" # file encoding
+    sep: "\t"
+    quoting: 3
+```
 
 #### National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table
 
@@ -369,10 +413,74 @@ OLD CUMNOCK | 100597 | exact
 DAILLY | 100572 | exact
 SMALL ISLES | 100119 | exact
 
+### Target Geometry Data
 
+`historic-census-gb-geocoder` can link I-CeM data to any existing target geometry dataset in shapefiles or in csv files by adjusting the following settings:
 
+```yaml
+target_geoms: # geometry data to link census data to
+# General
+  name_of_target_geometry: # name of geometry data
+    path_to_geom: "path/to/data" # path to geometry data; can be directory if multiple files or path to file.
+    projection: "EPSG:****" # projection authority string passed to geopandas, eg. "EPSG:27700"
+    file_type: "" # file type; accepts 'shp' or 'csv'
+    geom_type: "" # type of geometry, accepts either 'line' or 'point'; determines union operations (see documentation)
 
+    filename_disamb: "" # optional (for multiple .shp files); correct filename to read if multiple files in directory, e.g. OS Open Roads contains 'RoadNode' and 'RoadLink'. If 'RoadLink.shp' provided, it will ignore 'RoadNode.shp'.
+    data_fields: # fields to read from file
+      uid_field: "" # unique id field, e.g. 'nameTOID'
+      address_field: "" # address field, e.g. 'name1'
+      geometry_fields: "" # geometry field, e.g. 'geometry'
+    standardisation_file: "" # optional; file to perform regex replacement on address field
+    query_criteria: "" # optional; query to pass to pandas 'df.query'
 
+# shp file specific
+
+# csv file specific
+    encoding: "utf-16" # for 'csv' only; file encoding passed to pandas read_csv
+    sep: "," # for 'csv' only; seperator value passed to pandas read_csv
+    geometry_format: "" # only for 'csv'; if  for use with 'csv' 
+```
+
+#### GB1900 Gazetteer
+
+##### Description
+
+GB1900 file. Contains transcriptions of text labels from the Second Edition County Series six-inch-to-one-mile maps covering the whole of Great Britain, published by the Ordnance Survey between 1888 and 1914. As well as the labels, GB1900 Gazetteer contains the geographic coordinates of the labels (usually taken from the upper, left-hand corner of the label).
+
+The version of the GB1900 Gazetteer used in this repo is the 'COMPLETE GB1900 GAZETTEER', which can be downloaded from [here](http://www.visionofbritain.org.uk/data/#tabgb1900).
+
+##### Citation
+
+It is available on a CC-BY-SA licence. Taken from the data documentation:
+
+>Please reference this work as the "GB1900 Gazetteer" made available by the GB1900 Project. You must acknowledge "the Great Britain Historical GIS Project at the University of Portsmouth, the GB1900 partners and volunteers".
+
+>You may call any work you derive from this dataset whatever you like EXCEPT that you must not name your work "the GB1900 gazetteer", or any other name including "GB1900" or "Great Britain 1900". When using or citing the work, you should not imply endorsement by the GB1900 project or by any of the project partners.
+
+##### Parameters in `input_config.yaml`
+
+Insert once these geometry field changes have been made.
+
+#### OS Open Roads
+##### Description
+
+Shapefiles and documentation from the Ordnance Survey's Open access modern road vector data. Available here to download: https://www.ordnancesurvey.co.uk/business-government/products/open-map-roads.
+
+`oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. historic-census-gb-geocoder only requires the `RoadLink` files.
+
+##### Citation
+
+Taken from the Ordance Survey website:
+
+>Our open data products are covered by the Open Government Licence (OGL), which allows you to: copy, distribute and transmit the data;
+adapt the data; and
+exploit the data commercially, whether by sub-licensing it, combining it with other data, or including it in your own product or application.
+We simply ask that you acknowledge the copyright and the source of the data by including the following attribution statement: Contains OS data © Crown copyright and database right 2022
+
+##### Parameters in `input_config.yaml`
+
+Insert once these geometry field changes have been made.
 
 
 
