@@ -76,7 +76,8 @@ def rapidfuzzy_wratio(s1, s2):
     def fuzzy_apply(x):
 
         try:
-            return fuzz.WRatio(x[0], x[1])
+            # divide by 100 to make comparable with levenshtein etc
+            return (fuzz.WRatio(x[0], x[1])) / 100
         except Exception as err:
             if pd.isnull(x[0]) or pd.isnull(x[1]):
                 return np.nan

@@ -5,7 +5,7 @@ import pandas as pd
 
 def validate_sim_thresh(sim_thresh):
     """Checks that similarity threshold is between 0 and 100"""
-    if 0 <= sim_thresh <= 100:
+    if 0 <= sim_thresh <= 1:
         pass
     else:
         msg = f"Threshold must be between 0 and 100, you specified {sim_thresh}"

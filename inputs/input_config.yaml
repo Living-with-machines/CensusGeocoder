@@ -23,7 +23,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json" # regex replacement file
     comparison_params:
-      sim_thresh: 90 # similarity threshold for string comparison
+      sim_thresh: 0.9 # similarity threshold for string comparison
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
@@ -53,7 +53,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -83,7 +83,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -113,7 +113,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -143,7 +143,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -173,7 +173,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -202,7 +202,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -231,7 +231,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -260,7 +260,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -289,7 +289,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -318,7 +318,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -347,7 +347,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 90
+      sim_thresh: 0.9
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"

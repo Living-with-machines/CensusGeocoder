@@ -93,15 +93,22 @@ def compare(
         os_census_roads_output_filtered_duplicates = pd.DataFrame()
     else:
         os_comparison = recordlinkage.Compare()  # Set up comparison
-
-        os_comparison.add(
-            utils.rapidfuzzy_wratio_comparer(
+        if comparison_params.string_comp_alg == "rapidfuzzy_wratio":
+            os_comparison.add(
+                utils.rapidfuzzy_wratio_comparer(
+                    left_on=census_fields.address,
+                    right_on=geom_attributes.data_fields.address_field,
+                    method=comparison_params.string_comp_alg,
+                    label=f"{comparison_params.string_comp_alg}_score",
+                )
+            )
+        else:
+            os_comparison.string(
                 left_on=census_fields.address,
                 right_on=geom_attributes.data_fields.address_field,
                 method=comparison_params.string_comp_alg,
                 label=f"{comparison_params.string_comp_alg}_score",
             )
-        )
 
         print("Computing os / census string comparison")
 
@@ -110,6 +117,7 @@ def compare(
 
         os_comparison_results = os_comparison.compute(os_candidate_links, census, os)
         os_comparison_results = os_comparison_results.sort_index()
+        print(os_comparison_results)
         os_comparison_results = os_comparison_results[
             os_comparison_results[f"{comparison_params.string_comp_alg}_score"]
             >= comparison_params.sim_thresh
