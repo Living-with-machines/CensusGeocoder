@@ -24,6 +24,8 @@ Geocode Historic Great British Census Data 1851-1911
 
 ## What is historic-census-gb-geocoder
 
+historic-census-gb-geocoder links street addresses in historic census data to target geometry datasets.
+
 ![overview](documentation/overview_large.png)
 
 ## Installation
@@ -71,25 +73,48 @@ Edit `/path/to/` as appropriate to the directory that you cloned `historic-censu
 
 ### Set parameters
 
-The `historic-census-gb-geocoder-params.json` file allows you to adjust the following for each census year:
+#### General parameters
+The `input_config.yaml` file allows you to adjust many variables for each census year. Some of the key ones are detailed below:
 
-* "Type" - set to "full" to run on all data for that census year, set to "testing" to run on a sample of the data, or set to "no" to skip that year.
-* "use_existing_files" - set to "yes" to re-use pre-processed geometry files and to proceed to string matching census records to street names. Set to "no" to create processed geometry files before conducting string matching. Setting to "yes" speeds the script up significantly because the creation of new street geometries using historic boundary data is computationally intensive.
+Set the directory where outputs should be saved: 
 
-```json
-{"EW_1851":{"type":"full","use_existing_files":"yes"},
-"EW_1861":{"type":"full","use_existing_files":"yes"},
-"EW_1881":{"type":"full","use_existing_files":"yes"},
-"EW_1891":{"type":"full","use_existing_files":"yes"},
-"EW_1901":{"type":"full","use_existing_files":"yes"},
-"EW_1911":{"type":"full","use_existing_files":"yes"},
-"SCOT_1851":{"type":"full","use_existing_files":"yes"},
-"SCOT_1861":{"type":"full","use_existing_files":"yes"},
-"SCOT_1871":{"type":"full","use_existing_files":"yes"},
-"SCOT_1881":{"type":"full","use_existing_files":"yes"},
-"SCOT_1891":{"type":"full","use_existing_files":"yes"},
-"SCOT_1901":{"type":"full","use_existing_files":"yes"}}
+```yaml
+general:
+  output_data_path: "data/output/"
 ```
+
+#### England and Wales parameters
+
+Set the file path to the 1851 Parish Boundary Data for England and Wales Data
+
+```yaml
+ew_config:
+  parish_gis_config:
+    filepath: "data/input/ew/1851EngWalesParishandPlace/1851EngWalesParishandPlace.shp"
+```
+
+Set the file path to the Registration Sub-District (RSD) Boundary Data 
+```yaml
+rsd_gis_config:
+  filepath: "data/input/ew/rsd_boundary_data/RSD_1851_1911_JR.shp"
+```
+
+Set the file path to the Registration Sub-District (RSD) Lookup Table. This needs to be done for each census year.
+
+```yaml
+rsd_dictionary_config:
+  "1851":
+    filepath: "data/input/ew/parish_dicts_encoding/1851_ICeM_DICTIONARY_CODED.txt"
+```
+
+Set the file path to the 1851EngWalesParishandPlace I-CeM Lookup Table
+
+```yaml
+parish_icem_lkup_config:
+  filepath: "data/input/ew/UKDS_GIS_to_icem.xlsx"
+```
+
+#### Scotland parameters
 
 
 
@@ -149,10 +174,11 @@ python3 historic_census_gb_geocoder.py
 ## How historic-census-gb-geocoder works
 ### Overview
 ### Data Inputs
-This is a list and discription of the datasets you need to download and store in `data/input` in order to run the scripts correctly.
+This is a list and discription of the datasets you need to download and save locally in order to run the scripts correctly. Each section below describes the dataset, citation and copyright details, and how to set parameters in the relevant section of [input_config.yaml](inputs/input_config.yaml).
+
 #### Integrated Census Microdata (I-CeM)
 
-`data/input/census` contains the I-CeM census datasets, which are digitised individual-level 19th and early 20th century census data for Great Britain, covering England and Wales 1851-1911 (except 1871), and Scotland 1851-1901. There are 12 `.txt` files in total, each containing tab delimited census data. The filenames are comprised of either 'EW' or 'SCOT' to indicate 'England and Wales' or 'Scotland', followed by the year e.g. '1851'. So, `EW1851` is the 1851 census file for England & Wales.
+I-CeM census datasets, which are digitised individual-level 19th and early 20th century census data for Great Britain, covering England and Wales 1851-1911 (except 1871), and Scotland 1851-1901. They are 12 `.txt` files in total, each containing tab delimited census data.
 
 These files have been created by merging two versions of the I-CeM datasets together, which contain different types of information and have different access restrictions. You need both to perform geocoding on the full I-CeM dataset. There is an anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) and a 'Names and Addresses - Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). The anonymised version ([SN 7481](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7481)) is downloadable via the UKDS after signing up to their standard end user licence. The anonymised version does not contain individuals' names and addresses but contains a unique id `RecID` for each person that links them to their name and address held in the 'Special Licence' version ([SN 7856](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=7856)). As its name suggests, access to the name and address data in I-CeM is by application for a special licence, which requires review by UKDS and the owners ([Findmypast/Brightsolid](https://www.findmypast.co.uk)) of the transcriptions on which I-CeM is based.
 
@@ -160,16 +186,18 @@ Further documentation on I-CeM, including how it was created and the variables i
 
 The `historic-census-gb-geocoder` uses the following fields from these census files:
 
+*England and Wales only
+
 FIELD|DESCRIPTION
 --|--
 RecID|Unique id for each person
 Address|Street Address
-ConParID|Consistent Parish ID
+ConParID*|Consistent Parish ID
 ParID|Parish IDs
 RegCnty|Registration County
 
 *Sample (fabricated) Data*
-RecID|Address|ConParID|ParID|RegCnty
+RecID|Address|ConParID*|ParID|RegCnty
 --|--|--|--|--
 1|23 High Street|12|21|Essex
 2|23 High Street|12|21|Essex
@@ -182,6 +210,20 @@ Citation
 
 >Schurer, K., Higgs, E. (2020). Integrated Census Microdata (I-CeM), 1851-1911. [data collection]. UK Data Service. SN: 7481, DOI: 10.5255/UKDA-SN-7481-2
 Schurer, K., Higgs, E. (2022). Integrated Census Microdata (I-CeM) Names and Addresses, 1851-1911: Special Licence Access. [data collection]. 2nd Edition. UK Data Service. SN: 7856, DOI: 10.5255/UKDA-SN-7856-2
+
+Under the `census_config` settings for each census year (in this case England and Wales 1851):
+
+Set `runtype` to `True` if you want to geocode this census year, or set to `False` if you want to skip this year.
+
+Set `census_file` to the path of the census data file.
+
+```yaml
+census_config:
+  EW_1851:
+    runtype: True
+    census_file: "data/input/census_anonymisation_egress/EW1851_anonymised_s.txt"
+```
+
 
 #### 1851 Parish Boundary Data for England and Wales (ENGLAND AND WALES ONLY)
 `data/input/1851EngWalesParishandPlace` contains a shapefile (`.shp`) and associated files of 1851 Parish Boundary data for England and Wales. The boundary dataset looks like this:
