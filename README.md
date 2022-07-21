@@ -92,44 +92,31 @@ general:
 
 ```bash
 ├── data
-│   ├── input
-│   │   ├── 1851EngWalesParishandPlace
-│   │   ├── census_anonymisation_egress
-│   │   ├── oproad_essh_gb-2
-│   │   │   ├── data
-│   │   │   └── doc
-│   │   ├── parish_dicts_encoding
-│   │   ├── rsd_boundary_data
-│   │   └── scot_parish_boundary
-│   │       ├── CivilParish1930
-│   │       └── CivilParish_pre1891
-│   ├── new_geocode_egress
-│   ├── output
-│   │   ├── 1891
-│   │   │   └── EW
-│   │   │       └── testing
-│   │   ├── 1901
-│   │   │   └── SCOT
-│   │   │       └── testing
-│   │   └── 1911
-│   │       └── EW
-│   │           └── testing
-│   └── testing_outputs
-│       └── data
-│           └── output
-│               └── 1851
-│                   └── EW
-│                       └── testing
+│   ├── input
+│   │   ├── census_anonymisation_egress
+│   │   ├── ew
+│   │   │   ├── 1851EngWalesParishandPlace
+│   │   │   ├── parish_dicts_encoding
+│   │   │   └── rsd_boundary_data
+│   │   ├── scot
+│   │   │   └── scot_parish_boundary
+│   │   │       ├── CivilParish1930
+│   │   │       └── CivilParish_pre1891
+│   │   └── target_geoms
+│   │       └── target_geom1
+│   │           ├── data
+│   │           └── doc
+├── documentation
 ├── inputs
-└── testing_outputs
-    └── data
-        └── output
-            ├── 1891
-            │   └── EW
-            │       └── testing
-            └── 1901
-                └── SCOT
-                    └── full
+└── output
+        └── 1851
+            └── EW
+                ├── target_geometry1
+                │   ├── duplicate
+                │   └── linked
+                └── target_geometry2
+                    ├── duplicate
+                    └── linked
 ```
 
 ### Run
