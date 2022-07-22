@@ -39,13 +39,13 @@ class CensusGB_geocoder:
         geom_name,
         census_fields,
         census_output_params,
-        tmpcensusdir,
+        censusdir,
         output_dir,
         census_year,
     ):
 
         census = pd.read_parquet(
-            tmpcensusdir,
+            censusdir,
             filters=[[(census_output_params.partition_on, "=", f"{partition}")]],
             columns=[census_output_params.new_uid, census_fields.uid],
         )
@@ -70,7 +70,7 @@ class CensusGB_geocoder:
         partition_list,
         geom,
         geom_config,
-        tmpcensusdir,
+        censusdir,
         census_params,
         output_dir,
     ):
@@ -114,7 +114,7 @@ class CensusGB_geocoder:
             print(partition)
             print("#" * 30)
             census_subset = census.create_partition_subset(
-                partition, tmpcensusdir, census_params.census_output_params
+                partition, censusdir, census_params
             )
             if census_subset.empty:
                 continue
@@ -163,7 +163,7 @@ class CensusGB_geocoder:
                         geom,
                         census_params.census_fields,
                         census_params.census_output_params,
-                        tmpcensusdir,
+                        censusdir,
                         output_dir,
                         census_params.year,
                     )  # need to add in census output params here
@@ -226,7 +226,7 @@ class EW_geocoder(CensusGB_geocoder):
 
         census_data = census.read_census(
             census_params.census_file,
-            census_params.census_fields,
+            census_params.census_fields.list_cols(),
             census_params.csv_params,
         )
 
@@ -239,11 +239,8 @@ class EW_geocoder(CensusGB_geocoder):
         census_linked, census_blocking_cols, partition_list = census.process_ew_census(
             census_cleaned,
             rsd_dictionary_processed,
-            census_params.census_fields.parid,
-            rsd_dictionary_config.cen_parid_field,
-            rsd_dictionary_config.rsd_id_field,
-            census_params.census_fields,
-            census_params.census_output_params,
+            census_params,
+            rsd_dictionary_config,
         )
 
         census.output_census(
