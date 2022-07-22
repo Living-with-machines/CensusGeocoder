@@ -114,7 +114,6 @@ def process_ew_census(
         + census_dd[rsd_dictionary_config.rsd_id_field].astype(str)
     )
     print("Merged with RSD dictionary")
-    print(census_dd)
 
     census_blocking_cols = [
         census_params.census_fields.conparid,
