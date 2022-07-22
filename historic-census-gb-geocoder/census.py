@@ -1,7 +1,8 @@
-import pandas as pd
 import json
+
 import dask.dataframe as dd
 import numpy as np
+import pandas as pd
 
 
 def read_census(census_file, census_cols, csv_params):
