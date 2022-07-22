@@ -2,6 +2,7 @@ import pathlib
 
 import numpy as np
 import pandas as pd
+from rapidfuzz import fuzz
 from recordlinkage.base import BaseCompareFeature
 from recordlinkage.utils import fillna as _fillna
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -13,26 +14,9 @@ adjusted it so that the string algorithm uses rapidfuzz not fuzzywuzzy.
 
 class rapidfuzzy_wratio_comparer(BaseCompareFeature):
 
-    """Compute the (fuzzy partial_ratio) similarity between strings values.
-    Parameters
-    ----------
-    left_on : str or int
-        The name or position of the column in the left DataFrame.
-    right_on : str or int
-        The name or position of the column in the right DataFrame.
-    method : str, default 'levenshtein'
-        An approximate string comparison method. Options are ['jaro',
-        'jarowinkler', 'levenshtein', 'damerau_levenshtein', 'qgram',
-        'cosine', 'smith_waterman', 'lcs']. Default: 'levenshtein'
-    threshold : float, tuple of floats
-        A threshold value. All approximate string comparisons higher or
-        equal than this threshold are 1. Otherwise 0.
-    missing_value : numpy.dtype
-        The value for a comparison with a missing value. Default 0.
+    """Provides funtionality for BaseCompareFeature to use
+    algorithm from rapidfuzz rather than fuzzywuzzy.
     """
-
-    name = "string"
-    description = "Compare string attributes of record pairs."
 
     def __init__(
         self,
@@ -68,10 +52,11 @@ class rapidfuzzy_wratio_comparer(BaseCompareFeature):
 
 
 def rapidfuzzy_wratio(s1, s2):
+    """Apply rapidfuzz wratio to compare two pandas series"""
 
     conc = pd.Series(list(zip(s1, s2)))
 
-    from rapidfuzz import fuzz
+    # from rapidfuzz import fuzz
 
     def fuzzy_apply(x):
 
@@ -88,20 +73,23 @@ def rapidfuzzy_wratio(s1, s2):
 
 
 def compute_tfidf(census, census_fields):
-    """Compute TF-IDF scores to assess how common road names are. These scores are used to
-    weight the string comparisons so that common road names have to reach a higher
-    matching threshold to be classed as a match.
+    """Compute TF-IDF scores for census addresses. These scores are used to
+    weight the string comparisons so that common adddresses have to reach a higher
+    matching threshold to be classed as a true match.
 
     Parameters
     ----------
-    census: pandas.dataframe
+    census: pandas.DataFrame
         A pandas dataframe containing census data.
+
+    census_fields: Dataclass
+        Dataclass containing census columns.
 
     Returns
     -------
     pandas.DataFrame
         A pandas dataframe containing census data with two additional columns with
-        tf-idf weighting data.
+        tf-idf and tf-idf weighting.
     """
     try:
         tfidf_vectorizer = TfidfVectorizer(
@@ -118,10 +106,12 @@ def compute_tfidf(census, census_fields):
         )
     except ValueError:
         print("Likely error with tf-idf not having any strings to compare")
-    return census[[f"{census_fields.address}", "tfidf_weighting"]]
+    return census[[census_fields.address, "tfidf_w"]]
 
 
 def make_path(*dirs):
+    """Takes input strings; creates a path if path doesn't exist;
+    returns a path"""
 
     new_path = pathlib.Path(*dirs)
     pathlib.Path(new_path).mkdir(parents=True, exist_ok=True)
