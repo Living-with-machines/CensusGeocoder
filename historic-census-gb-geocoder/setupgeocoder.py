@@ -130,13 +130,20 @@ class CensusGB_geocoder:
                     geom_blocking_cols,
                 )
                 print(census_subset_tfidf)
-                linked, linked_duplicates = recordcomparison.compare(
+                target_results = recordcomparison.compare(
                     census_subset_tfidf,
                     processed_geom_data,
                     candidate_links,
-                    new_uid,
                     geom_config,
                     census_params,
+                )
+                linked, linked_duplicates = recordcomparison.process_results(
+                    target_results,
+                    census_subset_tfidf,
+                    processed_geom_data,
+                    census_params,
+                    geom_config,
+                    new_uid,
                 )
 
                 if linked.empty:

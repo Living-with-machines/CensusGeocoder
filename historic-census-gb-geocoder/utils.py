@@ -113,7 +113,7 @@ def compute_tfidf(census, census_fields):
         tfidf_array = tfidf_sparse.toarray()
         tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
         census["tfidf"] = tfidf_array_sums
-        census["tfidf_weighting"] = (
+        census["tfidf_w"] = (
             census["tfidf"] / census[f"{census_fields.address}"].str.len()
         )
     except ValueError:
