@@ -130,17 +130,15 @@ class CensusGB_geocoder:
                     geom_blocking_cols,
                 )
                 print(census_subset_tfidf)
-                linked, duplicates = recordcomparison.compare(
+                linked, linked_duplicates = recordcomparison.compare(
                     census_subset_tfidf,
                     processed_geom_data,
                     candidate_links,
                     new_uid,
                     geom_config,
-                    census_params.census_fields,
-                    census_params.comparison_params,
-                    census_params.census_output_params,
+                    census_params,
                 )
-                # print(linked.info())
+
                 if linked.empty:
                     continue
                 else:
@@ -150,8 +148,8 @@ class CensusGB_geocoder:
                         sep=census_params.census_output_params.sep,
                         index=census_params.census_output_params.index,
                     )
-                    duplicates.to_csv(
-                        utils.make_path(output_dir, "duplicate")
+                    linked_duplicates.to_csv(
+                        utils.make_path(output_dir, "linked_duplicates")
                         / f"{census_params.year}_{geom}_{partition}{census_params.census_output_params.filetype}",
                         sep=census_params.census_output_params.sep,
                         index=census_params.census_output_params.index,
