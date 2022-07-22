@@ -12,8 +12,10 @@ def read_census(census_file, census_cols, csv_params):
     ----------
     census_file: str
         Path to census data.
+
     census_cols: list
         List of columns to read from census file.
+
     csv_params: Dataclass
         A Dataclass containing read_csv parameters.
 
@@ -45,8 +47,10 @@ def clean_census_address_data(census_dd, address_field, standardisation_file):
     ----------
     census_dd: dask.DataFrame
         Dask DataFrame holding census data.
+
     address_field: str
         Column name of address field in census_dd.
+
     standardisation_file: str
         Path to standardisation json file containing regex replacement patterns.
     
@@ -80,10 +84,13 @@ def process_ew_census(
     ----------
     census_cleaned: dask.DataFrame
         Dask dataframe holding census data for census year.
+
     rsd_dictionary: pandas.DataFrame
         Pandas DataFrame containing rsd_dictionary lookup table for census year.
+
     census_params: Dataclass
         Dataclass containing parameters for census year.
+
     rsd_dictionary_config:
         Dataclass containing parameters for rsd dictionary.
 
@@ -91,8 +98,10 @@ def process_ew_census(
     --------
     census_dd: dask.DataFrame
         Dask DataFrame containing census data with new attributes.
+
     census_blocking_cols: list
         List of census columns for geo-blocking when running string comparisons.
+
     census_counties: list
         List of counties in census data.
     """
@@ -133,8 +142,10 @@ def output_census(census_dd, outputdir, output_params):
     ----------
     census_dd: dask.DataFrame
         Dask dataframe holding census data for census year.
+
     outputdir: str
         Path to output directory.
+
     output_params: Dataclass
         Dataclass containing parameters for outputting census data.
     """
@@ -153,8 +164,10 @@ def create_partition_subset(partition, censusdir, census_params):
     ----------
     partition: str
         Partition value, e.g. a county like 'Essex'.
+
     censusdir: str
         Path to directory containing census data.
+        
     census_params: Dataclass
         Dataclass containing parameters for census year.
 

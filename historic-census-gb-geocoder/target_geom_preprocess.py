@@ -45,13 +45,17 @@ def process_raw_geo_data(
 
     geom_name: str
         Name of the target geometry data.
+
     boundary_data: geopandas.GeoDataFrame
         Historic boundary data used to assign target geometries to historic
         boundary units.
+
     geom_config: Dataclass
         Dataclass containing parameters for target geometry data.
+
     census_params: Dataclass
         Dataclass containing parameters for census year.
+
     output_dir: str
         Path to write processed geometry data.
 
@@ -60,6 +64,7 @@ def process_raw_geo_data(
     target_df_processed_small: pandas.DataFrame
         Pandas dataframe containing target address data and assigned
         historic boundary ids.
+
     new_uid: str
         Name of unique identifier column created from target geometry name
         and census year.
@@ -125,6 +130,7 @@ def drop_outside_country(target_gdf, tmp_id):
     target_gdf: geopandas.GeoDataFrame
         Geopandas geodataframe containing target geometry data with associated historic
         boundary info.
+
     tmp_id: str
         Name of temporary id column.
 
@@ -151,11 +157,14 @@ def process_linstring(line_string_gdf, boundary_data, geom_config, new_uid):
 
     ling_string_gdf: geopandas.GeoDataFrame
         Geopandas geodataframe containing target geometry data in a linestring format.
+
     boundary_data: geopandas.GeoDataFrame
         Historic boundary data used to assign target geometries to historic
         boundary units.
+
     geom_config: Dataclass
         Dataclass containing parameters for target geometry data.
+
     new_uid: str
         Name of unique identifier column created in `process_raw_geo_data` function.
     
@@ -196,11 +205,14 @@ def process_point(point_gdf, boundary_data, geom_config, new_uid):
 
     point_gdf: geopandas.GeoDataFrame
         Geopandas geodataframe containing target point geometry data.
+
     boundary_data: geopandas.GeoDataFrame
         Historic boundary data used to assign target geometries to historic
         boundary units.
+
     geom_config: Dataclass
         Dataclass containing parameters for target geometry data.
+
     new_uid: str
         Name of unique identifier column created in `process_raw_geo_data` function.
     
@@ -237,6 +249,7 @@ def parse_address(target_gdf, geom_config):
 
     target_gdf: geopandas.GeoDataFrame
         Geopandas geodataframe containing target geometry data.
+
     geom_config: Dataclass
         Dataclass containing parameters for target geometry data.
 
@@ -276,8 +289,10 @@ def read_shp(filelist, cols_to_keep, geom_config):
 
     filelist: list
         List of filepaths.
+
     cols_to_keep: list
         Columns from target geometry data to read.
+
     geom_config: Dataclass
         Dataclass containing parameters for target geometry data.
 
@@ -317,8 +332,10 @@ def read_csv(filelist, cols_to_keep, geom_config):
 
     filelist: list
         List of filepaths.
+
     cols_to_keep: list
         Columns from target geometry data to read.
+
     geom_config: Dataclass
         Dataclass containing parameters for target geometry data.
 
@@ -351,6 +368,7 @@ def process_coords(target_df, geom_config):
 
     target_df:  pandas.DataFrame
         Pandas dataframe containing target geometry data.
+
     geom_config: Dataclass
         Dataclass containing parameters for target geometry data.
 
@@ -381,6 +399,7 @@ def process_wkt(target_df, geom_config):
 
     target_df:  pandas.DataFrame
         Pandas dataframe containing target geometry data.
+        
     geom_config: Dataclass
         Dataclass containing parameters for target geometry data.
 

@@ -20,6 +20,7 @@ def create_candidate_links(
 
     census_blocking_cols: list
         List of column names from census on which to apply blocking.
+        
     geom_blocking_cols: list
         List of column names from target geometry dataset on which to apply blocking.
 
