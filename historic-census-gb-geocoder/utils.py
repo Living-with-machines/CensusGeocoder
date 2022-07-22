@@ -1,10 +1,10 @@
-import pandas as pd
-from recordlinkage.base import BaseCompareFeature
-import numpy as np
-from recordlinkage.utils import fillna as _fillna
-from sklearn.feature_extraction.text import TfidfVectorizer
 import pathlib
 
+import numpy as np
+import pandas as pd
+from recordlinkage.base import BaseCompareFeature
+from recordlinkage.utils import fillna as _fillna
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 """Edited version of string comparison method from the recordlinkage package - I've
 adjusted it so that the string algorithm uses rapidfuzz not fuzzywuzzy.
