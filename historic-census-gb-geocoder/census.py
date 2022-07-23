@@ -102,8 +102,8 @@ def process_ew_census(
     census_blocking_cols: list
         List of census columns for geo-blocking when running string comparisons.
 
-    census_counties: list
-        List of counties in census data.
+    partition_list: list
+        List of partition values from census data.
     """
     census_dd = dd.merge(
         left=census_cleaned,
@@ -130,9 +130,11 @@ def process_ew_census(
         rsd_dictionary_config.rsd_id_field,
     ]
 
-    census_counties = sorted(census_dd.RegCnty.unique())
+    partition_list = sorted(
+        census_dd[census_params.census_output_params.partition_on].unique()
+    )
 
-    return census_dd, census_blocking_cols, census_counties
+    return census_dd, census_blocking_cols, partition_list
 
 
 def output_census(census_dd, outputdir, output_params):
@@ -180,9 +182,7 @@ def create_partition_subset(partition, censusdir, census_params):
 
     census_subset = pd.read_parquet(
         censusdir,
-        filters=[
-            [(census_params.census_output_params.partition_on, "=", f"{partition}")]
-        ],
+        filters=[[(census_params.census_output_params.partition_on, "=", partition)]],
     )
 
     census_subset = (
