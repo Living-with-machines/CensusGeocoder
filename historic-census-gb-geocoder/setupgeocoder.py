@@ -1,11 +1,12 @@
 import pandas as pd
+
+import census
 import ew_geom_preprocess
+import recordcomparison
 
 # import scot_geom_preprocess
 import target_geom_preprocess
-import census
 import utils
-import recordcomparison
 
 
 class CensusGB_geocoder:
@@ -13,21 +14,15 @@ class CensusGB_geocoder:
 
     Methods
     ----------
-
-    preprocessing()
-        Pre-processes input files, returning OS Open Road data, GB1900,
-        Census, and a list of census counties. Writes OS Open Road and
-        GB1900 datasets segmented by historic parish/RSD boundaries.
-
-    geocode()
-        Links census addresses to target geometries using geo-blocking and
-        fuzzy string matching.
-
     link_geocode_to_icem()
         Links geocoded census output (unique census addresses with corresponding
         linked street geometry) to individuals in the census; creates dataframe
         containing all unique individual census ids and the id of the street
         geometry that person has been linked to.
+
+    geocode()
+        Links census addresses to target geometries using geo-blocking and
+        fuzzy string matching.
 
     """
 
@@ -37,76 +32,116 @@ class CensusGB_geocoder:
         partition,
         new_uid,
         geom_name,
-        census_fields,
-        census_output_params,
+        census_params,
         censusdir,
         output_dir,
-        census_year,
     ):
+        """Creates lookup for each partition containing unique id from census
+        and unique id from target geometry data.
+
+        Parameters
+        ----------
+        linked: pandas.DataFrame
+            A pandas dataframe of high-quality matches between target geometry data
+            and census.
+
+        partition: str
+            Partition value, e.g. a county like 'Essex'.
+        
+        new_uid: str
+            Name of unique identifier column created from target geometry name
+            and census year.
+
+        geom_name: str
+            Name of the target geometry data.
+            
+        census_params: Dataclass
+            Dataclass containing parameters for census year.
+
+        censusdir: str
+            Path to directory containing census data.
+
+        output_dir: str
+            Path to write output file.
+        """
 
         census = pd.read_parquet(
             censusdir,
-            filters=[[(census_output_params.partition_on, "=", f"{partition}")]],
-            columns=[census_output_params.new_uid, census_fields.uid],
+            filters=[
+                [(census_params.census_output_params.partition_on, "=", partition)]
+            ],
+            columns=[
+                census_params.census_output_params.new_uid,
+                census_params.census_fields.uid,
+            ],
         )
 
-        new_trial = pd.merge(
-            left=census, right=linked, on=census_output_params.new_uid, how="inner"
+        cen_geom_lkp = pd.merge(
+            left=census,
+            right=linked,
+            on=census_params.census_output_params.new_uid,
+            how="inner",
         )
-        new_trial = new_trial[[census_fields.uid, new_uid]]
-        new_trial.to_csv(
+        cen_geom_lkp = cen_geom_lkp[[census_params.census_fields.uid, new_uid]]
+        cen_geom_lkp.to_csv(
             utils.make_path(output_dir)
-            / f"{census_year}_{geom_name}_{partition}_lkup.tsv",
-            sep="\t",
-            index=False,
+            / f"{census_params.year}_{geom_name}_{partition}_lkup"
+            f"{census_params.census_output_params.filetype}",
+            sep=census_params.census_output_params.sep,
+            index=census_params.census_output_params.index,
         )
         pass
 
     def geocode(
         self,
-        parish_data_processed,
+        historic_boundaries,
         census_blocking_cols,
         geom_blocking_cols,
         partition_list,
-        geom,
+        geom_name,
         geom_config,
         censusdir,
         census_params,
         output_dir,
     ):
-        """
-        Needs editing Links census addresses to the geometry data for
-        streets in OS Open Roads and GB1900. Takes outputs from
-        `preprocessing` method, iterates over counties in census
-        computing the similarity between census addresses and addresses
-        in OS Open Roads and GB1900.
-
-        Writes the results for each county, the whole country, as well
-        as duplicate matches.
+        """Reads and processes target geometry data. Iterates over census
+        partitions, performing fuzzy string matching between addresses in
+        census and  target geometry data. Writes the results for each partition
+        to files - one file for linked addresses (one match only), one file for
+        duplicate linked addresses (more than 1 equally good match).
 
         Parameters
         ---------
-        census: `pandas.DataFrame`
-            DataFrame containing pre-processed census data returned from
-            the `preprocessing` method.
-        gb1900: `geopandas.GeoDataFrame`
-            GeoDataFrame containing pre-processed GB1900 data returned
-            from the `preprocessing` method.
-        segmented_os_roads: `geopandas.GeoDataFrame`
-            GeoDataFrame containing pre-processed OS Open Roads data
-            returned from the `preprocessing` method.
-        census_counties: list
-            List of Census Registration Counties returned from the
-            `preprocessing` function.
+        historic_boundaries: geopandas.GeoDataFrame
+            A geopandas geodataframe containing processed historic boundary data.
 
-        Returns
-        ---------
-        Currently doesn't pass anything on to another function.
+        census_blocking_cols: list
+            List of census columns for geo-blocking when running string comparisons.
 
+        geom_blocking_cols: list
+            List of columns for geo-blocking when running string comparisons.
+
+        partition_list: list
+            List of partition values from census data.
+
+        geom_name: str
+            Name of the target geometry data.
+
+        geom_config: Dataclass
+            Dataclass containing parameters for target geometry data.
+
+        censusdir: str
+            Path to directory containing census data.
+
+        census_params: Dataclass
+            Dataclass containing parameters for census year.
+
+        output_dir: str
+            Path to write output file.
         """
 
         processed_geom_data, new_uid = target_geom_preprocess.process_raw_geo_data(
-            geom, parish_data_processed, geom_config, census_params, output_dir,
+            geom_name, historic_boundaries, geom_config, census_params, output_dir,
         )
 
         for partition in partition_list:
@@ -151,13 +186,13 @@ class CensusGB_geocoder:
                 else:
                     linked.to_csv(
                         utils.make_path(output_dir, "linked")
-                        / f"{census_params.year}_{geom}_{partition}{census_params.census_output_params.filetype}",
+                        / f"{census_params.year}_{geom_name}_{partition}{census_params.census_output_params.filetype}",
                         sep=census_params.census_output_params.sep,
                         index=census_params.census_output_params.index,
                     )
                     linked_duplicates.to_csv(
                         utils.make_path(output_dir, "linked_duplicates")
-                        / f"{census_params.year}_{geom}_{partition}{census_params.census_output_params.filetype}",
+                        / f"{census_params.year}_{geom_name}_{partition}{census_params.census_output_params.filetype}",
                         sep=census_params.census_output_params.sep,
                         index=census_params.census_output_params.index,
                     )
@@ -165,23 +200,25 @@ class CensusGB_geocoder:
                         linked,
                         partition,
                         new_uid,
-                        geom,
-                        census_params.census_fields,
-                        census_params.census_output_params,
+                        geom_name,
+                        census_params,
                         censusdir,
                         output_dir,
-                        census_params.year,
-                    )  # need to add in census output params here
-        pass
+                    )
+        print(f"Geocoding to {geom_name} complete")
 
 
 class EW_geocoder(CensusGB_geocoder):
-    """
+    """Subclass of CensusGB_geocoder containing methods for processing
+    England and Wales data.
+
+    Methods
+    -------
         create_ew_parishboundaryprocessed()
-            Creates new boundary dataset from union of RSD and Parish boundaries.
+            Creates new boundary dataset by combinging RSD and Parish boundaries.
 
         process_ew_census()
-            Process census data ready for linking.
+            Process England and Wales census data ready for geocoding.
 
     """
 
@@ -193,6 +230,39 @@ class EW_geocoder(CensusGB_geocoder):
         parish_gis_config,
         conparid,
     ):
+        """Reads and processes parish and rsd boundary datasets and associated
+        lookup tables. Returns processed rsd lookup dictionary, boundary data,
+        and list of columns for blocking stage of record comparison. 
+
+        Parameters
+        ---------
+        rsd_dictionary_config: Dataclass
+            Dataclass containing parameters for reading rsd dictionary.
+
+        rsd_gis_config: Dataclass
+            Dataclass containing parameters for reading RSD GIS Boundary data
+            for census year.
+        
+        parish_icem_lkup_config : Dataclass
+            Dataclass containing parameters for reading lookup table.
+
+        parish_gis_config : Dataclass
+            Dataclass containing parameters for reading Parish GIS Boundary data.
+
+        conparid: str
+            Name of consistent parish identifier for census year
+
+        Returns
+        -------
+        rsd_dictionary_processed: pandas.DataFrame
+            A pandas dataframe containing the RSD Dictionary lookup table for census year.
+
+        parish_data_processed: geopandas.GeoDataFrame
+            A geopandas geodataframe containing parish/rsd boundary data for census year.
+
+        geom_blocking_cols: list
+            List of columns for geo-blocking when running string comparisons.
+        """
         rsd_dictionary_processed = ew_geom_preprocess.read_rsd_dictionary(
             rsd_dictionary_config,
         )
@@ -228,6 +298,30 @@ class EW_geocoder(CensusGB_geocoder):
         rsd_dictionary_config,
         census_params,
     ):
+        """Reads and processes England and Wales census data.
+
+        Parameters
+        ---------
+        rsd_dictionary_processed: pandas.DataFrame
+            A pandas dataframe containing the RSD Dictionary lookup table for census year.
+        
+        tmpcensusdir: str
+            Path to temporary parquet census directory.
+            
+        rsd_dictionary_config: Dataclass
+            Dataclass containing parameters for reading rsd dictionary.
+
+        census_params: Dataclass
+            Dataclass containing parameters for census year.
+
+        Returns
+        -------
+        census_blocking_cols: list
+            List of census columns for geo-blocking when running string comparisons.
+
+        partition_list: list
+            List of partition values from census data.
+        """
 
         census_data = census.read_census(
             census_params.census_file,
