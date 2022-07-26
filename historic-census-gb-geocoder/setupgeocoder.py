@@ -1,6 +1,7 @@
 import pandas as pd
 
 import census
+import eval
 import ew_geom_preprocess
 import recordcomparison
 
@@ -64,25 +65,29 @@ class CensusGB_geocoder:
         output_dir: str
             Path to write output file.
         """
+        if not linked.empty:
+            census = pd.read_parquet(
+                censusdir,
+                filters=[
+                    [(census_params.census_output_params.partition_on, "=", partition)]
+                ],
+                columns=[
+                    census_params.census_output_params.new_uid,
+                    census_params.census_fields.uid,
+                ],
+            )
 
-        census = pd.read_parquet(
-            censusdir,
-            filters=[
-                [(census_params.census_output_params.partition_on, "=", partition)]
-            ],
-            columns=[
-                census_params.census_output_params.new_uid,
-                census_params.census_fields.uid,
-            ],
-        )
+            cen_geom_lkp = pd.merge(
+                left=census,
+                right=linked,
+                on=census_params.census_output_params.new_uid,
+                how="inner",
+            )
+            cen_geom_lkp = cen_geom_lkp[[census_params.census_fields.uid, new_uid]]
 
-        cen_geom_lkp = pd.merge(
-            left=census,
-            right=linked,
-            on=census_params.census_output_params.new_uid,
-            how="inner",
-        )
-        cen_geom_lkp = cen_geom_lkp[[census_params.census_fields.uid, new_uid]]
+        else:
+            cen_geom_lkp = pd.DataFrame()
+
         cen_geom_lkp.to_csv(
             utils.make_path(output_dir)
             / f"{census_params.year}_{geom_name}_{partition}_lkup"
@@ -90,7 +95,7 @@ class CensusGB_geocoder:
             sep=census_params.census_output_params.sep,
             index=census_params.census_output_params.index,
         )
-        pass
+        return cen_geom_lkp
 
     def geocode(
         self,
@@ -144,16 +149,29 @@ class CensusGB_geocoder:
             geom_name, historic_boundaries, geom_config, census_params, output_dir,
         )
 
-        for partition in partition_list:
+        (
+            inds_list,
+            adds_list,
+            adds_list_dup,
+            inds_list_all,
+            adds_list_all,
+            eval_df,
+        ) = eval.setup_eval(
+            census_params.census_output_params.partition_on, partition_list
+        )
+
+        for count, partition in enumerate(partition_list):
             print("#" * 30)
             print(partition)
             print("#" * 30)
-            census_subset = census.create_partition_subset(
+            census_subset, inds_in_part, adds_in_part = census.create_partition_subset(
                 partition, censusdir, census_params
             )
-            if census_subset.empty:
-                continue
-            else:
+
+            inds_list_all.append(inds_in_part)
+            adds_list_all.append(adds_in_part)
+
+            if not census_subset.empty:
                 census_subset_tfidf = utils.compute_tfidf(
                     census_subset, census_params.census_fields
                 )
@@ -164,7 +182,7 @@ class CensusGB_geocoder:
                     census_blocking_cols,
                     geom_blocking_cols,
                 )
-                print(census_subset_tfidf)
+                # print(census_subset_tfidf)
                 target_results = recordcomparison.compare(
                     census_subset_tfidf,
                     processed_geom_data,
@@ -180,32 +198,65 @@ class CensusGB_geocoder:
                     geom_config,
                     new_uid,
                 )
+            else:
+                continue
 
-                if linked.empty:
-                    continue
-                else:
-                    linked.to_csv(
-                        utils.make_path(output_dir, "linked")
-                        / f"{census_params.year}_{geom_name}_{partition}{census_params.census_output_params.filetype}",
-                        sep=census_params.census_output_params.sep,
-                        index=census_params.census_output_params.index,
-                    )
-                    linked_duplicates.to_csv(
-                        utils.make_path(output_dir, "linked_duplicates")
-                        / f"{census_params.year}_{geom_name}_{partition}{census_params.census_output_params.filetype}",
-                        sep=census_params.census_output_params.sep,
-                        index=census_params.census_output_params.index,
-                    )
-                    self.link_geocode_to_icem(
-                        linked,
-                        partition,
-                        new_uid,
-                        geom_name,
-                        census_params,
-                        censusdir,
-                        output_dir,
-                    )
+            linked.to_csv(
+                utils.make_path(output_dir, "linked")
+                / f"{census_params.year}_{geom_name}_{partition}{census_params.census_output_params.filetype}",
+                sep=census_params.census_output_params.sep,
+                index=census_params.census_output_params.index,
+            )
+
+            linked_duplicates.to_csv(
+                utils.make_path(output_dir, "linked_duplicates")
+                / f"{census_params.year}_{geom_name}_{partition}"
+                f"{census_params.census_output_params.filetype}",
+                sep=census_params.census_output_params.sep,
+                index=census_params.census_output_params.index,
+            )
+
+            adds_list = eval.append_list(
+                linked, census_params.census_output_params.new_uid, adds_list,
+            )
+
+            adds_list_dup = eval.append_list(
+                linked_duplicates,
+                census_params.census_output_params.new_uid,
+                adds_list_dup,
+            )
+
+            cen_geom_lkp = self.link_geocode_to_icem(
+                linked,
+                partition,
+                new_uid,
+                geom_name,
+                census_params,
+                censusdir,
+                output_dir,
+            )
+
+            inds_list = eval.append_list(
+                cen_geom_lkp, census_params.census_fields.uid, inds_list,
+            )
+
+        eval.eval_df_add(
+            eval_df,
+            inds_list,
+            adds_list,
+            adds_list_dup,
+            inds_list_all,
+            adds_list_all,
+            output_dir,
+            geom_name,
+        )
         print(f"Geocoding to {geom_name} complete")
+
+        # if linked.empty and linked_duplicates.empty:
+        #     inds_list.append(0)
+        #     adds_list.append(0)
+        #     adds_list_dup.append(0)
+        # elif linked.empty and not linked_duplicates.empty:
 
 
 class EW_geocoder(CensusGB_geocoder):
