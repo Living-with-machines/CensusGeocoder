@@ -69,7 +69,6 @@ def process_raw_geo_data(
         Name of unique identifier column created from target geometry name
         and census year.
     """
-    print("*" * 100)
     print(f"Reading {geom_name} geometry data")
     cols_to_keep = geom_config.data_fields.list_cols()
 
@@ -108,15 +107,18 @@ def process_raw_geo_data(
             geom_config.output_params.crs
         )
 
-    target_gdf_processed.to_file(
-        f"{output_dir}/{geom_name}_{census_params.year}{geom_config.output_params.file_type}",
-        driver=geom_config.output_params.driver,
-        crs=geom_config.output_params.crs,
-    )
-    target_df_processed_small = pd.DataFrame(
-        target_gdf_processed.drop(columns=[target_gdf_processed.geometry.name])
-    )
+    if not target_gdf_processed.empty:
 
+        target_gdf_processed.to_file(
+            f"{output_dir}/{geom_name}_{census_params.year}{geom_config.output_params.file_type}",
+            driver=geom_config.output_params.driver,
+            crs=geom_config.output_params.crs,
+        )
+        target_df_processed_small = pd.DataFrame(
+            target_gdf_processed.drop(columns=[target_gdf_processed.geometry.name])
+        )
+    else:
+        target_df_processed_small = pd.DataFrame()
     return target_df_processed_small, new_uid
 
 
@@ -175,9 +177,9 @@ def process_linstring(line_string_gdf, boundary_data, geom_config, new_uid):
         Geopandas geodataframe containing processed linestring geometries.
     """
     tmp = line_string_gdf.dissolve(by=geom_config.data_fields.uid_field, as_index=False)
-    print(tmp)
+    # print(tmp)
     tmp2 = gpd.overlay(tmp, boundary_data, how="identity", keep_geom_type=True)
-    print(tmp2.info())
+    # print(tmp2.info())
     tmp2 = drop_outside_country(tmp2, "tmp_id")
 
     tmp2[new_uid] = (
@@ -187,7 +189,7 @@ def process_linstring(line_string_gdf, boundary_data, geom_config, new_uid):
     )
 
     tmp3 = tmp2.dissolve(by=new_uid)
-    print(tmp3)
+    # print(tmp3)
     tmp4 = tmp3.drop_duplicates(
         subset=[geom_config.data_fields.address_field, "tmp_id"], keep=False
     ).copy()
@@ -310,10 +312,7 @@ def read_shp(filelist, cols_to_keep, geom_config):
         pd.concat(
             [
                 gpd.read_file(
-                    target_shp,
-                    ignore_fields=unwanted_cols,
-                    crs=geom_config.projection,
-                    rows=1000,  # create sample data and remove.
+                    target_shp, ignore_fields=unwanted_cols, crs=geom_config.projection,
                 )
                 for target_shp in filelist
             ]
@@ -351,7 +350,6 @@ def read_csv(filelist, cols_to_keep, geom_config):
                 sep=geom_config.sep,
                 encoding=geom_config.encoding,
                 usecols=cols_to_keep,
-                nrows=1000,  # create sample data and remove.
             )
             for csv_file in filelist
         ]

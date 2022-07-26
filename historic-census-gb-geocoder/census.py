@@ -198,3 +198,63 @@ def create_partition_subset(partition, censusdir, census_params):
     census_subset = census_subset.set_index(census_params.census_output_params.new_uid)
 
     return census_subset, inds_in_part, adds_in_part
+
+
+def process_scot_census(
+    census_cleaned, boundary_lkup, boundary_lkup_config, census_params,
+):
+    """Process Scotland census data. Merges census data with lookup table
+    which adds an id to link the census data to GIS parish boundary files.
+    
+    Parameters
+    ----------
+    census_cleaned: dask.DataFrame
+        Dask dataframe holding census data for census year.
+
+    boundary_lkup: pandas.DataFrame
+        Pandas DataFrame containing parish lookup table for census year.
+
+    boundary_lkup_config:
+        Dataclass containing parameters for boundary lookup table.
+
+    census_params: Dataclass
+        Dataclass containing parameters for census year.
+
+    Returns
+    --------
+    census_dd: dask.DataFrame
+        Dask DataFrame containing census data with new attributes.
+
+    census_blocking_cols: list
+        List of census columns for geo-blocking when running string comparisons.
+
+    partition_list: list
+        List of partition values from census data.
+    """
+    census_dd = dd.merge(
+        left=census_cleaned,
+        right=boundary_lkup,
+        left_on=census_params.census_fields.parid,
+        right_on=boundary_lkup_config.parid_field,
+        how="left",
+    )
+    census_dd[boundary_lkup_config.parid_field] = pd.to_numeric(
+        census_dd[boundary_lkup_config.parid_field], errors="coerce"
+    )
+
+    census_dd[census_params.census_output_params.new_uid] = (
+        census_dd[census_params.census_fields.address].astype(str)
+        + "_"
+        + census_dd[boundary_lkup_config.uid].astype(str)
+    )
+    # print("Merged with RSD dictionary")
+
+    census_blocking_cols = [
+        boundary_lkup_config.uid,
+    ]
+
+    partition_list = sorted(
+        census_dd[census_params.census_output_params.partition_on].unique()
+    )
+    # print(census_dd)
+    return census_dd, census_blocking_cols, partition_list

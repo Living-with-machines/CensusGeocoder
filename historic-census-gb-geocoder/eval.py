@@ -46,16 +46,16 @@ def eval_df_add(
     output_dir,
     geom_name,
 ):
-    eval_df["inds_count"] = inds_list
-    eval_df["adds_count"] = adds_list
-    eval_df["adds_dup_count"] = adds_list_dup
-    eval_df["inds_count_all"] = inds_list_all
-    eval_df["adds_count_all"] = adds_list_all
+    eval_df["inds_linked"] = inds_list
+    eval_df["adds_linked"] = adds_list
+    eval_df["adds_duplink_count"] = adds_list_dup
+    eval_df["inds_all"] = inds_list_all
+    eval_df["adds_all"] = adds_list_all
 
-    eval_df["inds_perc"] = (eval_df["inds_count"] / eval_df["inds_count_all"]) * 100
-    eval_df["adds_perc"] = (eval_df["adds_count"] / eval_df["adds_count_all"]) * 100
-    eval_df["adds_dup_perc"] = (
-        eval_df["adds_dup_count"] / eval_df["adds_count_all"]
+    eval_df["inds_linked_perc"] = (eval_df["inds_linked"] / eval_df["inds_all"]) * 100
+    eval_df["adds_linked_perc"] = (eval_df["adds_linked"] / eval_df["adds_all"]) * 100
+    eval_df["adds_duplink_perc"] = (
+        eval_df["adds_duplink_count"] / eval_df["adds_all"]
     ) * 100
     print(eval_df)
 

@@ -5,7 +5,7 @@ import eval
 import ew_geom_preprocess
 import recordcomparison
 
-# import scot_geom_preprocess
+import scot_geom_preprocess
 import target_geom_preprocess
 import utils
 
@@ -160,10 +160,8 @@ class CensusGB_geocoder:
             census_params.census_output_params.partition_on, partition_list
         )
 
-        for count, partition in enumerate(partition_list):
-            print("#" * 30)
+        for partition in partition_list:
             print(partition)
-            print("#" * 30)
             census_subset, inds_in_part, adds_in_part = census.create_partition_subset(
                 partition, censusdir, census_params
             )
@@ -266,7 +264,7 @@ class EW_geocoder(CensusGB_geocoder):
     Methods
     -------
         create_ew_parishboundaryprocessed()
-            Creates new boundary dataset by combinging RSD and Parish boundaries.
+            Creates new boundary dataset by combining RSD and Parish boundaries.
 
         process_ew_census()
             Process England and Wales census data ready for geocoding.
@@ -401,40 +399,109 @@ class EW_geocoder(CensusGB_geocoder):
 
 
 class SCOT_geocoder(CensusGB_geocoder):
-    # def __init__(
-    #     self,
-    #     census_country,
-    #     census_year,
-    #     census_params,
-    #     target_geoms,
-    #     path_to_data,
-    #     scot_config,
-    # ):
-    #     super().__init__(
-    #         census_country, census_year, census_params, target_geoms, path_to_data
-    # )
+    """Subclass of CensusGB_geocoder containing methods for processing
+    Scottish data.
 
-    # 		#### SCOTLAND SPECIFIC
-    def create_scot_parishboundaryprocessed(self):
+    Methods
+    -------
+        create_scot_parishboundaryprocessed()
+            Creates processed Scottish boundary dataset and lookup table.
 
-        pass
+        process_scot_census()
+            Process Scottish census data ready for geocoding.
 
-        # def process_scot_census(self):
+    """
 
-        #     self.process_census(self.census_file, self.census_fields)
+    def create_scot_parishboundaryprocessed(
+        self, boundary_lkup_config, boundary_config
+    ):
+        """Reads and processes Scottish boundary GIS datasets and lookup tables.
+        Returns parish boundary data in geopandas geodataframe, a boundary
+        lookup table linking the boundary dataset to I-CeM, and a list of columns
+        for blocking stage of record comparison. 
 
-        #     self.output_census()
-        #     pass
-        # scot_parish_lkup_file: str
-        # 	Path to the lookup table that links the Scotland Parish
-        # boundary shapefile to the 'ParID' field in I-CeM.
-        # print(scot_config)
+        Parameters
+        ---------
+        boundary_lkup_config: Dataclass
+            Dataclass containing parameters for reading parish boundary lookup table.
+
+        boundary_config: Dataclass
+            Dataclass containing parameters for reading parish boundary GIS files.
+
+        Returns
+        -------
+        parish_boundary: geopandas.GeoDataFrame
+            A geopandas geodataframe containing parish boundary data for census year.
+
+        boundary_lkup: pandas.DataFrame
+            A pandas dataframe containing the parish lookup table for census year.
+
+        geom_blocking_cols: list
+            List of columns for geo-blocking when running string comparisons.
         """
-        SCOTLAND SPECIFIC VARIABLES
-        """
-        # self.scot_parish_lkup_file = self.set_scot_parish_lookup_file()
+        boundary_lkup = scot_geom_preprocess.process_scot_lkup(
+            boundary_lkup_config, boundary_config
+        )
 
-    # scot_parish_link = preprocess.scot_parish_lookup
-    # (self.scot_parish_lkup_file,self.census_year)
-    # parish_data_processed = preprocess.process_scot_parish_boundary_data
-    # (self.parish_shapefile_path,scot_parish_link,self.census_year)
+        (
+            parish_boundary,
+            geom_blocking_cols,
+        ) = scot_geom_preprocess.process_scot_boundary(boundary_config)
+
+        return parish_boundary, boundary_lkup, geom_blocking_cols
+
+    def process_scot_census(
+        self, tmpcensusdir, boundary_lkup, census_params, boundary_lkup_config
+    ):
+        """Reads and processes Scottish census data.
+
+        Parameters
+        ---------
+        
+        tmpcensusdir: str
+            Path to temporary parquet census directory.
+
+        boundary_lkup: pandas.DataFrame
+            Pandas dataframe containing lookup table linking ParID in I-Cem
+            to Scottish parish boundary GIS datasets.
+
+        census_params: Dataclass
+            Dataclass containing parameters for census year.
+
+        boundary_lkup_config: Dataclass
+            Dataclass containing parameters for reading parish boundary lookup table.
+
+        Returns
+        -------
+        census_blocking_cols: list
+            List of census columns for geo-blocking when running string comparisons.
+
+        partition_list: list
+            List of partition values from census data.
+        """
+
+        census_data = census.read_census(
+            census_params.census_file,
+            census_params.census_fields.list_cols(),
+            census_params.csv_params,
+        )
+
+        census_cleaned = census.clean_census_address_data(
+            census_data,
+            census_params.census_fields.address,
+            census_params.census_standardisation_file,
+        )
+
+        (
+            census_linked,
+            census_blocking_cols,
+            partition_list,
+        ) = census.process_scot_census(
+            census_cleaned, boundary_lkup, boundary_lkup_config, census_params,
+        )
+
+        census.output_census(
+            census_linked, tmpcensusdir, census_params.census_output_params
+        )
+
+        return census_blocking_cols, partition_list

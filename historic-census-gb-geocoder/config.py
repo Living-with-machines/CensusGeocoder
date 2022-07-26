@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 import pathlib
 import pandas as pd
 
@@ -354,13 +354,72 @@ class General:
         # pathlib.Path(self.duplicate_outputdir).mkdir(parents=True, exist_ok=True)
 
 
-# trial = General(
-#     output_data_path="data/output/",
-#     linked_subdir="linked/",
-#     duplicate_subdir="duplicate/",
-# )
+# @dataclass
+# class Pre1891_boundary_config:
+#     filepath: str
+#     uid: str
+#     projection: str
 
-# print(trial.duplicate_outputdir)
+#     def __post_init__(self):
+#         validate_projection(self.projection)
+
+
+# @dataclass
+# class Post1891_boundary_config:
+#     filepath: str
+#     uid: str
+#     projection: str
+
+#     def __post_init__(self):
+#         validate_projection(self.projection)
+
+
+@dataclass
+class Boundary_lkup_config:
+    filepath: str
+    parid_field: str
+    uid: str = field(init=False)
+    sheet: str = field(init=False)
+
+    def set_sheet(self, census_year):
+        self.sheet = str(census_year)
+        pass
+
+    def set_uid(self, uid_value):
+        self.uid = uid_value
+        pass
+
+
+@dataclass
+class Boundary_config:
+    filepath: str
+    uid: str
+    projection: str
+
+
+@dataclass
+class SCOT_configuration:
+    year: int
+    pre1891_boundary_config: dict
+    post1891_boundary_config: dict
+    boundary_lkup_config: Boundary_lkup_config
+    boundary_config: Boundary_config = field(init=False)
+
+    def __post_init__(self):
+        if self.year < 1891:
+
+            if isinstance(self.pre1891_boundary_config, dict):
+                self.boundary_config = Boundary_config(**self.pre1891_boundary_config)
+        else:
+            if isinstance(self.post1891_boundary_config, dict):
+                self.boundary_config = Boundary_config(**self.post1891_boundary_config)
+        if isinstance(self.boundary_lkup_config, dict):
+            self.boundary_lkup_config = Boundary_lkup_config(
+                **self.boundary_lkup_config
+            )
+
+        Boundary_lkup_config.set_sheet(self.boundary_lkup_config, self.year)
+        Boundary_lkup_config.set_uid(self.boundary_lkup_config, self.boundary_config.uid)
 
 
 def validate_configs(config_dict):

@@ -31,8 +31,8 @@ def create_candidate_links(
         geometry data.
     """
 
-    if census.empty:
-        print("No census data for this county")
+    if census.empty or target_geom_data.empty:
+        print("No census or target geom data for this county")
         target_candidate_links = pd.DataFrame()
     else:
         targetgeom_indexer = recordlinkage.Index()

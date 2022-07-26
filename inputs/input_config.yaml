@@ -6,7 +6,7 @@ census_config:
     country: "EW"
     year: 1851
     runtype: True # set to 'True' to run geo-coding on this census; set 'False'
-    census_file: "data/input/census_anonymisation_egress/EW1851_anonymised_s.txt"
+    census_file: "data/input/sample/census/EW1851_anonymised.txt"
     census_fields:
       uid: "safehaven_id" # unique person id; for non-Turing implementation will be changed to 'RecID'
       address: "address_anonymised" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
@@ -36,7 +36,7 @@ census_config:
     country: "EW"
     year: 1861
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/EW1861_anonymised.txt"
+    census_file: "data/input/census/EW1861_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -66,7 +66,7 @@ census_config:
     country: "EW"
     year: 1881
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/EW1881_anonymised.txt"
+    census_file: "data/input/census/EW1881_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -96,7 +96,7 @@ census_config:
     country: "EW"
     year: 1891
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/EW1891_anonymised.txt"
+    census_file: "data/input/census/EW1891_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -126,7 +126,7 @@ census_config:
     country: "EW"
     year: 1901
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/EW1901_anonymised.txt"
+    census_file: "data/input/census/EW1901_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -156,7 +156,7 @@ census_config:
     country: "EW"
     year: 1911
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/EW1911_anonymised.txt"
+    census_file: "data/input/census/EW1911_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -186,7 +186,7 @@ census_config:
     country: "SCOT"
     year: 1851
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/SCOT1851_anonymised.txt"
+    census_file: "data/input/census/SCOT1851_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -215,7 +215,7 @@ census_config:
     country: "SCOT"
     year: 1861
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/SCOT1861_anonymised.txt"
+    census_file: "data/input/census/SCOT1861_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -244,7 +244,7 @@ census_config:
     country: "SCOT"
     year: 1871
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/SCOT1871_anonymised.txt"
+    census_file: "data/input/census/SCOT1871_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -273,7 +273,7 @@ census_config:
     country: "SCOT"
     year: 1881
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/SCOT1881_anonymised.txt"
+    census_file: "data/input/census/SCOT1881_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -302,7 +302,7 @@ census_config:
     country: "SCOT"
     year: 1891
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/SCOT1891_anonymised.txt"
+    census_file: "data/input/census/SCOT1891_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -331,7 +331,7 @@ census_config:
     country: "SCOT"
     year: 1901
     runtype: False
-    census_file: "data/input/census_anonymisation_egress/SCOT1901_anonymised.txt"
+    census_file: "data/input/sample/census/SCOT1901_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -424,14 +424,21 @@ ew_config:
     conparid01_11_field: "conparid_01-11" # consistent parish id field for 1901 and 1911
 
 scot_config:
-  parish_boundary_gis_pre1891: "data/input/scot/scot_parish_boundary/CivilParish_pre1891/CivilParish_pre1891.shp" # path to pre 1891 boundary data
-  parish_boundary_gis_post1891: "data/input/scot/scot_parish_boundary/CivilParish1930/CivilParish1930.shp" # path to post 1891 boundary data
-  boundary_lkup_tbl: "data/input/scot/scot_parish_boundary/scotboundarylinking.xlsx" # path to post 1891 boundary and icem ParID lookup table
-  boundary_lkup_id: "ParID_link" # field linking scottish boundary data to icem 'ParID'
+  pre1891_boundary_config:
+    filepath: "data/input/scot/scot_parish_boundary/CivilParish_pre1891/CivilParish_pre1891.shp" # path to pre 1891 boundary data
+    uid: ""
+    projection: "EPSG:27700"
+  post1891_boundary_config:
+    filepath: "data/input/scot/scot_parish_boundary/CivilParish1930/CivilParish1930.shp" # path to post 1891 boundary data
+    uid: "name"
+    projection: "EPSG:27700"
+  boundary_lkup_config:
+    filepath: "data/input/scot/scot_parish_boundary/scotboundarylinking.xlsx" # path to post 1891 boundary and icem ParID lookup table
+    parid_field: "ParID" # field linking scottish boundary data to icem 'ParID'
 
 target_geoms: # geometry data to link census data to
   os_open_roads: # name of geometry data
-    path_to_geom: "data/input/target_geoms/oproad_essh_gb-2/data" # path to geometry data; can be directory if multiple files or path to file.
+    path_to_geom: "data/input/sample/target_geoms/oproad_essh_gb-2/data" # path to geometry data; can be directory if multiple files or path to file.
     projection: "EPSG:27700" # projection authority string passed to geopandas
     file_type: "shp" # file type;
     geom_type: "line" # type of geometry, either line or point; determines union operations (see documentation)
@@ -448,7 +455,7 @@ target_geoms: # geometry data to link census data to
       crs: "EPSG:27700"
       driver: "GeoJSON"
   gb1900:
-    path_to_geom: "data/input/target_geoms/gb1900_gazetteer_complete_july_2018.csv"
+    path_to_geom: "data/input/sample/target_geoms/gb1900_gazetteer_complete_july_2018.csv"
     projection: "EPSG:27700"
     file_type: "csv"
     geom_type: "point"

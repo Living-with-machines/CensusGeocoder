@@ -187,7 +187,7 @@ census_config:
 
 # Parameters for input census file
 
-    census_file: "data/input/census_anonymisation_egress/EW1851_anonymised_s.txt"
+    census_file: "data/input/census/EW1851_anonymised.txt"
     census_fields:
       uid: "safehaven_id" # unique person id; for non-Turing implementation will be changed to 'RecID'
       address: "address_anonymised" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
@@ -501,7 +501,7 @@ Taken from the Ordance Survey website:
 >Our open data products are covered by the Open Government Licence (OGL), which allows you to: copy, distribute and transmit the data;
 adapt the data; and
 exploit the data commercially, whether by sub-licensing it, combining it with other data, or including it in your own product or application.
-We simply ask that you acknowledge the copyright and the source of the data by including the following attribution statement: Contains OS data © Crown copyright and database right 2022
+We simply ask that you acknowledge the copyright and the source of the data by including the following attribution statement: Contains OS data © Crown copyright and database right 2022.
 
 ##### Parameters in `input_config.yaml`
 
