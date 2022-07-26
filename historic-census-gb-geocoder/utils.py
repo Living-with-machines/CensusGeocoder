@@ -7,14 +7,10 @@ from recordlinkage.base import BaseCompareFeature
 from recordlinkage.utils import fillna as _fillna
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-"""Edited version of string comparison method from the recordlinkage package - I've
-adjusted it so that the string algorithm uses rapidfuzz not fuzzywuzzy.
-"""
-
 
 class rapidfuzzy_wratio_comparer(BaseCompareFeature):
 
-    """Provides funtionality for BaseCompareFeature to use
+    """Provides funtionality for recordlinkage BaseCompareFeature to use
     algorithm from rapidfuzz rather than fuzzywuzzy.
     """
 
@@ -95,15 +91,11 @@ def compute_tfidf(census, census_fields):
         tfidf_vectorizer = TfidfVectorizer(
             norm="l2", use_idf=True, lowercase=False
         )  # default is norm l2
-        tfidf_sparse = tfidf_vectorizer.fit_transform(
-            census[f"{census_fields.address}"]
-        )
+        tfidf_sparse = tfidf_vectorizer.fit_transform(census[census_fields.address])
         tfidf_array = tfidf_sparse.toarray()
         tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
         census["tfidf"] = tfidf_array_sums
-        census["tfidf_w"] = (
-            census["tfidf"] / census[f"{census_fields.address}"].str.len()
-        )
+        census["tfidf_w"] = census["tfidf"] / census[census_fields.address].str.len()
     except ValueError:
         print("Likely error with tf-idf not having any strings to compare")
     return census[[census_fields.address, "tfidf_w"]]
