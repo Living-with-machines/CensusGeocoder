@@ -184,6 +184,7 @@ def create_partition_subset(partition, censusdir, census_params):
         censusdir,
         filters=[[(census_params.census_output_params.partition_on, "=", partition)]],
     )
+    inds_in_part = len(census_subset)
 
     census_subset = (
         census_subset.drop_duplicates(
@@ -192,6 +193,8 @@ def create_partition_subset(partition, censusdir, census_params):
         .copy()
         .drop(columns=census_params.census_fields.uid)
     )
+
+    adds_in_part = len(census_subset)
     census_subset = census_subset.set_index(census_params.census_output_params.new_uid)
 
-    return census_subset
+    return census_subset, inds_in_part, adds_in_part
