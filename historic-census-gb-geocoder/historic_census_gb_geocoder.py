@@ -65,7 +65,7 @@ for x, y in geocode_config["census_config"].items():
                 print("#" * 88)
                 print(geom)
                 geom_configuration = config.Target_geom(**geom_config)
-                print(geom_configuration)
+                # print(geom_configuration)
 
                 census_geocoder.geocode(
                     processed_parish_boundary_data,
