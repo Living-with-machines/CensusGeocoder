@@ -277,7 +277,6 @@ class EW_geocoder(CensusGB_geocoder):
         rsd_gis_config,
         parish_icem_lkup_config,
         parish_gis_config,
-        conparid,
     ):
         """Reads and processes parish and rsd boundary datasets and associated
         lookup tables. Returns processed rsd lookup dictionary, boundary data,
@@ -298,9 +297,6 @@ class EW_geocoder(CensusGB_geocoder):
         parish_gis_config : Dataclass
             Dataclass containing parameters for reading Parish GIS Boundary data.
 
-        conparid: str
-            Name of consistent parish identifier for census year
-
         Returns
         -------
         rsd_dictionary_processed: pandas.DataFrame
@@ -320,22 +316,20 @@ class EW_geocoder(CensusGB_geocoder):
             rsd_dictionary_config.rsd_id_field, rsd_gis_config
         )
 
-        ukds_link = ew_geom_preprocess.read_gis_to_icem(
-            parish_icem_lkup_config, conparid
-        )
+        ukds_link = ew_geom_preprocess.read_gis_to_icem(parish_icem_lkup_config,)
 
         parish = ew_geom_preprocess.process_parish_boundary_data(
-            parish_gis_config,
-            ukds_link,
-            conparid,
-            parish_icem_lkup_config.ukds_id_field,
+            parish_gis_config, ukds_link, parish_icem_lkup_config
         )
 
         (
             parish_data_processed,
             geom_blocking_cols,
         ) = ew_geom_preprocess.join_parish_rsd_boundary(
-            parish, processed, conparid, rsd_dictionary_config.rsd_id_field
+            parish,
+            processed,
+            parish_icem_lkup_config.conparid,
+            rsd_dictionary_config.rsd_id_field,
         )
 
         return rsd_dictionary_processed, parish_data_processed, geom_blocking_cols

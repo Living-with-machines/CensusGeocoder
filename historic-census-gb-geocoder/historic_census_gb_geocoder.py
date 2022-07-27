@@ -28,9 +28,9 @@ for x, y in geocode_config["census_config"].items():
                 ew_configuration = config.EW_configuration(
                     census_configuration.year, **geocode_config["ew_config"]
                 )
-                conparid = config.create_conparid(
-                    ew_configuration.parish_icem_lkup_config, census_configuration.year
-                )
+                # conparid = config.create_conparid(
+                #     ew_configuration.parish_icem_lkup_config, census_configuration.year
+                # )
                 census_geocoder = setupgeocoder.EW_geocoder()
                 (
                     rsd_dictionary_processed,
@@ -41,7 +41,6 @@ for x, y in geocode_config["census_config"].items():
                     ew_configuration.rsd_gis_config,
                     ew_configuration.parish_icem_lkup_config,
                     ew_configuration.parish_gis_config,
-                    conparid,
                 )
 
                 (

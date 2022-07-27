@@ -41,7 +41,7 @@ def process_rsd_boundary_data(rsd_id_field, rsd_gis_config):
     return rsd_boundary
 
 
-def read_gis_to_icem(parish_icem_lkup_config, conparid):
+def read_gis_to_icem(parish_icem_lkup_config):
     """
     Reads lookup table linking England and Wales parish boundary data to
     I-CeM.
@@ -59,7 +59,10 @@ def read_gis_to_icem(parish_icem_lkup_config, conparid):
     gis_to_icem: pandas.DataFrame
         A Pandas DataFrame containing the lookup table.
     """
-    list_of_cols = [parish_icem_lkup_config.ukds_id_field, conparid]
+    list_of_cols = [
+        parish_icem_lkup_config.ukds_id_field,
+        parish_icem_lkup_config.conparid,
+    ]
     gis_to_icem = pd.read_excel(
         parish_icem_lkup_config.filepath,
         sheet_name=parish_icem_lkup_config.sheet,
@@ -70,7 +73,7 @@ def read_gis_to_icem(parish_icem_lkup_config, conparid):
 
 
 def process_parish_boundary_data(
-    parish_gis_config, ukds_lkuptbl, conparid, parish_icem_lkup_idfield,
+    parish_gis_config, ukds_lkuptbl, parish_icem_lkup_config,
 ):
     """
     Reads England and Wales parish boundary data. Merges parish boundary
@@ -120,12 +123,14 @@ def process_parish_boundary_data(
         left=par_boundary,
         right=ukds_lkuptbl,
         left_on=parish_gis_config.id_field,
-        right_on=parish_icem_lkup_idfield,
+        right_on=parish_icem_lkup_config.ukds_id_field,
         how="left",
     )
-    par_boundary_conparid = par_boundary_conparid.dissolve(by=conparid).reset_index()
+    par_boundary_conparid = par_boundary_conparid.dissolve(
+        by=parish_icem_lkup_config.conparid
+    ).reset_index()
     par_boundary_conparid = par_boundary_conparid[
-        [conparid, par_boundary_conparid.geometry.name]
+        [parish_icem_lkup_config.conparid, par_boundary_conparid.geometry.name]
     ]
 
     return par_boundary_conparid
