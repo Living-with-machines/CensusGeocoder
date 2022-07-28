@@ -123,6 +123,11 @@ class Census_fields:
 
     county: str
         The name of the field containing the `RegCnty` or Registration County variable.
+
+    Methods
+    -------
+    list_cols()
+        Method to return a list of the census fields.
     """
 
     uid: str
@@ -539,6 +544,32 @@ class EW_configuration:
 
 @dataclass
 class Data_fields:
+    """A class for storing field names from a target geometry dataset.
+    
+    Attributes
+    ----------
+    uid_field: str
+        Name of unique id field
+
+    address_field: str
+        Name of address field
+
+    geometry_field: str
+        Name of field containing geometry data. Optional if `long_field`
+        and `lat_field` are used.
+    
+    long_field: str
+        Name of field containing longitudes. Optional if using `geometry_field`.
+
+    lat_field: str
+        Name of field containing latitudes. Optional if using `geometry_field`.
+
+    Methods
+    -------
+    list_cols()
+        Method to return a list of the target geometry fields.
+    
+"""
 
     uid_field: str
     address_field: str
@@ -557,6 +588,21 @@ class Data_fields:
 
 @dataclass
 class Output_params:
+    """A class for storing output parameters of the target geometry dataset
+    to pass to geopandas `to_file`.
+    
+    Attributes
+    ----------
+    file_type: str
+        File extension, e.g. '.geojson'.
+    
+    crs: str
+        Projection authority string (eg “EPSG:4326”)
+    
+    driver: str
+        Type of driver to write file, e.g. 'GeoJSON'.
+"""
+
     file_type: str
     crs: str
     driver: str
@@ -564,6 +610,57 @@ class Output_params:
 
 @dataclass
 class Target_geom:
+    """A class for storing parameters of the target geometry dataset.
+    
+    Attributes
+    ----------
+    path_to_geom: str
+        Directory or filepath to data. If specifying a directory, you must set
+        `filename_disamb` so the correct files from the directory are read.
+
+    projection: str
+        Projection string to pass to geopandas when reading data or setting crs.
+        See `validate_projection()` for valid format.
+
+    file_type: str
+        Type of file e.g. 'shp' or 'csv'.
+    
+    geom_type: str
+        Type of geometry, either 'line' or 'point', determines union
+        operations with historic boundary datasets
+    
+    data_fields: Dataclass
+        Dataclass with field names.
+    
+    output_params: Dataclass
+        Dataclass with parameters for writing output files.
+
+    standardisation_file: str
+        Optional. Path to standardisation json containing regex replacement patterns to apply
+        to address field.
+
+    query_criteria: str
+        Optional. Query to pass to pandas `df.query` to filter dataset.
+
+    filename_disamb: str
+        Filename (or part of a filename) of files in a directory to read. Optional, but
+        must be specified if `path_to_geom` is a directory.
+    
+    geometry_format: str
+        For reading geometry data from delimited text files, specify format
+        of geometry data. Accepts 'coords' (for use when geometry data is split
+        across two columns e.g. long, lat, or easting, northing OR 'wkt' if
+        geometry data is in WKT format in one column.
+
+    encoding: str
+        If reading geometry data from a delimited text file, the encoding of the file
+        e.g. 'utf-8'.
+    
+    sep: str
+        If reading geometry data from a delimited text file, the delimiter character
+        of the file.
+"""
+
     path_to_geom: str
     projection: str
     file_type: str
@@ -591,34 +688,56 @@ class Target_geom:
 
 @dataclass
 class General:
-    """A Class with general parameters"""
+    """A Class with general parameters
+    Attributes
+    ----------
+    output_data_path: str
+        Directory path to save all output files."""
 
     output_data_path: str
-    # linked_subdir: str
-    # duplicate_subdir: str
-
-    # linked_outputdir: pathlib.Path = field(init=False)
-    # duplicate_outputdir: pathlib.Path = field(init=False)
 
     def __post_init__(self):
         validate_paths(self.output_data_path)
 
-        # self.linked_outputdir = pathlib.Path(self.output_data_path
-        #  + self.linked_subdir)
-        # pathlib.Path(self.linked_outputdir).mkdir(parents=True, exist_ok=True)
-
-        # self.duplicate_outputdir = pathlib.Path(
-        #     self.output_data_path + self.duplicate_subdir
-        # )
-        # pathlib.Path(self.duplicate_outputdir).mkdir(parents=True, exist_ok=True)
-
 
 @dataclass
 class Boundary_lkup_config:
+    """A class storing parameters for Scotland parish boundary lookup table.
+
+    Attributes
+    ----------
+    filepath: str
+        Path to England and Wales Parish GIS Boundary Data.
+
+    parid_field: str
+        Name of the field containing `ParID` variable from I-CeM.
+
+    uid: str
+        Name of the unique id field from the parish boundary dataset.
+
+    encoding: str
+        The file encoding, e.g. 'utf-8'.
+
+    sheet: str
+        Name of the sheet of the Excel Spreadsheet where the data is located.
+    
+    Methods
+    -------
+    set_sheet()
+        Sets the sheet name based on specified census year.
+
+    set_uid()
+        Sets the uid field name based on specified census year.
+    """
+
     filepath: str
     parid_field: str
-    uid: str = field(init=False)
-    sheet: str = field(init=False)
+    uid: str = ""
+    sheet: str = ""
+
+    def __post_init__(self):
+        validate_paths(self.filepath)
+        first_validate(self)
 
     def set_sheet(self, census_year):
         self.sheet = str(census_year)
@@ -628,13 +747,24 @@ class Boundary_lkup_config:
         self.uid = uid_value
         pass
 
-    def __post_init__(self):
-        validate_paths(self.filepath)
-        first_validate(self)
-
 
 @dataclass
 class Boundary_config:
+    """A class storing parameters for Scotland parish GIS boundary data.
+
+    Attributes
+    ----------
+    filepath: str
+        Path to England and Wales Parish GIS Boundary Data.
+
+    uid: str
+        Name of the unique id field from the parish boundary dataset.
+
+    projection: str
+        Projection string to pass to geopandas when reading data or setting crs.
+        See `validate_projection()` for valid format.
+    """
+
     filepath: str
     uid: str
     projection: str
@@ -642,10 +772,32 @@ class Boundary_config:
     def __post_init__(self):
         first_validate(self)
         validate_paths(self.filepath)
+        validate_projection(self.projection)
 
 
 @dataclass
 class SCOT_configuration:
+    """A class for storing parameters for Scotland geocoding.
+    
+    Attributes
+    ----------
+    year: int
+        Census year
+
+    pre1891_boundary_config: dict
+        Dict storing parameters for Scotland Parish GIS Boundary Data for 1851-1881.
+
+    post1891_boundary_config: dict
+        Dict storing parameters for Scotland Parish GIS Boundary Data for 1891-1901.
+
+    boundary_lkup_config: Dataclass
+        Dataclass storing parameters for Scotland Parish Lookup Table.
+
+    boundary_config: Dataclass
+        Dataclass storing parameters for Scotland Parish GIS Boundary Data for
+        specified census year - set using either pre1891 or post1891 _boundary_config.
+"""
+
     year: int
     pre1891_boundary_config: dict
     post1891_boundary_config: dict
@@ -677,22 +829,25 @@ def validate_configs(config_dict):
     for x, y in config_dict["census_config"].items():
         census_configuration = Censusconfiguration(**y)
         if census_configuration.country == "EW":
-            EW_configuration(census_configuration.year, **config_dict["ew_config"])
+            ew_configuration = EW_configuration(
+                census_configuration.year, **config_dict["ew_config"]
+            )
         elif census_configuration.country == "SCOT":
-            pass
+            scot_configuration = SCOT_configuration(
+                census_configuration.year, **config_dict["scot_config"]
+            )
     for geom, geom_config in config_dict["target_geoms"].items():
         Target_geom(**geom_config)
     pass
 
 
 def create_outputdirs(*args):
-    """Set the output directory in the format e.g.
-    `data/output/1901/EW/`. Checks if output directory exists,
-    if it doesn't it creates a directory.
+    """Set the output directory from a list of args.
+    Checks if output directory exists, if it doesn't it creates a directory.
 
     Returns
     ----------
-    output_dir: str
+    output_dir: pathlib.Path
         Path to output directory.
     """
     args1 = [str(arg) for arg in args]
