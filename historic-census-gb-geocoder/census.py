@@ -123,6 +123,8 @@ def process_ew_census(
         + "_"
         + census_dd[rsd_dictionary_config.rsd_id_field].astype(str)
     )
+
+    census_dd = census_dd.dropna()
     print("Merged with RSD dictionary")
 
     census_blocking_cols = [
@@ -248,6 +250,8 @@ def process_scot_census(
         + census_dd[boundary_lkup_config.uid].astype(str)
     )
     # print("Merged with RSD dictionary")
+
+    census_dd = census_dd.dropna()
 
     census_blocking_cols = [
         boundary_lkup_config.uid,
