@@ -118,9 +118,9 @@ The directory structure of `data/output/` is created automatically when `histori
 │   │   │   ├── SCOT1851.txt
 │   │   │   ├── SCOT1861.txt
 │   │   │   ├── SCOT1871.txt
-│   |   │   ├── SCOT1881.txt
-│   |   │   ├── SCOT1891.txt
-│   |   │   └── SCOT1901.txt
+│   │   │   ├── SCOT1881.txt
+│   │   │   ├── SCOT1891.txt
+│   │   │   └── SCOT1901.txt
 │   │   ├── ew
 │   │   │   ├── 1851EngWalesParishandPlace
 │   │   │   │   ├── 1851EngWalesParishandPlace.dbf
@@ -139,8 +139,8 @@ The directory structure of `data/output/` is created automatically when `histori
 │   │   │   │   ├── 1911_ICeM_DICTIONARY_CODED.txt
 │   │   │   │   ├── PAR1851_RSD_MATCH.txt
 │   │   │   │   └── finalEWnondiss1851_1911.txt
-|   |   |   ├── icem_parish_lkup
-|   |   |   |   └── UKDS_GIS_to_icem.xlsx
+│   │   │   ├── icem_parish_lkup
+│   │   │   │   └── UKDS_GIS_to_icem.xlsx
 │   │   │   └── rsd_boundary_data
 │   │   │       ├── RSD_1851_1911_JR.cpg
 │   │   │       ├── RSD_1851_1911_JR.dbf
@@ -153,49 +153,49 @@ The directory structure of `data/output/` is created automatically when `histori
 │   │   ├── scot
 │   │   │   └── scot_parish_boundary
 │   │   │       ├── CivilParish1930
-|   |   │       │   ├── CivilParish1930.dbf
-|   |   │       │   ├── CivilParish1930.prj
-|   |   │       │   ├── CivilParish1930.shp
-|   |   │       │   ├── CivilParish1930.shp.xml
-|   |   │       │   ├── CivilParish1930.shx
-|   |   │       │   └── CivilParish1930Lookup.xls
-|   |   |       ├── CivilParish_pre1891
-|   |   │       │   ├── CivilParish_pre1891.CPG
-|   |   │       │   ├── CivilParish_pre1891.dbf
-|   |   │       │   ├── CivilParish_pre1891.prj
-|   |   │       │   ├── CivilParish_pre1891.sbn
-|   |   │       │   ├── CivilParish_pre1891.sbx
-|   |   │       │   ├── CivilParish_pre1891.shp
-|   |   │       │   ├── CivilParish_pre1891.shp.xml
-|   |   │       │   ├── CivilParish_pre1891.shx
-|   |   │       │   └── scotland-parishes-1755-1891.xlsx
+│   │   │       │   ├── CivilParish1930.dbf
+│   │   │       │   ├── CivilParish1930.prj
+│   │   │       │   ├── CivilParish1930.shp
+│   │   │       │   ├── CivilParish1930.shp.xml
+│   │   │       │   ├── CivilParish1930.shx
+│   │   │       │   └── CivilParish1930Lookup.xls
+│   │   │       ├── CivilParish_pre1891
+│   │   │       │   ├── CivilParish_pre1891.CPG
+│   │   │       │   ├── CivilParish_pre1891.dbf
+│   │   │       │   ├── CivilParish_pre1891.prj
+│   │   │       │   ├── CivilParish_pre1891.sbn
+│   │   │       │   ├── CivilParish_pre1891.sbx
+│   │   │       │   ├── CivilParish_pre1891.shp
+│   │   │       │   ├── CivilParish_pre1891.shp.xml
+│   │   │       │   ├── CivilParish_pre1891.shx
+│   │   │       │   └── scotland-parishes-1755-1891.xlsx
 │   │   │       └── scotboundarylinking.xlsx
 │   │   ├── target_geoms
-│   │   |   ├── oproad_essh_gb-2
-|   │   |   |   ├── data
-|   │   |   |   │   ├── HP_RoadLink.cpg
-|   │   |   |   │   ├── HP_RoadLink.dbf
-|   │   |   |   │   ├── HP_RoadLink.prj
-|   │   |   |   │   ├── HP_RoadLink.shp
-|   │   |   |   │   ├── HP_RoadLink.shx
-|   │   |   |   │   ├── HP_RoadNode.cpg
-|   │   |   |   │   ├── HP_RoadNode.dbf
-|   │   |   |   │   ├── HP_RoadNode.prj
-|   │   |   |   │   ├── HP_RoadNode.shp
-|   │   |   |   │   ├── HP_RoadNode.shx
-|   |   |   |   |   └── ...
-|   |   |   |   ├── doc
-|   |   |   |   │   └── licence.txt
-|   |   |   |   └── readme.txt
-|   |   |   ├── gb1900
-|   |   |   |   └── gb1900_gazetteer_complete_july_2018.csv
-|   |   |   └── target_geom3
-|   |   |       └── ...
-|   |   └── sample
-|   |       ├── census
-|   |       └── target_geoms
+│   │   │   ├── oproad_essh_gb-2
+│   │   │   │   ├── data
+│   │   │   │   │   ├── HP_RoadLink.cpg
+│   │   │   │   │   ├── HP_RoadLink.dbf
+│   │   │   │   │   ├── HP_RoadLink.prj
+│   │   │   │   │   ├── HP_RoadLink.shp
+│   │   │   │   │   ├── HP_RoadLink.shx
+│   │   │   │   │   ├── HP_RoadNode.cpg
+│   │   │   │   │   ├── HP_RoadNode.dbf
+│   │   │   │   │   ├── HP_RoadNode.prj
+│   │   │   │   │   ├── HP_RoadNode.shp
+│   │   │   │   │   ├── HP_RoadNode.shx
+│   │   │   │   │   └── ...
+│   │   │   │   ├── doc
+│   │   │   │   │   └── licence.txt
+│   │   │   │   └── readme.txt
+│   │   │   ├── gb1900
+│   │   │   │   └── gb1900_gazetteer_complete_july_2018.csv
+│   │   │   └── target_geom3
+│   │   │       └── ...
+│   │   └── sample
+│   │       ├── census
+│   │       └── target_geoms
 │   │           ├── target_geom1
-|   |           └── target_geom2
+│   │           └── target_geom2
 ├── inputs
 └── output
         └── 1851
