@@ -1,36 +1,44 @@
 # historic-census-gb-geocoder
 
-Geocode Historic Great British Census Data 1851-1911
+![overview](documentation/overview_large_new.png)
 
-- [What is historic-census-gb-geocoder?](#What-is-historic-census-gb-geocoder)
+
+## What is historic-census-gb-geocoder?
+
+**historic-census-gb-geocoder** links streets in historic census data for Great Britain 1851-1911 to their 'real-world' geographic location using geo-blocking and fuzzy string matching. You can pick any or all census years in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem) and link them to a target geometry dataset (or datasets) of your choosing.
+
+It uses boundary datasets of historic administrative units (e.g. Parishes, Registration Sub-Districts) for each census year (1851-1911) and country (England and Wales, or Scotland) to assign census addresses and target geometry addresses to the appropriate historic administrative unit. This restricts fuzzy string matching between census and target geometry addresses to the correct historic boundary and disambiguates common street names found across the coutnry (e.g. High Street), resulting in higher quality matches.
+
+The figure below gives an overview of the process:
+
+![flowchart](documentation/flowchart_cl.png "flowchart")
+
+# Contents
+- [What is historic-census-gb-geocoder?](#What-is-historic-census-gb-geocoder?)
 - [Installation and setup](#installation)
   - [Set up a conda environment](#set-up-a-conda-environment)
   - [Method 1: pip](#method-1)
   - [Method 2: source code (for developers)](#method-2)
-- [Overview](#overview)
-- [Data Inputs](#data-inputs)
+<!-- - [Overview](#overview) -->
+- [Data Input](#data-input)
   - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
+
+    **England and Wales**
   - [Parish Boundary Data (EW ONLY)](#Parish-Boundary-Data-(EW-ONLY))
   - [1851EngWalesParishandPlace I-CeM Lookup Table (EW ONLY)](#1851engwalesparishandplace-i-cem-lookup-table-(EW-ONLY))
-
   - [Registration Sub-District (RSD) Boundary Data (EW ONLY)](#registration-sub-district-rsd-boundary-data-(ew-only))
   - [Registration Sub-District (RSD) Lookup Table (EW ONLY)](#registration-sub-district-rsd-lookup-table-ew-only)
+
+    **Scotland**
   - [National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table](#national-records-of-scotland---historic-civil-parishes-pre-1891-and-civil-parishes-post-1891-boundary-data-and-lookup-table)
 
   - [Target Geometry Data](#target-geometry-data)
-      - [GB1900 Gazetteer](#gb1900-gazetteer)
-      - [OS Open Roads](#os-open-roads)
-
-- [How to cite historic-census-gb-geocoder](#how-to-cite-historic-census-gb-geocoder)
+    - [GB1900 Gazetteer](#gb1900-gazetteer)
+    - [OS Open Roads](#os-open-roads)
 - [Credit, re-use terms, and how to cite](#credit-re-use-terms-and-how-to-cite)
-
 - [Acknowledgements](#acknowledgements)
 
-## What is historic-census-gb-geocoder
 
-historic-census-gb-geocoder links street addresses in historic census data to target geometry datasets.
-
-![overview](documentation/overview_large.png)
 
 ## Installation
 
@@ -75,71 +83,148 @@ pip install -v -e .
 
 Edit `/path/to/` as appropriate to the directory that you cloned `historic-census-gb-geocoder` into. E.g. `/Users/jrhodes/historic-census-gb-geocoder`
 
+### To run
+
+```bash
+python3 historic_census_gb_geocoder.py
+```
+
 ### Set parameters
+### Folder structure and data
 
-#### General parameters
-The `input_config.yaml` file allows you to adjust many variables for each census year, the other input files, and the target geometry datasets. These are detailed in the respective section under [Data Inputs](#data-inputs)
+<!-- The [input_config.yaml](inputs/input_config.yaml) file allows you to adjust many variables for each census year, the other input files, and the target geometry datasets. These are detailed in the respective section under [Data Inputs](#data-inputs). -->
 
-First, set the directory where outputs should be saved:
+The filepaths for all the input data can be set by the user in [input_config.yaml](inputs/input_config.yaml) - for further information see the respective section under [Data Input](#data-input). We recommend the following directory structure for `data/input`, `inputs`, and `sample`.
+
+The parent output directory is also set by the user in [input_config.yaml](inputs/input_config.yaml):
 
 ```yaml
 general:
   output_data_path: "data/output/"
 ```
 
-### Folder structure and data
-*to edit*
+The directory structure of `data/output/` is created automatically when `historic-census-gb-geocoder` runs, and creates directories for each census year, country, and target geometry dataset.
 
 ```bash
 ├── data
 │   ├── input
-│   │   ├── census_anonymisation_egress
+│   │   ├── census
+│   │   │   ├── EW1851.txt
+│   │   │   ├── EW1861.txt
+│   │   │   ├── EW1881.txt
+│   │   │   ├── EW1891.txt
+│   │   │   ├── EW1901.txt
+│   │   │   ├── EW1911.txt
+│   │   │   ├── SCOT1851.txt
+│   │   │   ├── SCOT1861.txt
+│   │   │   ├── SCOT1871.txt
+│   |   │   ├── SCOT1881.txt
+│   |   │   ├── SCOT1891.txt
+│   |   │   └── SCOT1901.txt
 │   │   ├── ew
 │   │   │   ├── 1851EngWalesParishandPlace
+│   │   │   │   ├── 1851EngWalesParishandPlace.dbf
+│   │   │   │   ├── 1851EngWalesParishandPlace.prj
+│   │   │   │   ├── 1851EngWalesParishandPlace.sbn
+│   │   │   │   ├── 1851EngWalesParishandPlace.sbx
+│   │   │   │   ├── 1851EngWalesParishandPlace.shp
+│   │   │   │   └── 1851EngWalesParishandPlace.shx
 │   │   │   ├── parish_dicts_encoding
+│   │   │   │   ├── 1851_ICeM_DICTIONARY_CODED.txt
+│   │   │   │   ├── 1861_ICeM_DICTIONARY_CODED.txt
+│   │   │   │   ├── 1871_DICTIONARY_CODED.txt
+│   │   │   │   ├── 1881_ICeM_DICTIONARY_CODED.txt
+│   │   │   │   ├── 1891_ICeM_DICTIONARY_CODED.txt
+│   │   │   │   ├── 1901_ICeM_DICTIONARY_CODED.txt
+│   │   │   │   ├── 1911_ICeM_DICTIONARY_CODED.txt
+│   │   │   │   ├── PAR1851_RSD_MATCH.txt
+│   │   │   │   └── finalEWnondiss1851_1911.txt
+|   |   |   ├── icem_parish_lkup
+|   |   |   |   └── UKDS_GIS_to_icem.xlsx
 │   │   │   └── rsd_boundary_data
+│   │   │       ├── RSD_1851_1911_JR.cpg
+│   │   │       ├── RSD_1851_1911_JR.dbf
+│   │   │       ├── RSD_1851_1911_JR.prj
+│   │   │       ├── RSD_1851_1911_JR.sbn
+│   │   │       ├── RSD_1851_1911_JR.sbx
+│   │   │       ├── RSD_1851_1911_JR.shp
+│   │   │       ├── RSD_1851_1911_JR.shp.xml
+│   │   │       └── RSD_1851_1911_JR.shx
 │   │   ├── scot
 │   │   │   └── scot_parish_boundary
 │   │   │       ├── CivilParish1930
-│   │   │       └── CivilParish_pre1891
-│   │   └── target_geoms
-│   │       └── target_geom1
-│   │           ├── data
-│   │           └── doc
-├── documentation
+|   |   │       │   ├── CivilParish1930.dbf
+|   |   │       │   ├── CivilParish1930.prj
+|   |   │       │   ├── CivilParish1930.shp
+|   |   │       │   ├── CivilParish1930.shp.xml
+|   |   │       │   ├── CivilParish1930.shx
+|   |   │       │   └── CivilParish1930Lookup.xls
+|   |   |       ├── CivilParish_pre1891
+|   |   │       │   ├── CivilParish_pre1891.CPG
+|   |   │       │   ├── CivilParish_pre1891.dbf
+|   |   │       │   ├── CivilParish_pre1891.prj
+|   |   │       │   ├── CivilParish_pre1891.sbn
+|   |   │       │   ├── CivilParish_pre1891.sbx
+|   |   │       │   ├── CivilParish_pre1891.shp
+|   |   │       │   ├── CivilParish_pre1891.shp.xml
+|   |   │       │   ├── CivilParish_pre1891.shx
+|   |   │       │   └── scotland-parishes-1755-1891.xlsx
+│   │   │       └── scotboundarylinking.xlsx
+│   │   ├── target_geoms
+│   │   |   ├── oproad_essh_gb-2
+|   │   |   |   ├── data
+|   │   |   |   │   ├── HP_RoadLink.cpg
+|   │   |   |   │   ├── HP_RoadLink.dbf
+|   │   |   |   │   ├── HP_RoadLink.prj
+|   │   |   |   │   ├── HP_RoadLink.shp
+|   │   |   |   │   ├── HP_RoadLink.shx
+|   │   |   |   │   ├── HP_RoadNode.cpg
+|   │   |   |   │   ├── HP_RoadNode.dbf
+|   │   |   |   │   ├── HP_RoadNode.prj
+|   │   |   |   │   ├── HP_RoadNode.shp
+|   │   |   |   │   ├── HP_RoadNode.shx
+|   |   |   |   |   └── ...
+|   |   |   |   ├── doc
+|   |   |   |   │   └── licence.txt
+|   |   |   |   └── readme.txt
+|   |   |   ├── gb1900
+|   |   |   |   └── gb1900_gazetteer_complete_july_2018.csv
+|   |   |   └── target_geom3
+|   |   |       └── ...
+|   |   └── sample
+|   |       ├── census
+|   |       └── target_geoms
+│   │           ├── target_geom1
+|   |           └── target_geom2
 ├── inputs
 └── output
         └── 1851
             └── EW
-                ├── target_geometry1
-                │   ├── duplicate
-                │   └── linked
-                └── target_geometry2
-                    ├── duplicate
-                    └── linked
+                ├── target_geom1
+                │   ├── linked
+                │   ├── linked_duplicates
+                │   └── lookup
+                └── target_geom2
+                    ├── linked
+                    ├── linked_duplicates
+                    └── lookup
 ```
 
-### Run
+<!-- 
 
-```bash
-python3 historic_census_gb_geocoder.py
-```
-
-## Overview
-
-<!-- Something here
+## In depth discussion of processing steps etc?
 
 How it works etc....
 
 A census address is considered linked to a target address when:
 
   1. The fuzzy string comparison score is greater than the user-specified threshold
-  2. It has the highest score after applying tf-idf weighting to the comparison score. Only census-address/target-address matches containing the following fields: -->
+  2. It has the highest score after applying tf-idf weighting to the comparison score. Only census-address/target-address matches containing the following fields: 
+    1. Assign streets in a target geometry dataset to the appropriate historic administrative unit. When a target geometry dataset comprises linestrings, it creates new geometries so that long roads spanning more than one historic administrative unit are split at the boundary of each unit so people are linked to the correct portion of the street based on which unit they live in.
+  
+  -->
 
-![Process](documentation/flowchart_cl.png)
-
-
-## Data Inputs
+## Data Input
 This is a list and discription of the datasets you need to download and save locally in order to run the scripts correctly. Each section below describes the dataset, citation and copyright details, and how to set parameters in the relevant section of [input_config.yaml](inputs/input_config.yaml).
 
 
@@ -165,7 +250,7 @@ ConParID*|Consistent Parish ID
 ParID|Parish IDs
 RegCnty|Registration County
 
-*Sample (fabricated) Data*
+*Sample Data (fabricated)*
 RecID|Address|ConParID*|ParID|RegCnty
 --|--|--|--|--
 1|23 High Street|12|21|Essex
@@ -180,7 +265,7 @@ RecID|Address|ConParID*|ParID|RegCnty
 >Schurer, K., Higgs, E. (2020). Integrated Census Microdata (I-CeM), 1851-1911. [data collection]. UK Data Service. SN: 7481, DOI: 10.5255/UKDA-SN-7481-2
 Schurer, K., Higgs, E. (2022). Integrated Census Microdata (I-CeM) Names and Addresses, 1851-1911: Special Licence Access. [data collection]. 2nd Edition. UK Data Service. SN: 7856, DOI: 10.5255/UKDA-SN-7856-2
 
-#### Parameters in `input_config.yaml`
+#### Parameters in [input_config.yaml](inputs/input_config.yaml)
 
 Under the `census_config` are the settings for each census year (in this case England and Wales 1851):
 
@@ -269,9 +354,9 @@ The files and documentation explaining the creation of the boundaries and the fi
 
 >Satchell, A.E.M and Kitson, P.K and Newton, G.H and Shaw-Taylor, L. and Wrigley, E.A (2018). 1851 England and Wales census parishes, townships and places. [Data Collection]. Colchester, Essex: UK Data Archive. 10.5255/UKDA-SN-852232
 
-#### Parameters in `input_config.yaml`
+#### Parameters in [input_config.yaml](inputs/input_config.yaml)
 
-You need to set thepath to the 1851 Parish Boundary Data for England and Wales Data in the `filepath` setting. If accessing this data via UKDS, the `projection` and `id_field` should remain the same as below.
+You need to set the path to the 1851 Parish Boundary Data for England and Wales Data in the `filepath` setting. If accessing this data via UKDS, the `projection` and `id_field` should remain the same as below.
 
 ```yaml
 ew_config:
@@ -304,7 +389,7 @@ UKDS_ID|conparid_51-91|conparid_01-11
 
 The I-CeM website doesn't provide a citation for this lookup dictionary. The link to the data is under the heading 'Consistent Parish Geographies' [here](https://www.essex.ac.uk/research-projects/integrated-census-microdata)
 
-#### Parameters in `input_config.yaml`
+#### Parameters in [input_config.yaml](inputs/input_config.yaml)
 
 You need to set the path to the lookup file under `filepath`. The other settings should work with a version of the lookup table downloaded from the I-CeM website.
 
@@ -383,7 +468,7 @@ ParID|CEN_1851
 
 The RSD Lookup Dictionaries were supplied directly by Joe Day at the University of Bristol and Alice Reid at the University of Cambridge. They are in the process of being deposited with UKDS and the citation may change to reflect this in due course.
 
-#### Parameters in `input_config.yaml`
+#### Parameters in [input_config.yaml](inputs/input_config.yaml)
 
 Set the file path to the Registration Sub-District (RSD) Lookup Table under the `filepath` setting. This needs to be done for each census year. The other settings work for the files supplied at time of writing - they can be changed if necessary once these files are available via UKDS.
 
