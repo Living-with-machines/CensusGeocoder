@@ -136,6 +136,7 @@ A census address is considered linked to a target address when:
   1. The fuzzy string comparison score is greater than the user-specified threshold
   2. It has the highest score after applying tf-idf weighting to the comparison score. Only census-address/target-address matches containing the following fields: -->
 
+![Process](documentation/flowchart.png)
 
 
 ## Data Inputs
@@ -550,7 +551,7 @@ Insert once these geometry field changes have been made.
                     ├── lkup
                     └── linked
 ```
-Output files for each census year and country are written to separate directories. For each partition of the census (e.g. a county), there are 3 types of delimited text files: `linked`, `linked duplicates`, and `lookup`.
+Output files for each target geometry dataset and census year/country are written to separate directories. For each partition of the census (e.g. a county), 3 types of delimited text files `linked`, `linked duplicates`, `lookup` are output.
 
 Filenames are structured as follows:
 `{census_year}_{target_geometry_name}_{partition_value}`
