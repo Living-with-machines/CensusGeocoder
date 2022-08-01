@@ -83,7 +83,13 @@ class CensusGB_geocoder:
                 on=census_params.census_output_params.new_uid,
                 how="inner",
             )
-            cen_geom_lkp = cen_geom_lkp[[census_params.census_fields.uid, new_uid]]
+            cen_geom_lkp = cen_geom_lkp[
+                [
+                    census_params.census_fields.uid,
+                    census_params.census_output_params.new_uid,
+                    new_uid,
+                ]
+            ]
 
         else:
             cen_geom_lkp = pd.DataFrame()
