@@ -127,7 +127,16 @@ python3 historic_census_gb_geocoder.py
 
 ## Overview
 
-Something here
+<!-- Something here
+
+How it works etc....
+
+A census address is considered linked to a target address when:
+
+  1. The fuzzy string comparison score is greater than the user-specified threshold
+  2. It has the highest score after applying tf-idf weighting to the comparison score. Only census-address/target-address matches containing the following fields: -->
+
+
 
 ## Data Inputs
 This is a list and discription of the datasets you need to download and save locally in order to run the scripts correctly. Each section below describes the dataset, citation and copyright details, and how to set parameters in the relevant section of [input_config.yaml](inputs/input_config.yaml).
@@ -528,10 +537,117 @@ Insert once these geometry field changes have been made.
 
 ### Data Output
 
-*Needs adding 
+```bash
+└── output
+        └── 1851
+            └── EW
+                ├── target_geometry1
+                │   ├── lkup
+                │   ├── linked_duplicates
+                │   └── linked
+                └── target_geometry2
+                    ├── linked_duplicates
+                    ├── lkup
+                    └── linked
+```
+Output files for each census year and country are written to separate directories. For each partition of the census (e.g. a county), there are 3 types of delimited text files: `linked`, `linked duplicates`, and `lookup`.
+
+Filenames are structured as follows:
+`{census_year}_{target_geometry_name}_{partition_value}`
+
+with `link`, `linkdup`, or `lkup` appended to the end as appropriate, e.g.
+
+e.g. `1851_gb1900_Durham_lkup`.
+
+#### Linked
+
+Census addresses considered a match to an address in a target geometry dataset.
+
+fields|
+-|
+target geometry address|
+census address unique id|
+target geometry address unique id|
+census address|
+tfidf weighting|
+fuzzy string comparison score|
+weighted fuzzy string comparison score|
+
+*Sample output*
+
+final_text|unique_add_id|gb1900_1851|address_anonymised|tfidf_w|rapidfuzzy_wratio_s|rapidfuzzy_wratio_ws|
+--|--|--|--|--|--|--|
+SOUTH HILL PARK|BAGSHOT ROAD AND SOUTH HILL PARK_1452.0_1300001.0|5815d6182c66dc3849011ef2_1452.0_1300001|BAGSHOT ROAD AND SOUTH HILL PARK|0.0743637355789496|0.9|0.06692736202105463|
+BARTHOLOMEW STREET|BARTHOLOMEW STREET  SHAWS COURT_1260.0_1200002.0|5848759c2c66dcdcda000168_1260.0_1200002|BARTHOLOMEW STREET  SHAWS COURT|0.06117412360590356|0.9|0.05505671124531321|
+BARTHOLOMEW STREET|BARTHOLOMEW STREET  STILLMANS COTTAGES_1260.0_1200002.0|5848759c2c66dcdcda000168_1260.0_1200002|BARTHOLOMEW STREET  STILLMANS COTTAGES|0.05017107492325159|0.9|0.04515396743092643|
+
+#### Linked duplicates
+
+Census addresses with > 1 match to an address in the target geometry dataset.
+
+The fields are the same as the `Linked` output:
+
+fields|
+-|
+target geometry address|
+census address unique id|
+target geometry address unique id|
+census address|
+tfidf weighting|
+fuzzy string comparison score|
+weighted fuzzy string comparison score|
+
+*Sample output*
+
+name1|unique_add_id|os_open_roads_1851|address_anonymised|tfidf_w|rapidfuzzy_wratio_s|rapidfuzzy_wratio_ws|
+--|--|--|--|--|--|--|
+OLD BRACKNELL LANE EAST|BRACKNELL_1452.0_1300001.0|osgb4000000023476747_1452.0_1300001|BRACKNELL|0.1111111111111111|0.9|0.09999999999999999
+BRACKNELL ROAD|BRACKNELL_1452.0_1300001.0|osgb4000000023487824_1452.0_1300001|BRACKNELL|0.1111111111111111|0.9|0.09999999999999999
+OLD BRACKNELL LANE WEST|BRACKNELL_1452.0_1300001.0|osgb4000000023488088_1452.0_1300001|BRACKNELL|0.1111111111111111|0.9|0.09999999999999999
+
+#### Lookup table
+
+Unique ids for individuals from the census for each census address and target geometry in [Linked](#linked).
+
+Filenames take the format
+`{census_year}_{target_geometry_name}_{partition_value}_lkup`
+e.g. `1851_gb1900_Durham_lkup`.
+
+*Sample output*
+
+unique census id (e.g. RecID)|unique geometry id (e.g. gb1900_1851)
+--|--
+20|52f1d84fd9dbf10005000574_12709.0_6230001
+40|5360c84879ff6e000d001256_12753.0_6230006
+41|52cd3f9cba830e0005003ba1_12737.0_6230004
+
+#### Summary
+
+A fourth file contains summary statistics on the proportions of people linked according to each census partition.
+
+Fields|Description|
+--|--|
+partition|Census partition, e.g. a county|
+inds_link|Number of individuals linked to a target geometry|
+adds_link|Number (unique count) of addresses linked to target geometry|
+adds_linkdup_count|Number (unique count) of addresses with > 1 match to target geometry|
+inds_all|Number of all individuals in census partition|
+adds_all|Number (unique count) of all addresses in census partition|
+inds_link_perc|Percentage of all individuals linked to target geometry|
+adds_link_perc|Percentage of all addresses linked to target geometry|
+adds_linkdup_perc|Percentage of all addresses with > 1 match to target geometry|
+
+*Sample output*
+
+RegCnty|inds_linked|adds_linked|adds_duplink_count|inds_all|adds_all|inds_linked_perc|adds_linked_perc|adds_duplink_perc
+--|--|--|--|--|--|--|--|--|
+Anglesey|261|43|1|4257|2176|6.13107822410148|1.9761029411764706|0.04595588235294117
+Bedfordshire|1875|192|3|12827|1668|14.617603492632728|11.510791366906476|0.1798561151079137
+Berkshire|1984|244|12|19583|3184|10.13123627636215|7.663316582914573|0.37688442211055273
+Brecknockshire|332|32|2|5978|2531|5.553696888591502|1.264322402212564|0.07902015013828526
 
 ## Acknowledgements
 
 This work was supported by Living with Machines (AHRC grant AH/S01179X/1) and The Alan Turing Institute (EPSRC grant EP/N510129/1). Living with Machines, funded by the UK Research and Innovation (UKRI) Strategic Priority Fund, is a multidisciplinary collaboration delivered by the Arts and Humanities Research Council (AHRC), with The Alan Turing Institute, the British Library and the Universities of Cambridge, East Anglia, Exeter, and Queen Mary University of London.
 
-I'd also like to  thank @mcollardanuy for reviewing the code, Joe Day and Alice Reid for supplying RSD Boundary data and lookups prior to their deposit with the UK Data Service.
+Thanks to Joe Day and Alice Reid for supplying RSD Boundary data and lookups prior to their deposit with the UK Data Service.
