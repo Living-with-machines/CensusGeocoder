@@ -136,7 +136,7 @@ A census address is considered linked to a target address when:
   1. The fuzzy string comparison score is greater than the user-specified threshold
   2. It has the highest score after applying tf-idf weighting to the comparison score. Only census-address/target-address matches containing the following fields: -->
 
-![Process](documentation/flowchart.png)
+![Process](documentation/flowchart_cl.png)
 
 
 ## Data Inputs
