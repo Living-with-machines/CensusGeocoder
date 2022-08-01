@@ -95,7 +95,7 @@ class CensusGB_geocoder:
             cen_geom_lkp = pd.DataFrame()
 
         cen_geom_lkp.to_csv(
-            utils.make_path(output_dir)
+            utils.make_path(output_dir, "lookup")
             / f"{census_params.year}_{geom_name}_{partition}_lkup"
             f"{census_params.census_output_params.filetype}",
             sep=census_params.census_output_params.sep,
@@ -176,6 +176,7 @@ class CensusGB_geocoder:
             adds_list_all.append(adds_in_part)
 
             if not census_subset.empty:
+                print(census_subset)
                 census_subset_tfidf = utils.compute_tfidf(
                     census_subset, census_params.census_fields
                 )
@@ -207,14 +208,14 @@ class CensusGB_geocoder:
 
             linked.to_csv(
                 utils.make_path(output_dir, "linked")
-                / f"{census_params.year}_{geom_name}_{partition}{census_params.census_output_params.filetype}",
+                / f"{census_params.year}_{geom_name}_{partition}_link{census_params.census_output_params.filetype}",
                 sep=census_params.census_output_params.sep,
                 index=census_params.census_output_params.index,
             )
 
             linked_duplicates.to_csv(
                 utils.make_path(output_dir, "linked_duplicates")
-                / f"{census_params.year}_{geom_name}_{partition}"
+                / f"{census_params.year}_{geom_name}_{partition}_linkdup"
                 f"{census_params.census_output_params.filetype}",
                 sep=census_params.census_output_params.sep,
                 index=census_params.census_output_params.index,
