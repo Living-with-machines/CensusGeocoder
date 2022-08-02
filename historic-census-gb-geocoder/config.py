@@ -603,9 +603,9 @@ class Output_params:
         Type of driver to write file, e.g. 'GeoJSON'.
 """
 
-    file_type: str
-    crs: str
-    driver: str
+    file_type: str = ".geojson"
+    crs: str = "EPSG:27700"
+    driver: str = "GeoJSON"
 
 
 @dataclass
