@@ -35,6 +35,7 @@ The figure below gives an overview of the process:
   - [Target Geometry Data](#target-geometry-data)
     - [GB1900 Gazetteer](#gb1900-gazetteer)
     - [OS Open Roads](#os-open-roads)
+- [Data Output](#data-output)
 - [Credit, re-use terms, and how to cite](#credit-re-use-terms-and-how-to-cite)
 - [Acknowledgements](#acknowledgements)
 
@@ -520,47 +521,9 @@ SMALL ISLES | 100119 | exact
 
 ### Target Geometry Data
 
-`historic-census-gb-geocoder` can link I-CeM data to any existing target geometry dataset in shapefiles or in csv files by adjusting the following settings:
-
-```yaml
-target_geoms: # geometry data to link census data to
-# General
-  name_of_target_geometry: # name of geometry data
-    path_to_geom: "path/to/data" # path to geometry data; can be directory if multiple files or path to file.
-    projection: "EPSG:****" # projection authority string passed to geopandas, eg. "EPSG:27700"
-    file_type: "" # file type; accepts 'shp' or 'csv'
-    geom_type: "" # type of geometry, accepts either 'line' or 'point'; determines union operations (see documentation)
-
-    filename_disamb: "" # optional (for multiple files); correct filename to read if multiple files in directory, e.g. OS Open Roads contains 'RoadNode' and 'RoadLink'. If 'RoadLink.shp' provided, it will ignore 'RoadNode.shp'.
-    data_fields: # fields to read from file
-      uid_field: "" # unique id field, e.g. 'nameTOID'
-      address_field: "" # address field, e.g. 'name1'
-      geometry_field: "" # if shapefile or csv with one geometry column (e.g. wkt string) give name of field here e.g. 'geometry'
-      long_field: "" # optional; defaults to ""; for use with csv geometry in lat/long format across 2 columns; `geometry_format` must be set to 'coords' when using long and lat fields.
-      lat_field: "" # same as long_field
-    standardisation_file: "" # optional; file to perform regex replacement on address field
-    query_criteria: "" # optional; query to pass to pandas 'df.query'
-
-# shp file specific
-
-# csv file specific
-    encoding: "utf-16" # for 'csv' only; file encoding passed to pandas read_csv
-    sep: "," # for 'csv' only; seperator value passed to pandas read_csv
-    geometry_format: "" # only for 'csv'; if  for use with 'csv' 
-```
-
-Optionally, set `standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the target geometry data.
-
-For example:
-
-```json
-{
-	"\\sST\\.$|\\sST$":" STREET",
-	"\\sRD\\.$|\\sRD$":" ROAD",
-	"\\sPL\\.$|\\sPL$":" PLACE"
-}
-```
-
+Currently, `historic-census-gb-geocoder` links I-CeM data to OS Open Roads 
+and GB1900 but users can adjust [input_config.yaml](inputs/input_config.yaml) to 
+link census data to any number of existing target geometry datasets in shapefiles or in csv files. To add additional target geometries, just add the appropriate lines under the `target_geoms` heading using the examples for reading .shp and .csv files below:
 
 #### GB1900 Gazetteer
 
@@ -578,9 +541,30 @@ It is available on a CC-BY-SA licence. Taken from the data documentation:
 
 >You may call any work you derive from this dataset whatever you like EXCEPT that you must not name your work "the GB1900 gazetteer", or any other name including "GB1900" or "Great Britain 1900". When using or citing the work, you should not imply endorsement by the GB1900 project or by any of the project partners.
 
-##### Parameters in `input_config.yaml`
+##### Parameters in [input_config.yaml](inputs/input_config.yaml)
 
-Insert once these geometry field changes have been made.
+```yaml
+gb1900: # name of geometry data
+  path_to_geom: "data/input/sample/target_geoms/gb1900/gb1900_gazetteer_complete_july_2018.csv" # path to file
+  projection: "EPSG:27700" # projection authority string
+  file_type: "csv" # tells pipeline to use pandas read_csv
+  geom_type: "point" # tells pipeline what union operation to apply with historic boundary data
+  geometry_format: "coords" # specifies geometry format when reading geometry files other than shapefiles. Accepts "coords" if supplying two columns for longlat; or accepts "wkt" if wellknowntext geometry supplied in one column.
+  encoding: "utf-16" # file encoding passed to pandas read_csv
+  sep: "," # delimiter passed to pandas read_csv
+  data_fields: # columns to read from dataset
+    uid_field: "pin_id"
+    address_field: "final_text"
+    long_field: "osgb_east"
+    lat_field: "osgb_north"
+
+  standardisation_file: "inputs/gb1900_standardisation.json" # optional; file to perform regex replacement on address_field
+  query_criteria: "final_text.str.len() > 5" # optional; query to pass to pandas 'df.query'
+  output_params: # parameters for writing new geometries to output file
+    file_type: ".geojson"
+    crs: "EPSG:27700"
+    driver: "GeoJSON"
+```
 
 #### OS Open Roads
 ##### Description
@@ -598,28 +582,27 @@ adapt the data; and
 exploit the data commercially, whether by sub-licensing it, combining it with other data, or including it in your own product or application.
 We simply ask that you acknowledge the copyright and the source of the data by including the following attribution statement: Contains OS data © Crown copyright and database right 2022.
 
-##### Parameters in `input_config.yaml`
+##### Parameters in [input_config.yaml](inputs/input_config.yaml)
 
-Insert once these geometry field changes have been made.
+```yaml
+os_open_roads: # name of geometry data
+  path_to_geom: "data/input/sample/target_geoms/oproad_essh_gb-2/data" # path to geometry data; can be directory if multiple files or path to a single file.
+  projection: "EPSG:27700" # projection authority string passed to geopandas read_file
+  file_type: "shp" # file type;
+  geom_type: "line" # type of geometry, either line or point; determines union operations with historic boundary datasets(see documentation)
+  filename_disamb: "RoadLink.shp" # correct filename to read if multiple files in directory, e.g. OS Open Roads contains 'RoadNode' and 'RoadLink'. We ignore 'RoadNode.shp'.
+  data_fields: # fields to read from file
+    uid_field: "nameTOID" # unique id field
+    address_field: "name1" # address field
+    geometry_field: "geometry" # geometry field
 
-## Credit, re-use terms, and how to cite
-`historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
-
-#### 8. Street Standardisation
-
-*The naming conventions need to be improved here - this file is for use with the GB1900 Gazetteer.*
-
-*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
-
-`street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in GB1900 Gazetteer, e.g. Rd to Road.
-
-#### 9. I-CeM Street Standardisation
-
-*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
-
-`icem_street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in I-CeM, e.g. Rd to Road. Also removes extra letters left at the start of the address strings after removing digits (to comply with safehaven rules). E.g. '68A High Street' leaves 'A High Street', which is then cleaned to 'High Street'.
-
-
+  standardisation_file: "" # optional; file to perform regex replacement on_address field
+  query_criteria: "" # optional; query to pass to pandas 'df.query'
+  output_params: # parameters for writing new geometries to output file
+    file_type: ".geojson"
+    crs: "EPSG:27700"
+    driver: "GeoJSON"
+```
 
 ### Data Output
 
@@ -776,8 +759,40 @@ Bedfordshire|1875|192|3|12827|1668|14.617603492632728|11.510791366906476|0.17985
 Berkshire|1984|244|12|19583|3184|10.13123627636215|7.663316582914573|0.37688442211055273
 Brecknockshire|332|32|2|5978|2531|5.553696888591502|1.264322402212564|0.07902015013828526
 
+## Credit, re-use terms, and how to cite
+`historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
+
+#### 8. Street Standardisation
+
+*The naming conventions need to be improved here - this file is for use with the GB1900 Gazetteer.*
+
+*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
+
+`street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in GB1900 Gazetteer, e.g. Rd to Road.
+
+#### 9. I-CeM Street Standardisation
+
+*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
+
+`icem_street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in I-CeM, e.g. Rd to Road. Also removes extra letters left at the start of the address strings after removing digits (to comply with safehaven rules). E.g. '68A High Street' leaves 'A High Street', which is then cleaned to 'High Street'.
+
+
 ## Acknowledgements
 
 This work was supported by Living with Machines (AHRC grant AH/S01179X/1) and The Alan Turing Institute (EPSRC grant EP/N510129/1). Living with Machines, funded by the UK Research and Innovation (UKRI) Strategic Priority Fund, is a multidisciplinary collaboration delivered by the Arts and Humanities Research Council (AHRC), with The Alan Turing Institute, the British Library and the Universities of Cambridge, East Anglia, Exeter, and Queen Mary University of London.
 
 Thanks to Joe Day and Alice Reid for supplying RSD Boundary data and lookups prior to their deposit with the UK Data Service.
+
+
+
+Optionally, set `standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the target geometry data.
+
+For example:
+
+```json
+{
+	"\\sST\\.$|\\sST$":" STREET",
+	"\\sRD\\.$|\\sRD$":" ROAD",
+	"\\sPL\\.$|\\sPL$":" PLACE"
+}
+```
