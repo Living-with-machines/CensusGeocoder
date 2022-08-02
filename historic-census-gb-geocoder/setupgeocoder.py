@@ -176,7 +176,6 @@ class CensusGB_geocoder:
             adds_list_all.append(adds_in_part)
 
             if not census_subset.empty:
-                print(census_subset)
                 census_subset_tfidf = utils.compute_tfidf(
                     census_subset, census_params.census_fields
                 )
