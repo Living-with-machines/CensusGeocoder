@@ -6,7 +6,7 @@ census_config:
     country: "EW"
     year: 1851
     runtype: False # set to 'True' to run geo-coding on this census; set 'False'
-    census_file: "data/input/census/sample/EW1851_anonymised.txt"
+    census_file: "data/input/census/sample/EW1851_anonymised_sample.txt"
     census_fields:
       uid: "safehaven_id" # unique person id; for non-Turing implementation will be changed to 'RecID'
       address: "address_anonymised" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
