@@ -102,9 +102,13 @@ def process_raw_geo_data(
 
     target_gdf_processed = parse_address(target_gdf_processed, geom_config)
 
-    if target_gdf_processed.crs != geom_config.output_params.crs:
+    if (
+        target_gdf_processed.crs != geom_config.output_params.crs
+        and geom_config.output_params.crs != "EPSG:27700"
+    ):
+        geom_config.output_params.crs
         target_gdf_processed = target_gdf_processed.to_crs(
-            geom_config.output_params.crs
+            {"proj": "longlat", "crs": geom_config.output_params.crs}
         )
 
     if not target_gdf_processed.empty:
