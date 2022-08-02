@@ -99,7 +99,7 @@ class Comparison_params:
     """
 
     sim_thresh: float
-    string_comp_alg: str
+    string_comp_alg: str = "rapidfuzzy_wratio"
 
     def __post_init__(self):
         first_validate(self)
