@@ -24,7 +24,7 @@ gb1900_sample.to_csv(
 """Create OS Open Roads Sample"""
 
 geom_files = []
-p = pathlib.Path("data/input/target_geoms/oproad_essh_gb-2/data")
+p = pathlib.Path("data/input/sample/target_geoms/oproad_essh_gb-2/data")
 for file_p in p.iterdir():
     if "RoadLink.shp" in str(file_p):
         geom_files.append(str(file_p))

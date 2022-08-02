@@ -18,7 +18,7 @@ list_of_census = [
 for census in list_of_census:
     print(census)
     census_df = pd.read_csv(
-        f"data/input/census_anonymisation_egress/{census}_anonymised.txt",
+        f"data/input/census/{census}_anonymised.txt",
         sep="\t",
         quoting=3,
         encoding="latin-1",
@@ -30,7 +30,7 @@ for census in list_of_census:
     census_sample = census_df.sample(sample_size, random_state=1)
 
     census_sample.to_csv(
-        f"data/input/sample/census_anonymisation_egress/{census}_anonymised_sample.txt",
+        f"data/input/sample/census/{census}_anonymised_sample.txt",
         sep="\t",
         quoting=3,
         encoding="latin-1",
