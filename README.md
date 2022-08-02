@@ -628,26 +628,32 @@ Insert once these geometry field changes have been made.
         └── 1851
             └── EW
                 ├── target_geometry1
-                │   ├── lkup
+                │   ├── lookup
                 │   ├── linked_duplicates
-                │   └── linked
+                │   ├── linked
+                │   ├── target_geometry1_1851.geojson
+                │   └── target_geometry1_1851_summary.tsv
                 └── target_geometry2
+                    ├── lookup
                     ├── linked_duplicates
-                    ├── lkup
-                    └── linked
+                    ├── linked
+                    ├── target_geometry2_1851.geojson
+                    └── target_geometry2_1851_summary.tsv
 ```
-Output files for each target geometry dataset and census year/country are written to separate directories. For each partition of the census (e.g. a county), 3 types of delimited text files `linked`, `linked duplicates`, `lookup` are output.
+Output files for each target geometry dataset and census year/country are written to separate directories. For each partition of the census (e.g. a county), 3 types of delimited text files are output to the corresponding directories `linked`, `linked duplicates`, `lookup`.
 
 Filenames are structured as follows:
-`{census_year}_{target_geometry_name}_{partition_value}`
+`{census_country}_{census_year}_{target_geometry_name}_{partition_value}`
 
 with `link`, `linkdup`, or `lkup` appended to the end as appropriate, e.g.
 
-e.g. `1851_gb1900_Durham_lkup`.
+e.g. `EW_1851_gb1900_Durham_lkup`.
+
+---
 
 #### Linked
 
-Census addresses considered a match to an address in a target geometry dataset.
+Census addresses considered a match to an address in the target geometry dataset.
 
 fields|
 -|
@@ -666,6 +672,8 @@ final_text|unique_add_id|gb1900_1851|address_anonymised|tfidf_w|rapidfuzzy_wrati
 SOUTH HILL PARK|BAGSHOT ROAD AND SOUTH HILL PARK_1452.0_1300001.0|5815d6182c66dc3849011ef2_1452.0_1300001|BAGSHOT ROAD AND SOUTH HILL PARK|0.0743637355789496|0.9|0.06692736202105463|
 BARTHOLOMEW STREET|BARTHOLOMEW STREET  SHAWS COURT_1260.0_1200002.0|5848759c2c66dcdcda000168_1260.0_1200002|BARTHOLOMEW STREET  SHAWS COURT|0.06117412360590356|0.9|0.05505671124531321|
 BARTHOLOMEW STREET|BARTHOLOMEW STREET  STILLMANS COTTAGES_1260.0_1200002.0|5848759c2c66dcdcda000168_1260.0_1200002|BARTHOLOMEW STREET  STILLMANS COTTAGES|0.05017107492325159|0.9|0.04515396743092643|
+
+---
 
 #### Linked duplicates
 
@@ -691,25 +699,61 @@ OLD BRACKNELL LANE EAST|BRACKNELL_1452.0_1300001.0|osgb4000000023476747_1452.0_1
 BRACKNELL ROAD|BRACKNELL_1452.0_1300001.0|osgb4000000023487824_1452.0_1300001|BRACKNELL|0.1111111111111111|0.9|0.09999999999999999
 OLD BRACKNELL LANE WEST|BRACKNELL_1452.0_1300001.0|osgb4000000023488088_1452.0_1300001|BRACKNELL|0.1111111111111111|0.9|0.09999999999999999
 
-#### Lookup table
+---
+
+#### Lookup
 
 Unique ids for individuals from the census for each census address and target geometry in [Linked](#linked).
 
-Filenames take the format
-`{census_year}_{target_geometry_name}_{partition_value}_lkup`
-e.g. `1851_gb1900_Durham_lkup`.
-
 *Sample output*
 
-unique census id (e.g. RecID)|unique geometry id (e.g. gb1900_1851)
+unique census id (e.g. RecID)|unique geometry id (e.g. gb1900_EW_1851)
 --|--
 20|52f1d84fd9dbf10005000574_12709.0_6230001
 40|5360c84879ff6e000d001256_12753.0_6230006
 41|52cd3f9cba830e0005003ba1_12737.0_6230004
 
+---
+
+#### New geometry file
+
+For each target geometry dataset, an output file is written containing the geometry data with added historic administrative unit ids for that census country and year. Additionally, linestring geometries are split or combined depending on whether they run across multiple administrative boundaries.
+
+*Sample output for OS Open Roads, England and Wales 1901*
+
+field|description
+--|--
+new unique id (e.g. `os_open_roads_EW_1901`)|new unique id for street constructed from target geometry unique id field and historic administrative unit id(s); e.g. `osgb4000000006295134` (OS Open Roads ID) + `109960.0` (conparid_01-11 - Consistent Parish ID for 1901) + `5610001` (CEN_1901 - RSD Unique ID for 1901) = `osgb4000000006295134_109960.0_5610001`
+target geometry unique id (e.g. `nameTOID`)|original unique id from target geometry dataset; e.g. `osgb4000000006295134`
+target geometry address field (e.g. `name1`)|e.g. `FOREST DRIVE`
+consistent parish id (e.g. `conparid_01-11`)|consistent parish ID for 1901, e.g. `109960.0`
+registration sub-district id (e.g. `CEN_1901`)|registration sub-district id for 1901, e.g. `561001.0`
+geometry|Linestring geometry data
+
+
+```geojson
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::27700" } },
+"features": [
+{ "type": "Feature", "properties": { "os_open_roads_EW_1901": "osgb4000000006295134_109960.0_5610001", "nameTOID": "osgb4000000006295134", "name1": "FOREST DRIVE", "conparid_01-11": 109960.0, "CEN_1901": 5610001.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 373661.0, 599187.0, 0.0 ], [ 373630.13, 599178.060000000055879, 0.0 ], [ 373599.270000000018626, 599169.12, 0.0 ] ] } },
+{ "type": "Feature", "properties": { "os_open_roads_EW_1901": "osgb4000000006295135_109958.0_5610001", "nameTOID": "osgb4000000006295135", "name1": "COTTONSHOPE ROAD", "conparid_01-11": 109958.0, "CEN_1901": 5610001.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 378191.35999999998603, 603573.690000000060536, 0.0 ], [ 378226.19, 603658.060000000055879, 0.0 ], [ 378317.0, 603878.0, 0.0 ], [ 378433.169999999983702, 604220.520000000018626, 0.0 ], [ 378646.0, 604848.0, 0.0 ], [ 378665.0, 604869.0, 0.0 ] ] } }
+}
+```
+
+By default, the files are output as `.geojson` files in the same projection as the historic boundary datasets and OS Open Roads and GB1900, which is `EPSG:27700`. Users can change these settings in [input_config.yaml](inputs/input_config.yaml). These parameters are passed to geopandas [GeoDataFrame.to_file](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.to_file.html). Currently, you can change the projection of the output geometries to either `EPSG:3857` or `EPSG:4326` (northings, easting will be converted to longlat).
+
+```yaml
+output_params:
+  file_type: ".geojson"
+  crs: "EPSG:27700"
+  driver: "GeoJSON"
+```
+---
+
 #### Summary
 
-A fourth file contains summary statistics on the proportions of people linked according to each census partition.
+Delimited text file containing summary statistics on the proportions of people linked according to each census partition.
 
 Fields|Description|
 --|--|
