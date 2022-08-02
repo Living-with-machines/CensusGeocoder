@@ -1,4 +1,5 @@
 import pandas as pd
+import pathlib
 
 list_of_census = [
     "EW1851",
@@ -15,10 +16,14 @@ list_of_census = [
     "SCOT1901",
 ]
 
+p = pathlib.Path("data/input/census")
+p_sample = pathlib.Path(p, "sample")
+pathlib.Path(p_sample).mkdir(parents=True, exist_ok=True)
+
 for census in list_of_census:
     print(census)
     census_df = pd.read_csv(
-        f"data/input/census/{census}_anonymised.txt",
+        p / f"{census}_anonymised.txt",
         sep="\t",
         quoting=3,
         encoding="latin-1",
@@ -30,7 +35,7 @@ for census in list_of_census:
     census_sample = census_df.sample(sample_size, random_state=1)
 
     census_sample.to_csv(
-        f"data/input/sample/census/{census}_anonymised_sample.txt",
+        p_sample / f"{census}_anonymised_sample.txt",
         sep="\t",
         quoting=3,
         encoding="latin-1",
