@@ -36,6 +36,7 @@ The figure below gives an overview of the process:
     - [GB1900 Gazetteer](#gb1900-gazetteer)
     - [OS Open Roads](#os-open-roads)
 - [Data Output](#data-output)
+- [String Comparison Parameters](#string-comparison-parameters)
 - [Credit, re-use terms, and how to cite](#credit-re-use-terms-and-how-to-cite)
 - [Acknowledgements](#acknowledgements)
 
@@ -198,6 +199,9 @@ The directory structure of `data/output/` is created automatically when `histori
 │   │           ├── target_geom1
 │   │           └── target_geom2
 ├── inputs
+│   ├── gb1900_standardisation.json
+│   ├── icem_street_standardisation.json
+│   └── input_config.yaml
 └── output
         └── 1851
             └── EW
@@ -274,6 +278,8 @@ Set `runtype` to `True` if you want to geocode this census year, or set to `Fals
 
 Set `census_file` to the path of the census data file, you need to set this for each census year.
 
+The `comparison_params` allow you to adjust the string comparison parameters when comparing address fields between the census and a target geometry dataset. See [String Comparison Parameters](#string-comparison-parameters) for more information.
+
 ```yaml
 census_config:
   EW_1851:
@@ -301,6 +307,11 @@ census_config:
 # File containing regex patterns to apply to the address field
 
     census_standardisation_file: "inputs/icem_street_standardisation.json" # regex replacement file
+
+# Parameters for string comparison
+    comparison_params:
+      sim_thresh: 0.9 # similarity threshold for string comparison
+      string_comp_alg: "rapidfuzzy_wratio"
 
 # Parameters for output files
     census_output_params:
@@ -486,15 +497,15 @@ rsd_dictionary_config:
 
 #### National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table
 
-`data/input/scot_parish_boundary/` - contains two Scottish parish boundary files and a lookup table that links the boundary files to I-CeM.
+`data/input/scot/scot_parish_boundary/` - contains two Scottish parish boundary files and a lookup table that links the boundary files to I-CeM.
 
 There are Scottish parish boundary datasets for pre- and post-1891 civil parishes. A detailed discussion of the dataset and changes to the boundaries of Scottish parishes, see [National Records of Scotland - Historic Civil Parishes pre-1891](https://www.nrscotland.gov.uk/statistics-and-data/geography/our-products/other-national-records-of-scotland-nrs-geographies-datasets/historic-civil-parishes-pre-1891) and [National Records of Scotland - Civil Parishes (post 1891)](https://www.nrscotland.gov.uk/statistics-and-data/geography/our-products/other-national-records-of-scotland-nrs-geographies-datasets/civil-parishes). For further information on the major boundary changes around 1891, see also [Genuki](https://www.genuki.org.uk/big/sct/shennan/boundaries).
 
-`scot_parish_boundary/CivilParish_pre1891/` - contains the shapefile and associated files for pre-1891 Scottish parish boundaries.
+`CivilParish_pre1891/` - contains the shapefile and associated files for pre-1891 Scottish parish boundaries.
 
 ![Pre-1891 Scottish Parish Boundaries](documentation/pre-1891_scottish_parish.png "Pre-1891 Scottish Parish Boundaries")
 
-`scot_parish_boundary/CivilParish1930` - contains the shapefile and associated files for post-1891 Scottish parish boundaries.
+`CivilParish1930` - contains the shapefile and associated files for post-1891 Scottish parish boundaries.
 
 ![Post-1891 Scottish Parish Boundaries](documentation/post-1891_scottish_parish.png "Post-1891 Scottish Parish Boundaries")
 
@@ -507,17 +518,17 @@ The structure of the lookup table is as follows:
 FIELD|VALUE
 --|--
 "name" / "JOIN_NAME_"|Parish name from boundary dataset; "name" for post-1891, "JOIN_NAME_" for pre-1891.
-ParID_link|ParID of corresponding parish in I-CeM
-Notes|Notes on how the link was made; "exact" = parish names matched exactly between the boundary dataset and I-CeM; see individual files for other match types.
+ParID|ParID of corresponding parish in I-CeM
+Notes|Additional comments.
 
 Scotland, 1901 example:
 
-name| ParID_link | notes
+name| ParID | notes
 -- | -- | --
-NEW CUMNOCK | 100595 | exact
-OLD CUMNOCK | 100597 | exact
-DAILLY | 100572 | exact
-SMALL ISLES | 100119 | exact
+NEW CUMNOCK | 100595 |
+OLD CUMNOCK | 100597 |
+DAILLY | 100572 |
+SMALL ISLES | 100119 |
 
 ### Target Geometry Data
 
@@ -565,6 +576,7 @@ gb1900: # name of geometry data
     crs: "EPSG:27700"
     driver: "GeoJSON"
 ```
+---
 
 #### OS Open Roads
 ##### Description
@@ -758,6 +770,30 @@ Anglesey|261|43|1|4257|2176|6.13107822410148|1.9761029411764706|0.04595588235294
 Bedfordshire|1875|192|3|12827|1668|14.617603492632728|11.510791366906476|0.1798561151079137
 Berkshire|1984|244|12|19583|3184|10.13123627636215|7.663316582914573|0.37688442211055273
 Brecknockshire|332|32|2|5978|2531|5.553696888591502|1.264322402212564|0.07902015013828526
+
+## String Comparison Parameters
+
+There are lots of different algorithms for comparing the similarity of two text strings. `historic-census-gb-geocoder` allows you to choose from a variety of fuzzy string comparison algorithms.
+
+The default string comparison is an implementation of `Wratio` from the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library.
+
+Other string comparison algorithms are made available via the [recordlinkage](https://recordlinkage.readthedocs.io/en/latest/index.html) library, which uses the [jellyfish](https://github.com/jamesturk/jellyfish) library for its string algorithms. You can view the list of algorithms accepted by `recordlinkage` [here](https://recordlinkage.readthedocs.io/en/latest/ref-compare.html#module-recordlinkage.compare).
+
+As of August 2022, these are: 
+> "jaro", "jarowinkler", "levenshtein", "damerau_levenshtein", "qgram" or "cosine"
+
+Each algorithm computes a similarity score of two text strings between 0 and 1. The closer to 1, the more similar the two strings are. 
+
+NB algorithms like `Wratio` also look for shorter strings in longer strings, e.g. comparing 'PARK ROAD' would result in a score of 1 when compared to 'HYDE PARK ROAD' because the input shorter string matches exactly to a portion of the longer string. This needs to be treated with caution but is often useful for linking descriptions of addresses that would otherwise result in a low similarity score e.g. 'BACK NEW ROAD' or 'FRONT NEW ROAD' score 1 against 'NEW ROAD' using `Wratio` but lower using `levenshtein` for example.
+
+You can set the minimum similarity threshold for two candidates to be considered a match using `sim_thresh`.
+
+
+```yaml
+comparison_params:
+  sim_thresh: 0.85 # similarity threshold for string comparison
+  string_comp_alg: "rapidfuzzy_wratio" # default
+```
 
 ## Credit, re-use terms, and how to cite
 `historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
