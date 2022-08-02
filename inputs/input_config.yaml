@@ -5,8 +5,8 @@ census_config:
   EW_1851:
     country: "EW"
     year: 1851
-    runtype: True # set to 'True' to run geo-coding on this census; set 'False'
-    census_file: "data/input/sample/census/EW1851_anonymised.txt"
+    runtype: False # set to 'True' to run geo-coding on this census; set 'False'
+    census_file: "data/input/census/sample/EW1851_anonymised.txt"
     census_fields:
       uid: "safehaven_id" # unique person id; for non-Turing implementation will be changed to 'RecID'
       address: "address_anonymised" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
@@ -125,8 +125,8 @@ census_config:
   EW_1901:
     country: "EW"
     year: 1901
-    runtype: False
-    census_file: "data/input/census/EW1901_anonymised.txt"
+    runtype: True
+    census_file: "data/input/census/sample/EW1901_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -331,7 +331,7 @@ census_config:
     country: "SCOT"
     year: 1901
     runtype: False
-    census_file: "data/input/sample/census/SCOT1901_anonymised.txt"
+    census_file: "data/input/census/sample/SCOT1901_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -416,7 +416,7 @@ ew_config:
       quoting: 3
 
   parish_icem_lkup_config:
-    filepath: "data/input/ew/UKDS_GIS_to_icem.xlsx" # path to parish to icem lookup table
+    filepath: "data/input/ew/icem_parish_lkup/UKDS_GIS_to_icem.xlsx" # path to parish to icem lookup table
     sheet: "link" # spreadsheet sheet containing data
     ukds_id_field: "UKDS_ID" # unique id field that links to parish boundary data 'id_field'
     na_values: "." # denotes na values in table
@@ -438,31 +438,31 @@ scot_config:
 
 target_geoms: # geometry data to link census data to
   os_open_roads: # name of geometry data
-    path_to_geom: "data/input/sample/target_geoms/oproad_essh_gb-2/data" # path to geometry data; can be directory if multiple files or path to file.
-    projection: "EPSG:27700" # projection authority string passed to geopandas
+    path_to_geom: "data/input/target_geoms/oproad_essh_gb-2/data/sample" # path to geometry data; can be directory if multiple files or path to a single file.
+    projection: "EPSG:27700" # projection authority string passed to geopandas read_file
     file_type: "shp" # file type;
-    geom_type: "line" # type of geometry, either line or point; determines union operations (see documentation)
+    geom_type: "line" # type of geometry, either line or point; determines union operations with historic boundary datasets(see documentation)
     filename_disamb: "RoadLink.shp" # correct filename to read if multiple files in directory, e.g. OS Open Roads contains 'RoadNode' and 'RoadLink'. We ignore 'RoadNode.shp'.
     data_fields: # fields to read from file
       uid_field: "nameTOID" # unique id field
       address_field: "name1" # address field
       geometry_field: "geometry" # geometry field
 
-    standardisation_file: "" # optional; file to perform regex replacement on address field
+    standardisation_file: "" # optional; file to perform regex replacement on address_field
     query_criteria: "" # optional; query to pass to pandas 'df.query'
     output_params: # parameters to pass to geopandas `to_file`
       file_type: ".geojson"
       crs: "EPSG:27700"
       driver: "GeoJSON"
   gb1900:
-    path_to_geom: "data/input/sample/target_geoms/gb1900_gazetteer_complete_july_2018.csv"
+    path_to_geom: "data/input/target_geoms/gb1900/sample/gb1900_gazetteer_complete_july_2018_sample.csv"
     projection: "EPSG:27700"
     file_type: "csv"
     geom_type: "point"
-    geometry_format: "coords" # specifies geometry format when reading geometry files other than shapefiles.
+    geometry_format: "coords" # specifies geometry format when reading geometry files other than shapefiles. Accepts "coords" if supplying two columns for longlat; or accepts "wkt" if wellknowntext geometry supplied in one column.
     encoding: "utf-16" # file encoding passed to pandas read_csv
-    sep: ","
-    data_fields:
+    sep: "," # delimiter passed to pandas read_csv
+    data_fields: # columns to read from dataset
       uid_field: "pin_id"
       address_field: "final_text"
       long_field: "osgb_east"
