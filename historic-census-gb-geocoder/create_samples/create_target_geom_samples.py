@@ -40,10 +40,11 @@ for file_p in p.iterdir():
         grid = str(file_p).split("_RoadLink.shp")[0].split("/")[-1]
         print(grid)
 
-        os_roads = gpd.read_file(file_p)
+        os_roads = gpd.read_file(file_p, crs="EPSG:27700")
         # print(os_roads)
         sample_size = round(len(os_roads) * 0.1)
 
         os_roads_sample = os_roads.sample(sample_size, random_state=1)
         # print(os_roads_sample)
-        os_roads_sample.to_file(p_sample / f"{grid}_RoadLink.shp")
+        os_roads_sample.to_file(p_sample / f"{grid}_RoadLink.shp", crs="EPSG:27700")
+
