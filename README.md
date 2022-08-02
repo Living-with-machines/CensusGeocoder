@@ -324,6 +324,8 @@ census_config:
 
 Optionally, set `census_standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the census data.
 
+Currently used to expand abbreviations in I-CeM, e.g. Rd to Road. Also removes extra letters left at the start of the address strings after removing digits (to comply with safehaven rules). E.g. '68A High Street' leaves 'A High Street', which is then cleaned to 'High Street'. Lots of scope to add to these.
+
 For example:
 
 ```json
@@ -447,7 +449,7 @@ CEN_1851|CEN_1861|CEN_1871|CEN_1881|CEN_1891|CEN_1901|CEN_1911|geometry
 
 The RSD Boundaries were supplied directly by Joe Day at the University of Bristol and Alice Reid at the University of Cambridge. They are in the process of being deposited with UKDS and the citation may change to reflect this in due course.
 
-#### Parameters in `input_config.yaml`
+#### Parameters in [input_config.yaml](inputs/input_config.yaml)
 
 Set the path to the RSD Boundary shapefile (with associated files in the same directory). The `projection` should be the same as below when this file is accessible via UKDS.
 
@@ -576,6 +578,19 @@ gb1900: # name of geometry data
     crs: "EPSG:27700"
     driver: "GeoJSON"
 ```
+
+Optionally, set `standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the target geometry data.
+
+Currently used to expand abbreviations in GB1900, e.g. Rd to Road. Lots of scope to add to these.
+
+```json
+{
+	"\\sST\\.$|\\sST$":" STREET",
+	"\\sRD\\.$|\\sRD$":" ROAD",
+	"\\sPL\\.$|\\sPL$":" PLACE"
+}
+```
+
 ---
 
 #### OS Open Roads
@@ -796,22 +811,7 @@ comparison_params:
 ```
 
 ## Credit, re-use terms, and how to cite
-`historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-inputs)
-
-#### 8. Street Standardisation
-
-*The naming conventions need to be improved here - this file is for use with the GB1900 Gazetteer.*
-
-*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
-
-`street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in GB1900 Gazetteer, e.g. Rd to Road.
-
-#### 9. I-CeM Street Standardisation
-
-*There is plenty of scope for expanding the range of regex patterns used to clean the address strings.*
-
-`icem_street_standardisation.json` - contains regex patterns to find and replacement words. Currently used to expand abbreviations in I-CeM, e.g. Rd to Road. Also removes extra letters left at the start of the address strings after removing digits (to comply with safehaven rules). E.g. '68A High Street' leaves 'A High Street', which is then cleaned to 'High Street'.
-
+`historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-input)
 
 ## Acknowledgements
 
