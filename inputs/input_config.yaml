@@ -126,7 +126,7 @@ census_config:
     country: "EW"
     year: 1901
     runtype: True
-    census_file: "data/input/census/sample/EW1901_anonymised.txt"
+    census_file: "data/input/census/sample/EW1901_anonymised_sample.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
