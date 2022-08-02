@@ -66,15 +66,21 @@ def process_raw_geo_data(
         historic boundary ids.
 
     new_uid: str
-        Name of unique identifier column created from target geometry name
-        and census year.
+        Name of unique identifier column created from target geometry name,
+        census country and census year.
     """
     print(f"Reading {geom_name} geometry data")
     cols_to_keep = geom_config.data_fields.list_cols()
 
     filelist = set_geom_files(geom_config)
 
-    new_uid = str(geom_name) + "_" + str(census_params.year)
+    new_uid = (
+        str(geom_name)
+        + "_"
+        + str(census_params.country)
+        + "_"
+        + str(census_params.year)
+    )
 
     if geom_config.file_type == "shp":
         target_gdf = read_shp(filelist, cols_to_keep, geom_config)
@@ -112,6 +118,8 @@ def process_raw_geo_data(
         )
 
     if not target_gdf_processed.empty:
+
+        target_gdf_processed.drop(columns="tmp_id",inplace=True)
 
         target_gdf_processed.to_file(
             f"{output_dir}/{geom_name}_{census_params.year}{geom_config.output_params.file_type}",
