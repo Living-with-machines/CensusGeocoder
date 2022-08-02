@@ -96,8 +96,8 @@ class CensusGB_geocoder:
 
         cen_geom_lkp.to_csv(
             utils.make_path(output_dir, "lookup")
-            / f"{census_params.year}_{geom_name}_{partition}_lkup"
-            f"{census_params.census_output_params.filetype}",
+            / f"{census_params.country}_{census_params.year}_{geom_name}"
+            f"_{partition}_lkup{census_params.census_output_params.filetype}",
             sep=census_params.census_output_params.sep,
             index=census_params.census_output_params.index,
         )
@@ -208,15 +208,16 @@ class CensusGB_geocoder:
 
             linked.to_csv(
                 utils.make_path(output_dir, "linked")
-                / f"{census_params.year}_{geom_name}_{partition}_link{census_params.census_output_params.filetype}",
+                / f"{census_params.country}_{census_params.year}_{geom_name}_"
+                f"{partition}_link{census_params.census_output_params.filetype}",
                 sep=census_params.census_output_params.sep,
                 index=census_params.census_output_params.index,
             )
 
             linked_duplicates.to_csv(
                 utils.make_path(output_dir, "linked_duplicates")
-                / f"{census_params.year}_{geom_name}_{partition}_linkdup"
-                f"{census_params.census_output_params.filetype}",
+                / f"{census_params.country}_{census_params.year}_{geom_name}"
+                f"_{partition}_linkdup{census_params.census_output_params.filetype}",
                 sep=census_params.census_output_params.sep,
                 index=census_params.census_output_params.index,
             )
