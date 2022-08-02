@@ -28,6 +28,7 @@ for census in list_of_census:
         quoting=3,
         encoding="latin-1",
         na_values=".",
+        usecols=["safehaven_id", "address_anonymised", "RegCnty", "ParID", "ConParID"],
     )
 
     sample_size = round(len(census_df) * 0.1)
