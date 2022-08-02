@@ -731,7 +731,7 @@ registration sub-district id (e.g. `CEN_1901`)|registration sub-district id for 
 geometry|Linestring geometry data
 
 
-```geojson
+```json
 {
 "type": "FeatureCollection",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::27700" } },
