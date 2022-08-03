@@ -256,7 +256,7 @@ class CensusGB_geocoder:
             geom_name,
             census_params,
         )
-        print(f"Geocoding to {census_params.country} {census_params.year} to {geom_name} complete")
+        print(f"Geocoding {census_params.country} {census_params.year} to {geom_name} complete")
 
         # if linked.empty and linked_duplicates.empty:
         #     inds_list.append(0)

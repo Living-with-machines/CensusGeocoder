@@ -1,7 +1,7 @@
 # Main script that combines other scripts
 import tempfile
 
-# from datetime import datetime
+from datetime import datetime
 import yaml
 
 import config
@@ -20,6 +20,7 @@ for x, y in geocode_config["census_config"].items():
         census_configuration = config.Censusconfiguration(**y)
 
         if census_configuration.runtype is True:
+            censtarttime = datetime.now()
             print("#" * 88)
             print(census_configuration.year, census_configuration.country)
             print("#" * 88)
@@ -74,7 +75,15 @@ for x, y in geocode_config["census_config"].items():
                     census_configuration,
                     scot_configuration.boundary_lkup_config,
                 )
+
+            cenendtime = datetime.now() - censtarttime
+            print(
+                f"Time to process census data and boundaries: "
+                f"{cenendtime.total_seconds() / 60} minutes"
+            )
+
             for geom, geom_config in geocode_config["target_geoms"].items():
+                geomstarttime = datetime.now()
                 output_dir = config.create_outputdirs(
                     gen.output_data_path,
                     census_configuration.year,
@@ -82,8 +91,6 @@ for x, y in geocode_config["census_config"].items():
                     geom,
                 )
 
-                print("#" * 88)
-                print(geom)
                 geom_configuration = config.Target_geom(**geom_config)
 
                 census_geocoder.geocode(
@@ -98,6 +105,15 @@ for x, y in geocode_config["census_config"].items():
                     output_dir,
                 )
 
+                geomendtime = datetime.now() - geomstarttime
+                print(
+                    f"Time to link census to {geom}: "
+                    f"{geomendtime.total_seconds() / 60} minutes"
+                )
 
-#         end_time = datetime.now() - start
-#         print("Time to run: ", end_time.total_seconds() / 60)
+            endtime = datetime.now() - censtarttime
+            print(
+                f"Total time taken to geocode {census_configuration.country}"
+                f" {census_configuration.year}"
+                f" {endtime.total_seconds() / 60} minutes"
+            )
