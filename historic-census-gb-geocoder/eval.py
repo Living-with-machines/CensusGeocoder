@@ -45,6 +45,7 @@ def eval_df_add(
     adds_list_all,
     output_dir,
     geom_name,
+    census_params,
 ):
     eval_df["inds_linked"] = inds_list
     eval_df["adds_linked"] = adds_list
@@ -57,7 +58,12 @@ def eval_df_add(
     eval_df["adds_duplink_perc"] = (
         eval_df["adds_duplink_count"] / eval_df["adds_all"]
     ) * 100
-    print(eval_df)
+    # print(eval_df)
 
-    eval_df.to_csv(output_dir / f"{geom_name}_summary.tsv", sep="\t", index=False)
+    eval_df.to_csv(
+        output_dir / f"{geom_name}_{census_params.country}_"
+        f"{census_params.year}_summary.tsv",
+        sep="\t",
+        index=False,
+    )
     pass
