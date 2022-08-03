@@ -793,16 +793,20 @@ Brecknockshire|332|32|2|5978|2531|5.553696888591502|1.264322402212564|0.07902015
 
 There are lots of different algorithms for comparing the similarity of two text strings. `historic-census-gb-geocoder` allows you to choose from a variety of fuzzy string comparison algorithms.
 
-The default string comparison is an implementation of `Wratio` from the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library.
+The default string comparison is an implementation of `partial_ratio` from the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library.
+
+Alternatively, you can use `WRatio`, also from the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library.
 
 Other string comparison algorithms are made available via the [recordlinkage](https://recordlinkage.readthedocs.io/en/latest/index.html) library, which uses the [jellyfish](https://github.com/jamesturk/jellyfish) library for its string algorithms. You can view the list of algorithms accepted by `recordlinkage` [here](https://recordlinkage.readthedocs.io/en/latest/ref-compare.html#module-recordlinkage.compare).
 
 As of August 2022, these are: 
 > "jaro", "jarowinkler", "levenshtein", "damerau_levenshtein", "qgram" or "cosine"
 
-Each algorithm computes a similarity score of two text strings between 0 and 1. The closer to 1, the more similar the two strings are. 
+Each algorithm computes a similarity score of two text strings between 0 and 1. The closer to 1, the more similar the two strings are.
 
-NB algorithms like `Wratio` also look for shorter strings in longer strings, e.g. comparing 'PARK ROAD' would result in a score of 1 when compared to 'HYDE PARK ROAD' because the input shorter string matches exactly to a portion of the longer string. This needs to be treated with caution but is often useful for linking descriptions of addresses that would otherwise result in a low similarity score e.g. 'BACK NEW ROAD' or 'FRONT NEW ROAD' score 1 against 'NEW ROAD' using `Wratio` but lower using `levenshtein` for example.
+For a discussion of the implications for using these algorithms, see #21.
+
+<!-- NB algorithms like `Wratio` also look for shorter strings in longer strings, e.g. comparing 'PARK ROAD' would result in a score of 1 when compared to 'HYDE PARK ROAD' because the input shorter string matches exactly to a portion of the longer string. This needs to be treated with caution but is often useful for linking descriptions of addresses that would otherwise result in a low similarity score e.g. 'BACK NEW ROAD' or 'FRONT NEW ROAD' score 1 against 'NEW ROAD' using `Wratio` but lower using `levenshtein` for example. -->
 
 You can set the minimum similarity threshold for two candidates to be considered a match using `sim_thresh`.
 
