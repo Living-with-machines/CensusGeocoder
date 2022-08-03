@@ -122,7 +122,8 @@ def process_raw_geo_data(
         target_gdf_processed.drop(columns="tmp_id", inplace=True)
 
         target_gdf_processed.to_file(
-            f"{output_dir}/{geom_name}_{census_params.year}{geom_config.output_params.file_type}",
+            f"{output_dir}/{geom_name}_{census_params.country}_{census_params.year}"
+            f"{geom_config.output_params.file_type}",
             driver=geom_config.output_params.driver,
             crs=geom_config.output_params.crs,
         )
@@ -278,7 +279,9 @@ def parse_address(target_gdf, geom_config):
     ].str.upper()
 
     if geom_config.query_criteria != "":
-        target_gdf = target_gdf.query(geom_config.query_criteria, engine = "python").copy()
+        target_gdf = target_gdf.query(
+            geom_config.query_criteria, engine="python"
+        ).copy()
 
     if geom_config.standardisation_file != "":
         with open(geom_config.standardisation_file) as f:
