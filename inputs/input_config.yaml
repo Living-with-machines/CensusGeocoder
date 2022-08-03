@@ -5,8 +5,8 @@ census_config:
   EW_1851:
     country: "EW"
     year: 1851
-    runtype: False # set to 'True' to run geo-coding on this census; set 'False'
-    census_file: "data/input/census/sample/EW1851_anonymised_sample.txt"
+    runtype: True # set to 'True' to run geo-coding on this census; set 'False'
+    census_file: "data/input/census/EW1851_anonymised.txt"
     census_fields:
       uid: "safehaven_id" # unique person id; for non-Turing implementation will be changed to 'RecID'
       address: "address_anonymised" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
@@ -23,7 +23,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json" # regex replacement file
     comparison_params:
-      sim_thresh: 0.9 # similarity threshold for string comparison
+      sim_thresh: 0.85 # similarity threshold for string comparison
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
@@ -35,7 +35,7 @@ census_config:
   EW_1861:
     country: "EW"
     year: 1861
-    runtype: False
+    runtype: True
     census_file: "data/input/census/EW1861_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
@@ -53,7 +53,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -83,7 +83,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -95,7 +95,7 @@ census_config:
   EW_1891:
     country: "EW"
     year: 1891
-    runtype: False
+    runtype: True
     census_file: "data/input/census/EW1891_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
@@ -113,7 +113,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -126,7 +126,7 @@ census_config:
     country: "EW"
     year: 1901
     runtype: True
-    census_file: "data/input/census/sample/EW1901_anonymised_sample.txt"
+    census_file: "data/input/census/EW1901_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -143,7 +143,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -173,7 +173,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -202,7 +202,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -231,7 +231,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -260,7 +260,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -289,7 +289,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -318,7 +318,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -330,8 +330,8 @@ census_config:
   SCOT_1901:
     country: "SCOT"
     year: 1901
-    runtype: False
-    census_file: "data/input/census/sample/SCOT1901_anonymised_sample.txt"
+    runtype: True
+    census_file: "data/input/census/SCOT1901_anonymised.txt"
     census_fields:
       uid: "safehaven_id"
       address: "address_anonymised"
@@ -347,7 +347,7 @@ census_config:
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
-      sim_thresh: 0.9
+      sim_thresh: 0.85
       string_comp_alg: "rapidfuzzy_wratio"
     census_output_params:
       partition_on: "RegCnty"
@@ -438,7 +438,7 @@ scot_config:
 
 target_geoms: # geometry data to link census data to
   os_open_roads: # name of geometry data
-    path_to_geom: "data/input/target_geoms/oproad_essh_gb-2/data/sample" # path to geometry data; can be directory if multiple files or path to a single file.
+    path_to_geom: "data/input/target_geoms/oproad_essh_gb-2/data/" # path to geometry data; can be directory if multiple files or path to a single file.
     projection: "EPSG:27700" # projection authority string passed to geopandas read_file
     file_type: "shp" # file type;
     geom_type: "line" # type of geometry, either line or point; determines union operations with historic boundary datasets(see documentation)
@@ -455,7 +455,7 @@ target_geoms: # geometry data to link census data to
       crs: "EPSG:27700"
       driver: "GeoJSON"
   gb1900:
-    path_to_geom: "data/input/target_geoms/gb1900/sample/gb1900_gazetteer_complete_july_2018_sample.csv"
+    path_to_geom: "data/input/target_geoms/gb1900/gb1900_gazetteer_complete_july_2018.csv"
     projection: "EPSG:27700"
     file_type: "csv"
     geom_type: "point"
