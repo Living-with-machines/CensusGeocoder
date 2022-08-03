@@ -278,7 +278,7 @@ def parse_address(target_gdf, geom_config):
     ].str.upper()
 
     if geom_config.query_criteria != "":
-        target_gdf = target_gdf.query(geom_config.query_criteria).copy()
+        target_gdf = target_gdf.query(geom_config.query_criteria, engine = "python").copy()
 
     if geom_config.standardisation_file != "":
         with open(geom_config.standardisation_file) as f:
