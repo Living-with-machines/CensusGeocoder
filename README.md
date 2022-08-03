@@ -109,95 +109,98 @@ The directory structure of `data/output/` is created automatically when `histori
 
 ```bash
 ├── data
-│   ├── input
-│   │   ├── census
-│   │   │   ├── EW1851.txt
-│   │   │   ├── EW1861.txt
-│   │   │   ├── EW1881.txt
-│   │   │   ├── EW1891.txt
-│   │   │   ├── EW1901.txt
-│   │   │   ├── EW1911.txt
-│   │   │   ├── SCOT1851.txt
-│   │   │   ├── SCOT1861.txt
-│   │   │   ├── SCOT1871.txt
-│   │   │   ├── SCOT1881.txt
-│   │   │   ├── SCOT1891.txt
-│   │   │   └── SCOT1901.txt
-│   │   ├── ew
-│   │   │   ├── 1851EngWalesParishandPlace
-│   │   │   │   ├── 1851EngWalesParishandPlace.dbf
-│   │   │   │   ├── 1851EngWalesParishandPlace.prj
-│   │   │   │   ├── 1851EngWalesParishandPlace.sbn
-│   │   │   │   ├── 1851EngWalesParishandPlace.sbx
-│   │   │   │   ├── 1851EngWalesParishandPlace.shp
-│   │   │   │   └── 1851EngWalesParishandPlace.shx
-│   │   │   ├── parish_dicts_encoding
-│   │   │   │   ├── 1851_ICeM_DICTIONARY_CODED.txt
-│   │   │   │   ├── 1861_ICeM_DICTIONARY_CODED.txt
-│   │   │   │   ├── 1871_DICTIONARY_CODED.txt
-│   │   │   │   ├── 1881_ICeM_DICTIONARY_CODED.txt
-│   │   │   │   ├── 1891_ICeM_DICTIONARY_CODED.txt
-│   │   │   │   ├── 1901_ICeM_DICTIONARY_CODED.txt
-│   │   │   │   ├── 1911_ICeM_DICTIONARY_CODED.txt
-│   │   │   │   ├── PAR1851_RSD_MATCH.txt
-│   │   │   │   └── finalEWnondiss1851_1911.txt
-│   │   │   ├── icem_parish_lkup
-│   │   │   │   └── UKDS_GIS_to_icem.xlsx
-│   │   │   └── rsd_boundary_data
-│   │   │       ├── RSD_1851_1911_JR.cpg
-│   │   │       ├── RSD_1851_1911_JR.dbf
-│   │   │       ├── RSD_1851_1911_JR.prj
-│   │   │       ├── RSD_1851_1911_JR.sbn
-│   │   │       ├── RSD_1851_1911_JR.sbx
-│   │   │       ├── RSD_1851_1911_JR.shp
-│   │   │       ├── RSD_1851_1911_JR.shp.xml
-│   │   │       └── RSD_1851_1911_JR.shx
-│   │   ├── scot
-│   │   │   └── scot_parish_boundary
-│   │   │       ├── CivilParish1930
-│   │   │       │   ├── CivilParish1930.dbf
-│   │   │       │   ├── CivilParish1930.prj
-│   │   │       │   ├── CivilParish1930.shp
-│   │   │       │   ├── CivilParish1930.shp.xml
-│   │   │       │   ├── CivilParish1930.shx
-│   │   │       │   └── CivilParish1930Lookup.xls
-│   │   │       ├── CivilParish_pre1891
-│   │   │       │   ├── CivilParish_pre1891.CPG
-│   │   │       │   ├── CivilParish_pre1891.dbf
-│   │   │       │   ├── CivilParish_pre1891.prj
-│   │   │       │   ├── CivilParish_pre1891.sbn
-│   │   │       │   ├── CivilParish_pre1891.sbx
-│   │   │       │   ├── CivilParish_pre1891.shp
-│   │   │       │   ├── CivilParish_pre1891.shp.xml
-│   │   │       │   ├── CivilParish_pre1891.shx
-│   │   │       │   └── scotland-parishes-1755-1891.xlsx
-│   │   │       └── scotboundarylinking.xlsx
-│   │   ├── target_geoms
-│   │   │   ├── oproad_essh_gb-2
-│   │   │   │   ├── data
-│   │   │   │   │   ├── HP_RoadLink.cpg
-│   │   │   │   │   ├── HP_RoadLink.dbf
-│   │   │   │   │   ├── HP_RoadLink.prj
-│   │   │   │   │   ├── HP_RoadLink.shp
-│   │   │   │   │   ├── HP_RoadLink.shx
-│   │   │   │   │   ├── HP_RoadNode.cpg
-│   │   │   │   │   ├── HP_RoadNode.dbf
-│   │   │   │   │   ├── HP_RoadNode.prj
-│   │   │   │   │   ├── HP_RoadNode.shp
-│   │   │   │   │   ├── HP_RoadNode.shx
-│   │   │   │   │   └── ...
-│   │   │   │   ├── doc
-│   │   │   │   │   └── licence.txt
-│   │   │   │   └── readme.txt
-│   │   │   ├── gb1900
-│   │   │   │   └── gb1900_gazetteer_complete_july_2018.csv
-│   │   │   └── target_geom3
-│   │   │       └── ...
-│   │   └── sample
-│   │       ├── census
-│   │       └── target_geoms
-│   │           ├── target_geom1
-│   │           └── target_geom2
+│   └── input
+│       ├── census
+│       │   ├── sample
+│       │   │   ├── EW1851_sample.txt
+│       │   │   └──  ...
+│       │   ├── EW1851.txt
+│       │   ├── EW1861.txt
+│       │   ├── EW1881.txt
+│       │   ├── EW1891.txt
+│       │   ├── EW1901.txt
+│       │   ├── EW1911.txt
+│       │   ├── SCOT1851.txt
+│       │   ├── SCOT1861.txt
+│       │   ├── SCOT1871.txt
+│       │   ├── SCOT1881.txt
+│       │   ├── SCOT1891.txt
+│       │   └── SCOT1901.txt
+│       ├── ew
+│       │   ├── 1851EngWalesParishandPlace
+│       │   │   ├── 1851EngWalesParishandPlace.dbf
+│       │   │   ├── 1851EngWalesParishandPlace.prj
+│       │   │   ├── 1851EngWalesParishandPlace.sbn
+│       │   │   ├── 1851EngWalesParishandPlace.sbx
+│       │   │   ├── 1851EngWalesParishandPlace.shp
+│       │   │   └── 1851EngWalesParishandPlace.shx
+│       │   ├── parish_dicts_encoding
+│       │   │   ├── 1851_ICeM_DICTIONARY_CODED.txt
+│       │   │   ├── 1861_ICeM_DICTIONARY_CODED.txt
+│       │   │   ├── 1871_DICTIONARY_CODED.txt
+│       │   │   ├── 1881_ICeM_DICTIONARY_CODED.txt
+│       │   │   ├── 1891_ICeM_DICTIONARY_CODED.txt
+│       │   │   ├── 1901_ICeM_DICTIONARY_CODED.txt
+│       │   │   ├── 1911_ICeM_DICTIONARY_CODED.txt
+│       │   │   ├── PAR1851_RSD_MATCH.txt
+│       │   │   └── finalEWnondiss1851_1911.txt
+│       │   ├── icem_parish_lkup
+│       │   │   └── UKDS_GIS_to_icem.xlsx
+│       │   └── rsd_boundary_data
+│       │       ├── RSD_1851_1911_JR.cpg
+│       │       ├── RSD_1851_1911_JR.dbf
+│       │       ├── RSD_1851_1911_JR.prj
+│       │       ├── RSD_1851_1911_JR.sbn
+│       │       ├── RSD_1851_1911_JR.sbx
+│       │       ├── RSD_1851_1911_JR.shp
+│       │       ├── RSD_1851_1911_JR.shp.xml
+│       │       └── RSD_1851_1911_JR.shx
+│       ├── scot
+│       │   └── scot_parish_boundary
+│       │       ├── CivilParish1930
+│       │       │   ├── CivilParish1930.dbf
+│       │       │   ├── CivilParish1930.prj
+│       │       │   ├── CivilParish1930.shp
+│       │       │   ├── CivilParish1930.shp.xml
+│       │       │   ├── CivilParish1930.shx
+│       │       │   └── CivilParish1930Lookup.xls
+│       │       ├── CivilParish_pre1891
+│       │       │   ├── CivilParish_pre1891.CPG
+│       │       │   ├── CivilParish_pre1891.dbf
+│       │       │   ├── CivilParish_pre1891.prj
+│       │       │   ├── CivilParish_pre1891.sbn
+│       │       │   ├── CivilParish_pre1891.sbx
+│       │       │   ├── CivilParish_pre1891.shp
+│       │       │   ├── CivilParish_pre1891.shp.xml
+│       │       │   ├── CivilParish_pre1891.shx
+│       │       │   └── scotland-parishes-1755-1891.xlsx
+│       │       └── scotboundarylinking.xlsx
+│       └── target_geoms
+│           ├── oproad_essh_gb-2
+│           │   ├── data
+│           │   │   ├── sample
+│           │   │   │   ├── HP_RoadLink.shp
+│           │   │   │   └── ...
+│           │   │   ├── HP_RoadLink.cpg
+│           │   │   ├── HP_RoadLink.dbf
+│           │   │   ├── HP_RoadLink.prj
+│           │   │   ├── HP_RoadLink.shp
+│           │   │   ├── HP_RoadLink.shx
+│           │   │   ├── HP_RoadNode.cpg
+│           │   │   ├── HP_RoadNode.dbf
+│           │   │   ├── HP_RoadNode.prj
+│           │   │   ├── HP_RoadNode.shp
+│           │   │   ├── HP_RoadNode.shx
+│           │   │   └── ...
+│           │   ├── doc
+│           │   │   └── licence.txt
+│           │   └── readme.txt
+│           ├── gb1900
+│           │   ├── sample
+│           │   │   └── gb1900_gazetteer_complete_july_2018_sample.csv
+│           │   └── gb1900_gazetteer_complete_july_2018.csv
+│           └── target_geom3
+│               └── ...
 ├── inputs
 │   ├── gb1900_standardisation.json
 │   ├── icem_street_standardisation.json
