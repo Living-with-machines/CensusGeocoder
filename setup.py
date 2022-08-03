@@ -28,5 +28,7 @@ setuptools.setup(
         "rapidfuzz>=1.5.0",
         "pyyaml>=6.0",
         "dask>=2022.5.0",
+        "openpyxl>=3.0.9",
+        "pyarrow>=4.0.1",
     ],
 )
