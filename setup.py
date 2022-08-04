@@ -26,7 +26,7 @@ setuptools.setup(
         "pygeos>=0.10.2",
         "recordlinkage>=0.14",
         "rapidfuzz>=1.5.0",
-        "pyyaml>=6.0",
+        "pyYAML>=6.0",
         "dask>=2022.5.0",
         "openpyxl>=3.0.9",
         "pyarrow>=4.0.1",
