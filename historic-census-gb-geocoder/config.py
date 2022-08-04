@@ -697,6 +697,7 @@ class General:
     output_data_path: str
 
     def __post_init__(self):
+        create_outputdirs(self.output_data_path)
         validate_paths(self.output_data_path)
 
 
