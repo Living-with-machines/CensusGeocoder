@@ -112,7 +112,7 @@ def compute_tfidf(census, census_fields):
     """
     try:
         tfidf_vectorizer = TfidfVectorizer(
-            norm="l2", use_idf=True, lowercase=False
+            norm="l2", use_idf=True, lowercase=False, dtype=np.float32
         )  # default is norm l2
         tfidf_sparse = tfidf_vectorizer.fit_transform(census[census_fields.address])
         # tfidf_array = tfidf_sparse.toarray()
