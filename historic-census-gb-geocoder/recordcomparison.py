@@ -176,7 +176,7 @@ def process_results(
 
         linked_all[f"{census_params.comparison_params.string_comp_alg}_ws"] = (
             linked_all[f"{census_params.comparison_params.string_comp_alg}_s"]
-            * linked_all["tfidf_w"]
+            * linked_all["tfidf"]
         )
         linked_all_maxonly = linked_all[
             linked_all[f"{census_params.comparison_params.string_comp_alg}_ws"]

@@ -115,13 +115,15 @@ def compute_tfidf(census, census_fields):
             norm="l2", use_idf=True, lowercase=False
         )  # default is norm l2
         tfidf_sparse = tfidf_vectorizer.fit_transform(census[census_fields.address])
-        tfidf_array = tfidf_sparse.toarray()
-        tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
-        census["tfidf"] = tfidf_array_sums
-        census["tfidf_w"] = census["tfidf"] / census[census_fields.address].str.len()
+        # tfidf_array = tfidf_sparse.toarray()
+        # tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
+        np.seterr(invalid="ignore")
+        tfidf_mean = np.sum(tfidf_sparse, axis=1) / np.sum(tfidf_sparse != 0, axis=1)
+        census["tfidf"] = tfidf_mean
+        # census["tfidf_w"] = census["tfidf"] / census[census_fields.address].str.len()
     except ValueError:
         print("Likely error with tf-idf not having any strings to compare")
-    return census[[census_fields.address, "tfidf_w"]]
+    return census[[census_fields.address, "tfidf"]]
 
 
 def make_path(*dirs):
