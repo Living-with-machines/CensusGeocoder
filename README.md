@@ -98,6 +98,8 @@ python3 historic_census_gb_geocoder.py
 
 The filepaths for all the input data can be set by the user in [input_config.yaml](inputs/input_config.yaml) - for further information see the respective section under [Data Input](#data-input). We recommend the following directory structure for `data/input`, `inputs`, and `sample`.
 
+**NB for LwM testers - the contents of `data/input` can be found on Azure in the storage account `censusplacelinking` inside the blob container `historic-census-gb-geocoder`.**
+
 The parent output directory is also set by the user in [input_config.yaml](inputs/input_config.yaml):
 
 ```yaml
@@ -828,7 +830,7 @@ Thanks to Joe Day and Alice Reid for supplying RSD Boundary data and lookups pri
 
 
 
-Optionally, set `standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the target geometry data.
+<!-- Optionally, set `standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the target geometry data.
 
 For example:
 
@@ -838,4 +840,4 @@ For example:
 	"\\sRD\\.$|\\sRD$":" ROAD",
 	"\\sPL\\.$|\\sPL$":" PLACE"
 }
-```
+``` -->
