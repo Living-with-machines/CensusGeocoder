@@ -7,7 +7,7 @@
 
 **historic-census-gb-geocoder** links streets in historic census data for Great Britain 1851-1911 to their 'real-world' geographic location using geo-blocking and fuzzy string matching. You can pick any or all census years in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem) and link them to a target geometry dataset (or datasets) of your choosing.
 
-It uses boundary datasets of historic administrative units (e.g. Parishes, Registration Sub-Districts) for each census year (1851-1911) and country (England and Wales, or Scotland) to assign census addresses and target geometry addresses to the appropriate historic administrative unit. This restricts fuzzy string matching between census and target geometry addresses to the correct historic boundary and disambiguates common street names found across the coutnry (e.g. High Street), resulting in higher quality matches.
+It uses boundary datasets of historic administrative units (e.g. Parishes, Registration Sub-Districts) for each census year (1851-1911) and country (England and Wales, or Scotland) to assign census addresses and target geometry addresses to the appropriate historic administrative unit. This restricts fuzzy string matching between census and target geometry addresses to the correct historic boundary and disambiguates common street names found across the country (e.g. High Street), resulting in higher quality matches.
 
 The figure below gives an overview of the process:
 
@@ -24,10 +24,10 @@ The figure below gives an overview of the process:
   - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 
     **England and Wales**
-  - [Parish Boundary Data (EW ONLY)](#Parish-Boundary-Data-(EW-ONLY))
-  - [1851EngWalesParishandPlace I-CeM Lookup Table (EW ONLY)](#1851engwalesparishandplace-i-cem-lookup-table-(EW-ONLY))
-  - [Registration Sub-District (RSD) Boundary Data (EW ONLY)](#registration-sub-district-rsd-boundary-data-(ew-only))
-  - [Registration Sub-District (RSD) Lookup Table (EW ONLY)](#registration-sub-district-rsd-lookup-table-ew-only)
+  - [Parish Boundary Data (England and Wales ONLY)](#Parish-Boundary-Data-(EW-ONLY))
+  - [1851EngWalesParishandPlace I-CeM Lookup Table (England and Wales ONLY)](#1851engwalesparishandplace-i-cem-lookup-table-(EW-ONLY))
+  - [Registration Sub-District (RSD) Boundary Data (England and Wales ONLY)](#registration-sub-district-rsd-boundary-data-(ew-only))
+  - [Registration Sub-District (RSD) Lookup Table (England and Wales ONLY)](#registration-sub-district-rsd-lookup-table-ew-only)
 
     **Scotland**
   - [National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table](#national-records-of-scotland---historic-civil-parishes-pre-1891-and-civil-parishes-post-1891-boundary-data-and-lookup-table)
@@ -343,7 +343,7 @@ For example:
 }
 ```
 
-### Parish Boundary Data (EW ONLY)
+### Parish Boundary Data (England and Wales ONLY)
 
 #### Description
 
@@ -385,7 +385,7 @@ ew_config:
     id_field: "ID" # unique id field that links to parish icem lookup table 'ukds_id_field'
 ```
 
-### 1851EngWalesParishandPlace I-CeM Lookup Table (EW ONLY)
+### 1851EngWalesParishandPlace I-CeM Lookup Table (England and Wales ONLY)
 
 #### Description
 A lookup table that links I-CeM to parish boundary data. A full description of the dataset and its intended uses can be found [here - Consistent Parish Geographies](https://www.essex.ac.uk/research-projects/integrated-census-microdata)
@@ -422,7 +422,7 @@ parish_icem_lkup_config:
   conparid01_11_field: "conparid_01-11" # consistent parish id field for 1901 and 1911
 ```
 
-### Registration Sub-District (RSD) Boundary Data (EW ONLY)
+### Registration Sub-District (RSD) Boundary Data (England and Wales ONLY)
 
 #### Description
 A shapefile and associated files of boundary data for Registration Sub-Districts in England and Wales 1851-1911. The correct RSD boundaries for each year are created by 'dissolving' the geometries on the appropriate `CEN` field, e.g. `CEN_1851` to create 1851 boundaries or `CEN_1901` to create 1901 boundaries. The boundary dataset looks like this:
@@ -463,7 +463,7 @@ rsd_gis_config:
   filepath: "data/input/ew/rsd_boundary_data/RSD_1851_1911_JR.shp" # path to rsd boundary data
   projection: "EPSG:27700" # projection authority string passed to geopandas
 ```
-### Registration Sub-District (RSD) Lookup Table (EW ONLY)
+### Registration Sub-District (RSD) Lookup Table (England and Wales ONLY)
 
 #### Description
 A series of data dictionaries for linking I-CeM to the RSD Boundary Data. You can ignore `finalEWnondiss1851_1911.txt`, `PAR1851_RSD_MATCH.txt` and `1871_DICTIONARY_CODED.txt`. There are 6 other files - one for each census year in I-CeM - that link the `ParID` field in I-CeM to a `CEN_****` (e.g. `CEN_1851`) field in the RSD Boundary data above. 
