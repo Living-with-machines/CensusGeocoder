@@ -25,10 +25,10 @@ The figure below gives an overview of the process:
   - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 
     **England and Wales**
-  - [Parish Boundary Data (England and Wales ONLY)](#Parish-Boundary-Data-(EW-ONLY))
-  - [1851EngWalesParishandPlace I-CeM Lookup Table (England and Wales ONLY)](#1851engwalesparishandplace-i-cem-lookup-table-(EW-ONLY))
-  - [Registration Sub-District (RSD) Boundary Data (England and Wales ONLY)](#registration-sub-district-rsd-boundary-data-(ew-only))
-  - [Registration Sub-District (RSD) Lookup Table (England and Wales ONLY)](#registration-sub-district-rsd-lookup-table-ew-only)
+  - [Parish Boundary Data (England and Wales ONLY)](#parish-boundary-data-england-and-wales-only)
+  - [1851EngWalesParishandPlace I-CeM Lookup Table (England and Wales ONLY)](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
+  - [Registration Sub-District (RSD) Boundary Data (England and Wales ONLY)](#registration-sub-district-rsd-boundary-data-england-and-wales-only)
+  - [Registration Sub-District (RSD) Lookup Table (England and Wales ONLY)](#registration-sub-district-rsd-lookup-table-england-and-wales-only)
 
     **Scotland**
   - [National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table](#national-records-of-scotland---historic-civil-parishes-pre-1891-and-civil-parishes-post-1891-boundary-data-and-lookup-table)
