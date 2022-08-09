@@ -15,6 +15,7 @@ The figure below gives an overview of the process:
 
 # Contents
 - [What is historic-census-gb-geocoder?](#What-is-historic-census-gb-geocoder?)
+- [Pre-installation](#pre-installation)
 - [Installation and setup](#installation)
   - [Set up a conda environment](#set-up-a-conda-environment)
   - [Method 1: pip](#method-1)
@@ -40,6 +41,10 @@ The figure below gives an overview of the process:
 - [Credit, re-use terms, and how to cite](#credit-re-use-terms-and-how-to-cite)
 - [Acknowledgements](#acknowledgements)
 
+
+## Pre-installation
+
+`historic-census-gb-geocoder` relies on several datasets, which are deposited with the UK Data Service (UKDS). For some, all you need to do is register, and sign their standard end user licence. But for others (the names and addresses version of the census), the application is more involved. Please see individual datasets listed under [Data Inputs](#data-input) to see what you require from the UKDS. Then head over to their [website](https://ukdataservice.ac.uk) and follow their instructions for accessing the data.
 
 
 ## Installation
