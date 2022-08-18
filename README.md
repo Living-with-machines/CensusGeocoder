@@ -2,24 +2,37 @@
 
 ![overview](documentation/overview_large_new.png)
 
-
 ## What is historic-census-gb-geocoder?
 
-**historic-census-gb-geocoder** links streets in historic census data for Great Britain 1851-1911 to their 'real-world' geographic location using geo-blocking and fuzzy string matching. You can pick any or all census years in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem) and link them to a target geometry dataset (or datasets) of your choosing.
+**historic-census-gb-geocoder** links streets in [digitised historic census data for Great Britain 1851-1911](#integrated-census-microdata-i-cem) to their 'real-world' geographic location. For example, it takes the text 'Ruby Street' from the census and links it to a geometry dataset of your choice. We link to [OS Open Roads](#os-open-roads) and [GB1900](#gb1900-gazetteer) as our target geometry datasets as the best alternatives until a full vector dataset of nineteenth/early twentieth century streets is created (we'd love if this was available someday!)
 
-It uses boundary datasets of historic administrative units (e.g. Parishes, Registration Sub-Districts) for each census year (1851-1911) and country (England and Wales, or Scotland) to assign census addresses and target geometry addresses to the appropriate historic administrative unit. This restricts fuzzy string matching between census and target geometry addresses to the correct historic boundary and disambiguates common street names found across the country (e.g. High Street), resulting in higher quality matches.
+**historic-census-gb-geocoder** allows you to use historic census data in new and powerful ways. Previously, the smallest spatial unit people in historic census data could be geo-located by was either a parish or registration sub-district (as well as larger units like registration districts and counties). But each of these administrative units - even parishes - necessitates aggregating individuals to quite large areas. Any sub-parish distinctions (like types of streets that people lived on, or perhaps how close someone lived to a factory or railway line) are lost. Typically, researchers used the centroids of parish polygons to conduct spatial analysis of the census. This meant that everyone in the parish was treated the same, e.g. *x* km from a station. **historic-census-gb-geocoder** locates individuals at street level, so we can now differentiate people street-by-street, and talk of people being *x* meters from a point of interest.
+
+## How does it work?
+
+It uses a geo-blocking and fuzzy string matching. You can pick any or all census years in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem) and link them to a target geometry dataset (or datasets) of your choosing. It uses boundary datasets of historic administrative units (e.g. Parishes, Registration Sub-Districts) for each census year (1851-1911) and country (England and Wales, or Scotland) to assign census addresses and target geometry addresses to the appropriate historic administrative unit. This restricts fuzzy string matching between census and target geometry addresses to the correct historic boundary and disambiguates common street names found across the country (e.g. High Street), resulting in higher quality matches.
 
 The figure below gives an overview of the process:
 
 ![flowchart](documentation/flowchart_cl.png "flowchart")
 
+Let's run through a specific example:
+
+## I just want the data!
+
+Add details here on how to access the data outputs.
+
 # Contents
 - [What is historic-census-gb-geocoder?](#What-is-historic-census-gb-geocoder?)
+- [How does it work](#how-does-it-work)
+- [I just want the data!](#i-just-want-the-data)
 - [Pre-installation](#pre-installation)
 - [Installation and setup](#installation)
   - [Set up a conda environment](#set-up-a-conda-environment)
   - [Method 1: pip](#method-1)
   - [Method 2: source code (for developers)](#method-2)
+  - [Set Parameters](#set-parameters)
+  - [Folder Structure and Data](#folder-structure-and-data)
 <!-- - [Overview](#overview) -->
 - [Data Input](#data-input)
   - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
@@ -78,7 +91,7 @@ pip install historic-census-gb-geocoder
 * Clone `historic-census-gb-geocoder` source code:
 
 ```bash
-git clone https://github.com/Living-with-machines/historic-census-gb-geocoder.git
+git clone git@github.com:Living-with-machines/historic-census-gb-geocoder.git
 ```
 
 * Install:
@@ -93,7 +106,7 @@ Edit `/path/to/` as appropriate to the directory that you cloned `historic-censu
 ### To run
 
 ```bash
-python3 historic_census_gb_geocoder.py
+python3 historic-census-gb-geocoder/historic_census_gb_geocoder.py
 ```
 
 ### Set parameters
