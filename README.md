@@ -32,7 +32,7 @@ Here's the location of streets containing the words 'BOUNDARY LANE' in OS Open R
 
 <!-- ![all_boundary_lanes](documentation/run_through/boundary_lane_all.png) -->
 
-<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/readme-changes-userfeedback/documentation/run_through/boundary_lane_all.png" alt="alt text" width="500" height="500">
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/boundary_lane_all.png" alt="Streets containing the text 'Boundary Lane' across England and Wales" width="500" height="500">
 
 The GIS files identify streets' exact locations but there's no inherent spatial relationship between them and the census. We need to classify the streets in the target geometry dataset according to historic boundaries, which relate to the census data, in order to be able to differentiate all these streets with the same or similar names.
 
@@ -72,7 +72,7 @@ ParID|CEN_1901|YEAR|COUNTRY|DIVISION|REGCNTY|REGDIST|SUBDIST|PARISH|
 
 Below is a map of Manchester overlaid with these two different boundary datasets. The large area in green is the area covered by the consistent parish unit (this particular one is `ConParID` 108139). The black lines are the boundaries of the Registration Sub-Districts (RSDs) in that area. Each area bounded by a black line has its own `CEN_1901` id value.
 
-![manchester_consistent_parish](documentation/run_through/manchesterconpar.png =500x500)
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/manchesterconpar.png" alt="Manchester consistent parish and RSD" width="500" height="500">
 
 Sometimes RSDs are larger than a consistent parish unit, but often they're smaller around urban centres like Manchester or London. In this example, they break up that large green area into smaller RSD/consistent parish combinations. This helps us disambiguate streets of the same name better than if we relied solely on the consistent parish unit - it's so large in this case that there are bound to be multiple streets with the same name and no way for us to know which one is which (in a systematic geographic sense for geo-blocking purposes). Creating new boundaries by combining RSDs and consistent parish units creates the smallest boundary units that we have for the historic census data.
 
@@ -80,7 +80,7 @@ Let's briefly turn back to OS Open Roads. We'll use these historic boundaries to
 
 Let's zoom in on the 'BOUNDARY LANE' to the south of Manchester:
 
-![boundary_lane](documentation/run_through/boundary_lane_manchesterzoom.png =500x500)
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/boundary_lane_manchesterzoom.png" alt="Manchester consistent parish and RSD zoomed" width="500" height="500">
 
 We're within `ConParID` 108139 now. The image shows us the modern 'BOUNDARY LANE' from OS Open Roads overlaying a historic OS map. The path of the modern road closely follows but is not exactly the same as the historic road. This is one of the many challenges of using modern road vector data in lieu of historic road vector data!
 
@@ -96,7 +96,7 @@ We can select all the streets in OS Open Roads and the census with `ConParID` 10
 
 This returns 388 streets from OS Open Roads:
 
-![4640004_roads](documentation/run_through/4640004_os_roads.png =500x500)
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/4640004_os_roads.png" alt="Roads in ConParID 4640004" width="500" height="500">
 
 There are 1052 unique addresses in the census within the same area. These aren't all different streets, they're just the unique addresses recorded in the census (after we've removed house numbers etc). E.g. we're left with 'YORK PLACE' on which lots of people will live and more specific entries like 'THE GREYHOUND YORK PLACE'.
 
@@ -144,18 +144,6 @@ We start with parishes in 1851. I-CeM provides a lookup table that links each pa
 
 
 -->
-
-
-
-
-
-
-
-
-
-
-
-
 ## I just want the data!
 
 Add details here on how to access the data outputs.
