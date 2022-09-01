@@ -30,7 +30,9 @@ Let's take 'BOUNDARY LANE' in South Manchester in 1901 (it runs perpendicular to
 
 Here's the location of streets containing the words 'BOUNDARY LANE' in OS Open Roads. There are 50 streets with the name 'BOUNDARY LANE', and a further 3 named 'BOUNDARY LANE NORTH', 'BOUNDARY LANE SOUTH', and 'OLD BOUNDARY LANE'.
 
-![all_boundary_lanes](documentation/run_through/boundary_lane_all.png)
+<!-- ![all_boundary_lanes](documentation/run_through/boundary_lane_all.png) -->
+
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/readme-changes-userfeedback/documentation/run_through/boundary_lane_all.png" alt="alt text" width="500" height="500">
 
 The GIS files identify streets' exact locations but there's no inherent spatial relationship between them and the census. We need to classify the streets in the target geometry dataset according to historic boundaries, which relate to the census data, in order to be able to differentiate all these streets with the same or similar names.
 
