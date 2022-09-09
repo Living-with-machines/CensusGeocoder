@@ -1,7 +1,6 @@
 MIT License
 
-Copyright (c) 2022 The Alan Turing Institute, British Library Board, Queen Mary University of London,  
-University of Exeter, University of East Anglia and University of Cambridge
+Copyright (c) 2022 Living with Machines
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
