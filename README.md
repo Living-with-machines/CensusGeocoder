@@ -2,32 +2,172 @@
 
 ![overview](documentation/overview_large_new.png)
 
-
 ## What is historic-census-gb-geocoder?
 
-**historic-census-gb-geocoder** links streets in historic census data for Great Britain 1851-1911 to their 'real-world' geographic location using geo-blocking and fuzzy string matching. You can pick any or all census years in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem) and link them to a target geometry dataset (or datasets) of your choosing.
+**historic-census-gb-geocoder** links streets in [digitised historic census data for Great Britain 1851-1911](#integrated-census-microdata-i-cem) to their 'real-world' geographic location. For example, it takes the text 'Ruby Street' from the census and links it to a geometry dataset of your choice. We link to [OS Open Roads](#os-open-roads) and [GB1900](#gb1900-gazetteer) as our target geometry datasets as the best alternatives until a full vector dataset of nineteenth/early twentieth century streets is created (we'd love if this was available someday!)
 
-It uses boundary datasets of historic administrative units (e.g. Parishes, Registration Sub-Districts) for each census year (1851-1911) and country (England and Wales, or Scotland) to assign census addresses and target geometry addresses to the appropriate historic administrative unit. This restricts fuzzy string matching between census and target geometry addresses to the correct historic boundary and disambiguates common street names found across the country (e.g. High Street), resulting in higher quality matches.
+**historic-census-gb-geocoder** allows you to use historic census data in new and powerful ways. Previously, the smallest spatial unit people in historic census data could be geo-located by was either a parish or registration sub-district (as well as larger units like registration districts and counties). But each of these administrative units - even parishes - necessitates aggregating individuals to quite large areas. Any sub-parish distinctions (like types of streets that people lived on, or perhaps how close someone lived to a factory or railway line) are lost. Typically, researchers used the centroids of parish polygons to conduct spatial analysis of the census. This meant that everyone in the parish was treated the same, e.g. *x* km from a station. **historic-census-gb-geocoder** locates individuals at street level, so we can now differentiate people street-by-street, and talk of people being *x* meters from a point of interest.
+
+## How does it work?
+
+It uses geo-blocking and fuzzy string matching. You can pick any or all census years in [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem) and link them to a target geometry dataset (or datasets) of your choosing. It uses the relevant boundary datasets of historic administrative units (e.g. Parishes, Registration Sub-Districts) for each census year (1851-1911) and country (England and Wales, or Scotland) to assign census addresses and target geometry addresses to the appropriate historic administrative unit. This restricts fuzzy string matching between census and target geometry addresses to the correct historic boundary and disambiguates common street names found across the country (e.g. High Street), resulting in higher quality matches.
 
 The figure below gives an overview of the process:
 
 ![flowchart](documentation/flowchart_cl.png "flowchart")
 
+**Let's run through a specific example:**
+
+<!-- Let's take 'Ruby Street' in South Manchester. In the 1901 census, there are 154 living on this particular Ruby Street. The Ruby Street we're interested in is located in `ParID` 
+
+address|RegDist|Parish|ParID|ConParID
+--|--|--|--|--|
+RUBY STREET|Chorlton|SOUTH MANCHESTER|10873|108139
+RUBY STREET|Chorlton|SOUTH MANCHESTER|10871|108139
+-->
+
+Let's take 'BOUNDARY LANE' in South Manchester in 1901 (it runs perpendicular to 'RUBY STREET' in the picture at the top). How do we link this 'BOUNDARY LANE' in the census to the same 'BOUNDARY LANE' in a GIS dataset of streets, like OS Open Roads. The challenge is that there will be lots of streets with the same name in the census and in those GIS files.
+
+Here's the location of streets containing the words 'BOUNDARY LANE' in OS Open Roads. There are 50 streets with the name 'BOUNDARY LANE', and a further 3 named 'BOUNDARY LANE NORTH', 'BOUNDARY LANE SOUTH', and 'OLD BOUNDARY LANE'.
+
+<!-- ![all_boundary_lanes](documentation/run_through/boundary_lane_all.png) -->
+
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/boundary_lane_all.png" alt="Streets containing the text 'Boundary Lane' across England and Wales" width="500" height="500">
+
+OS Open Roads identify streets' exact locations but there's no inherent spatial relationship between them and the census. We need to classify the streets in the OS Open Roads according to historic boundaries that relate to the census data, in order to be able to differentiate all these streets with the same or similar names.
+
+Let's look at some information about addresses that contain 'BOUNDARY LANE' in the census. The table below tells us which registration district, parish and registration sub-district each one is in. `NumInds` tells us how many people were living on each of these streets in 1901.
+
+|RegCnty|RegDist|Parish|SubDist|ConParID|ParID|NumInds
+|--|--|--|--|--|--|--|
+Berkshire|Wallingford|SOUTH STOKE (OXON)|Wallingford|101064|1737|2
+Buckinghamshire|Wycombe|HIGH WYCOMBE|Wycombe|101306|2115|89
+Cheshire|Chester|CHESTER|Chester Castle|107952|10598|9
+Cheshire|Chester|SALTNEY (FLINT)|Hawarden|107991|10650|72
+Cheshire|Wirral|GAYTON|Neston|107999|10654|90
+Lancashire|Chorlton|SOUTH MANCHESTER|Chorlton Upon Medlock|108139|10871|109
+Lancashire|Chorlton|SOUTH MANCHESTER|Hulme|108139|10873|19
+Lancashire|Ormskirk|BURSCOUGH|Scarisbrick|108085|10770|15
+Lancashire|Ormskirk|SIMONSWOOD|Bickerstaffe|108071|10755|36
+Lancashire|West Derby|EVERTON|South Everton|108037|10727|214
+Lancashire|West Derby|KIRKBY|Fazakerley|108042|10721|6
+Lancashire|West Derby|WEST DERBY|West Derby Western|108049|10729|297
+London (Parts Of Middlesex, Surrey & Kent)|Camberwell|CAMBERWELL|St George|100003|235|188
+London (Parts Of Middlesex, Surrey & Kent)|Southwark|NEWINGTON|St Peter Walworth|100003|211|161
+Norfolk|Blofield|POSTWICK|Blofield|103249|4501|26
+Norfolk|Blofield|THORPE NEXT NORWICH|Blofield|103248|4504|44
+Nottinghamshire|Worksop|WORKSOP|Worksop|107257|9734|15
+
+For each street in the census, we have quite a lot of geographical information that helps us distinguish streets. The `ConParID` and `ParID` fields link to existing GIS boundary datasets, which we can use to carve up our target geometry datasets.
+
+`ConParID` refers to 'Consistent Parish ID'. There are two series of consistent parish boundaries - one that covers 1851 to 1891, and another set covering 1901 and 1911. Consistent parish boundaries don't reflect real parish boundaries, they're artificial units constructed by aggregating multiple parishes. See [here](https://www.essex.ac.uk/research-projects/integrated-census-microdata) for more information under the heading 'Consistent Parish Geographies'. We can map these consistent parish units: the `ConParID` field links to [Parish Boundary Data](#parish-boundary-data-england-and-wales-only) via a [lookup table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only).
+
+`ParID` is an internal parish identifier for I-CeM that links to [registration sub-district boundary data](#registration-sub-district-rsd-boundary-data-england-and-wales-only) via a [lookup table](#registration-sub-district-rsd-lookup-table-england-and-wales-only). This lookup table tells us which registration sub-district that each `ParID` is in for each census year. Registration sub-districts change from year-to-year, and they have different ids for each year. The name of the unique id field for 1901 is `CEN_1901`. The table below tells us that `ParID` 10871 is in `CEN_1901` 4640003. Once we know the unique id of each regstration sub-district, we don't need to use the `ParID` value anymore.
+
+ParID - RSD Lookup Table:
+ParID|CEN_1901|YEAR|COUNTRY|DIVISION|REGCNTY|REGDIST|SUBDIST|PARISH|
+--|--|--|--|--|--|--|--|--|
+10871|4640003|1901|ENG|VIII|LANCASHIRE|CHORLTON|CHORLTON UPON MEDLOCK|SOUTH MANCHESTER|
+10873|4640004|1901|ENG|VIII|LANCASHIRE|CHORLTON|HULME|SOUTH MANCHESTER|
+
+Below is a map of Manchester overlaid with these two different boundary datasets. The large area in green is the area covered by the consistent parish unit (this particular one is `ConParID` 108139). The black lines are the boundaries of the Registration Sub-Districts (RSDs) in that area. Each area bounded by a black line has its own `CEN_1901` id value.
+
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/manchesterconpar.png" alt="Manchester consistent parish and RSD" width="500" height="500">
+
+Sometimes RSDs are larger than a consistent parish unit, but often they're smaller around urban centres like Manchester or London. In this example, they break up that large green area into smaller RSD/consistent parish combinations. This helps us disambiguate streets of the same name better than if we relied solely on the consistent parish unit - it's so large in this case that there are bound to be multiple streets with the same name and no way for us to know which one is which (in a systematic geographic sense for geo-blocking purposes). Creating new boundaries by combining RSDs and consistent parish units creates the smallest boundary units that we have for the historic census data.
+
+Let's briefly turn back to OS Open Roads. We'll use these historic boundaries to classify roads in OS Open Roads. This will help us limit the number of streets to compare (we'll only be searching census streets and OS Open Roads streets that are in a similar area). 
+
+Let's zoom in on the 'BOUNDARY LANE' to the south of Manchester:
+
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/boundary_lane_manchesterzoom.png" alt="Manchester consistent parish and RSD zoomed" width="500" height="500">
+
+We're within `ConParID` 108139 now. The image shows us the modern 'BOUNDARY LANE' from OS Open Roads overlaying a historic OS map. The path of the modern road closely follows but is not exactly the same as the historic road. This is one of the many challenges of using modern road vector data in lieu of historic road vector data!
+
+We can see the road in relation to nearby RSD boundaries. Perhaps unsurprising given its name, 'BOUNDARY LANE' runs close to the boundaries of two RSDs. The ends of the road (marked in red) are in `CEN_1901` 4640003, but the middle of the road (marked in blue) is in neighbouring `CEN_1901` 4640004.
+
+When assigning roads to consistent parish/RSD units, roads are split at the point they cross boundaries so that we match people to the correct segment of the road they live on. This only applies to linestring geometries of roads - not points (like GB1900 data) because points lie within a boundary and don't cross boundaries. (This is a shortcoming of using GB1900 point data despite the fact the street names it contains are contemporaneous with the 1891-1911 censuses).
+
+Now we've overlaid the historic census boundaries on the modern road data, we've created two Boundary Lanes (one for each of these RSDs) where there was just one road in the original OS Open Roads dataset. We do this for all the streets across the country. The process is slightly different for Scotland - it's simpler because we just use parish boundaries (we don't have GIS boundary datasets of registration sub-districts for Scotland).
+
+Now we've assigned roads in OS Open Roads to historic administrative units, we can begin linking them to streets in the census.
+
+We can select all the streets in OS Open Roads and the census with `ConParID` 108139 and `CEN_1901` 464000.
+
+This returns 388 streets from OS Open Roads:
+
+<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/4640004_os_roads.png" alt="Roads in ConParID 4640004" width="500" height="500">
+
+There are 1052 unique addresses in the census within the same area. These aren't all different streets, they're just the unique addresses recorded in the census (after we've removed house numbers etc). E.g. we're left with 'YORK PLACE' on which lots of people will live and more specific entries like 'THE GREYHOUND YORK PLACE'.
+
+We can now compare these two subsets of OS Open Roads and the census data. We use a string edit distance algorithm approach (also known as fuzzy string matching) to compare how similar the names of streets in our sample of streets from OS Open Roads are to the streets in the census subset. You can read more about the algorithms we use [here](#string-comparison-parameters). It returns a score between 0 and 1 (1 being an exact match).
+
+This table shows the 5 highest similarity scores after comparing each of those 388 street names with 'BOUNDARY LANE'. We pick the highest scoring one as our match, and in this case it's an exact match since there's a 'BOUNDARY LANE' in our sample of OS Open Roads data.
+
+name1|similarity score
+--|--
+BOUNDARY LANE|1.00
+HUNMANBY AVENUE|0.57
+SOUTHEND AVENUE|0.57
+GLADSTONE COURT|0.54
+UPPER MOSS LANE|0.54
+
+We also apply a weighting based on how common certain street names are [see here for more details](#string-comparison-parameters) so that the threshold for considering common street names like 'New Road' or 'High Street' as a match is higher than street names that are less common. We then pick the highest scoring match.
+
+<!-- Let's return to the table of Boundary Lanes from earlier. 
+
+|RegCnty|RegDist|Parish|SubDist|ConParID|ParID|NumInds
+|--|--|--|--|--|--|--|
+Lancashire|Chorlton|SOUTH MANCHESTER|Chorlton Upon Medlock|108139|10871|109
+Lancashire|Chorlton|SOUTH MANCHESTER|Hulme|108139|10873|19
+
+We can now see that these two entries for people living on a street called 'BOUNDARY LANE' are the same road. Part of it is in `ParID` 10871, which links to `CEN_1901` 4640003, and another part is in `ParID` 10873, which links to `CEN_1901` 4640004. Elsewhere, two entries like this might just be two different roads with the same name in the same consistent parish unit but in different RSDs. If there were two roads, we'd know which 'BOUNDARY LANE' in the target geometry dataset to link to which 'BOUNDARY LANE' in the census. When two or more entries are the same street, it allows us to link to the correct part of a street. -->
+<!-- We can safely say that the 109 people living on a 'BOUNDARY LANE' in the 'Chorlton Upon Medlock' sub-district of Manchester were living on a different street to the 2 people living on a 'BOUNDARY LANE' in Berkshire. But it's not clear at this stage if the 19 people also living on a 'BOUNDARY LANE' in Hulme, Manchester were living on a different street, or if actually this was the same 'BOUNDARY LANE' in 'Chorlton Upon Medlock' spanning boundaries. We'll revisit this shortly.
+
+If we didn't know where each of these streets was, then it would be quite hard (and not very accurate) to link them to a GIS dataset of streets. 
+
+
+There's a bunch of information about the geographical location of 'BOUNDARY LANE' in these listings. Straightaway we can see that 
+
+Here's a snapshot of the census data: 
+
+address|RegDist|SubDist|Parish|ParID|ConParID
+--|--|--|--|--|--|
+BOUNDARY LANE|Chorlton|Hulme|SOUTH MANCHESTER|10873|108139
+BOUNDARY LANE|Chorlton|Chorlton Upon Medlock|SOUTH MANCHESTER|10871|108139
+
+We've aggregated the data slightly here - we've removed house numbers, and we haven't listed everyone living on the street, leaving just the information about the street itself. We can link back to those living on it in 1901 a bit later. 
+
+There are two entries for 'BOUNDARY LANE' here because some people living on it are classed as being in `ParID` 10873, while others are within `ParID` 10871. In other cases, two or more entries like this could just mean there are parishes with the same  
+
+We start with parishes in 1851. I-CeM provides a lookup table that links each parish in this file to a consistent parish id in I-CeM. They have a full explanation of why they've done this here. Briefly, using consistent parish boundaries allows researchers to examine change over time in the census more easily because ....
+
+
+-->
+## I just want the data!
+
+Add details here on how to access the data outputs.
+
 # Contents
 - [What is historic-census-gb-geocoder?](#What-is-historic-census-gb-geocoder?)
+- [How does it work](#how-does-it-work)
+- [I just want the data!](#i-just-want-the-data)
+- [Pre-installation](#pre-installation)
 - [Installation and setup](#installation)
   - [Set up a conda environment](#set-up-a-conda-environment)
   - [Method 1: pip](#method-1)
   - [Method 2: source code (for developers)](#method-2)
+  - [Set Parameters](#set-parameters)
+  - [Folder Structure and Data](#folder-structure-and-data)
 <!-- - [Overview](#overview) -->
 - [Data Input](#data-input)
   - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
 
     **England and Wales**
-  - [Parish Boundary Data (England and Wales ONLY)](#Parish-Boundary-Data-(EW-ONLY))
-  - [1851EngWalesParishandPlace I-CeM Lookup Table (England and Wales ONLY)](#1851engwalesparishandplace-i-cem-lookup-table-(EW-ONLY))
-  - [Registration Sub-District (RSD) Boundary Data (England and Wales ONLY)](#registration-sub-district-rsd-boundary-data-(ew-only))
-  - [Registration Sub-District (RSD) Lookup Table (England and Wales ONLY)](#registration-sub-district-rsd-lookup-table-ew-only)
+  - [Parish Boundary Data (England and Wales ONLY)](#parish-boundary-data-england-and-wales-only)
+  - [1851EngWalesParishandPlace I-CeM Lookup Table (England and Wales ONLY)](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
+  - [Registration Sub-District (RSD) Boundary Data (England and Wales ONLY)](#registration-sub-district-rsd-boundary-data-england-and-wales-only)
+  - [Registration Sub-District (RSD) Lookup Table (England and Wales ONLY)](#registration-sub-district-rsd-lookup-table-england-and-wales-only)
 
     **Scotland**
   - [National Records of Scotland - Historic Civil Parishes pre-1891 and Civil Parishes (post 1891) Boundary Data and Lookup Table](#national-records-of-scotland---historic-civil-parishes-pre-1891-and-civil-parishes-post-1891-boundary-data-and-lookup-table)
@@ -40,6 +180,10 @@ The figure below gives an overview of the process:
 - [Credit, re-use terms, and how to cite](#credit-re-use-terms-and-how-to-cite)
 - [Acknowledgements](#acknowledgements)
 
+
+## Pre-installation
+
+`historic-census-gb-geocoder` relies on several datasets, which are deposited with the UK Data Service (UKDS). For some, all you need to do is register, and sign their standard end user licence. But for others (the names and addresses version of the census), the application is more involved. Please see individual datasets listed under [Data Inputs](#data-input) to see what you require from the UKDS. Then head over to their [website](https://ukdataservice.ac.uk) and follow their instructions for accessing the data.
 
 
 ## Installation
@@ -73,7 +217,7 @@ pip install historic-census-gb-geocoder
 * Clone `historic-census-gb-geocoder` source code:
 
 ```bash
-git clone https://github.com/Living-with-machines/historic-census-gb-geocoder.git
+git clone git@github.com:Living-with-machines/historic-census-gb-geocoder.git
 ```
 
 * Install:
@@ -88,7 +232,7 @@ Edit `/path/to/` as appropriate to the directory that you cloned `historic-censu
 ### To run
 
 ```bash
-python3 historic_census_gb_geocoder.py
+python3 historic-census-gb-geocoder/historic_census_gb_geocoder.py
 ```
 
 ### Set parameters
