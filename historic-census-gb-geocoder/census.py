@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 
-def read_census(census_file, census_cols, csv_params):
+def read_census(census_file, census_cols, **csv_params):
     """Reads census file returns a dask dataframe
 
     Parameters
@@ -26,16 +26,7 @@ def read_census(census_file, census_cols, csv_params):
 
     print("Reading census")
 
-    census_dd = dd.read_csv(
-        census_file,
-        sep=csv_params.sep,
-        encoding=csv_params.encoding,
-        na_values=csv_params.na_values,
-        usecols=census_cols,
-        quoting=csv_params.quoting,
-        blocksize=csv_params.blocksize,
-        assume_missing=True,
-    )
+    census_dd = dd.read_csv(census_file, usecols=census_cols, **csv_params,)
 
     return census_dd
 
@@ -108,7 +99,7 @@ def process_ew_census(
     census_dd = dd.merge(
         left=census_cleaned,
         right=rsd_dictionary,
-        left_on=census_params.census_fields.parid,
+        left_on=census_params.census_fields["parid"],
         right_on=rsd_dictionary_config.cen_parid_field,
         how="left",
     )
@@ -117,9 +108,9 @@ def process_ew_census(
     )
 
     census_dd[census_params.census_output_params.new_uid] = (
-        census_dd[census_params.census_fields.address].astype(str)
+        census_dd[census_params.census_fields["address"]].astype(str)
         + "_"
-        + census_dd[census_params.census_fields.conparid].astype(str)
+        + census_dd[census_params.census_fields["conparid"]].astype(str)
         + "_"
         + census_dd[rsd_dictionary_config.rsd_id_field].astype(str)
     )
@@ -128,7 +119,7 @@ def process_ew_census(
     print("Merged with RSD dictionary")
 
     census_blocking_cols = [
-        census_params.census_fields.conparid,
+        census_params.census_fields["conparid"],
         rsd_dictionary_config.rsd_id_field,
     ]
 
@@ -159,6 +150,24 @@ def output_census(census_dd, outputdir, output_params):
     print(f"Created census parquet files, partitioned on {output_params.partition_on}")
 
 
+def read_partition(partition, censusdir, census_params, cols_to_read=None):
+    census_subset = pd.read_parquet(
+        censusdir,
+        filters=[[(census_params.census_output_params.partition_on, "=", partition)]],
+        columns=cols_to_read,
+    )
+    return census_subset
+
+
+def write_partition(partition, partition_name, census_params, output_dir):
+    partition.to_csv(
+        output_dir / f"{census_params.country}_{census_params.year}"
+        f"_{partition_name}_lkup{census_params.census_output_params.filetype}",
+        **census_params.census_output_params.to_csv_kwargs,
+    )
+    pass
+
+
 def create_partition_subset(partition, censusdir, census_params):
     """Read a subset of census data based on given partition. Then keeps only
     unique addresses within a parish/parish & rsd by dropping duplicates of the
@@ -180,12 +189,18 @@ def create_partition_subset(partition, censusdir, census_params):
     census_subset: pandas.DataFrame
         Pandas DataFrame containing census data subset on specified partition
         and only one entry for each unique address.
-    """
 
-    census_subset = pd.read_parquet(
-        censusdir,
-        filters=[[(census_params.census_output_params.partition_on, "=", partition)]],
-    )
+    # census_subset_all: pandas.DataFrame
+    #     Pandas DataFrame containing census data subset on specified partition
+    #     with all unique person ids and address ids.
+
+    inds_in_part: int
+        The number of individuals in this partition.
+
+    adds_in_part: int
+        The number of unique addresses in this partition.
+    """
+    census_subset = read_partition(partition, censusdir, census_params)
     inds_in_part = len(census_subset)
 
     census_subset = (
@@ -193,7 +208,7 @@ def create_partition_subset(partition, censusdir, census_params):
             subset=[census_params.census_output_params.new_uid]
         )
         .copy()
-        .drop(columns=census_params.census_fields.uid)
+        .drop(columns=census_params.census_fields["uid"])
     )
 
     adds_in_part = len(census_subset)
@@ -233,28 +248,34 @@ def process_scot_census(
     partition_list: list
         List of partition values from census data.
     """
+
+    print(census_cleaned[census_cleaned["RecID"] == 763827].compute().head())
+
     census_dd = dd.merge(
         left=census_cleaned,
         right=boundary_lkup,
-        left_on=census_params.census_fields.parid,
+        left_on=census_params.census_fields["parid"],
         right_on=boundary_lkup_config.parid_field,
         how="left",
     )
+    print(census_dd[census_dd["RecID"] == 763827].compute().head(10))
     census_dd[boundary_lkup_config.parid_field] = pd.to_numeric(
         census_dd[boundary_lkup_config.parid_field], errors="coerce"
     )
 
     census_dd[census_params.census_output_params.new_uid] = (
-        census_dd[census_params.census_fields.address].astype(str)
+        census_dd[census_params.census_fields["address"]].astype(str)
         + "_"
-        + census_dd[boundary_lkup_config.uid].astype(str)
+        # + census_dd[boundary_lkup_config.uid].astype(str)
+        + census_dd["merged_id"].astype(str)
     )
     # print("Merged with RSD dictionary")
 
     census_dd = census_dd.dropna()
 
     census_blocking_cols = [
-        boundary_lkup_config.uid,
+        # boundary_lkup_config.uid,
+        "merged_id",
     ]
 
     partition_list = sorted(

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, fields, field
 import pathlib
 import pandas as pd
+import utils
 
 
 def validate_sim_thresh(sim_thresh):
@@ -130,10 +131,10 @@ class Census_fields:
         Method to return a list of the census fields.
     """
 
-    uid: str
-    address: str
-    parid: str
-    county: str
+    # uid: str = "sha256"
+    # address: str = "add_anon"
+    # parid: str = "ParID"
+    # county: str = ""
 
     def __post_init__(self):
         first_validate(self)
@@ -147,64 +148,64 @@ class Census_fields:
         return col_list
 
 
+# @dataclass
+# class EWcensus_fields(Census_fields):
+#     """A class storing census fields valid only for England and Wales.
+
+#     Attributes
+#     ----------
+#     conparid: str
+#         The name of the field containing the `Consistent parish ID` census variable.
+#     """
+
+#     conparid: str
+
+#     def __post_init__(self):
+#         first_validate(self)
+
+
+# @dataclass
+# class SCOTcensus_fields(Census_fields):
+#     """A class storing census fields valid only for Scotland."""
+
+#     pass
+
+
 @dataclass
-class EWcensus_fields(Census_fields):
-    """A class storing census fields valid only for England and Wales.
+# class Csv_params:
+#     """A class storing parameters to read census data to pass to dask
+#     and pandas read_csv.
 
-    Attributes
-    ----------
-    conparid: str
-        The name of the field containing the `Consistent parish ID` census variable.
-    """
+#     Attributes
+#     ----------
+#     sep: str
+#         The value used to delimit fields in the file, e.g. "\t", a tab.
 
-    conparid: str
+#     encoding: str
+#         The file encoding, e.g. 'utf-8'.
 
-    def __post_init__(self):
-        first_validate(self)
+#     blocksize: str
+#         The number of bytes by which to cut up larger files - see dask read_csv
+#         documentation.
 
+#     quoting: int
+#         Indicates if / how quotation marks are used in the csv file, see read_csv
+#         documentation.
 
-@dataclass
-class SCOTcensus_fields(Census_fields):
-    """A class storing census fields valid only for Scotland."""
+#     na_values: str or list
+#         Values representing null data in the file. see read_csv documentation.
+#     """
 
-    pass
+#     sep: str
+#     encoding: str
+#     blocksize: str  # may want to change this in future to include int
+#     quoting: int
+#     na_values: list  # may want to change this in future to include list
 
-
-@dataclass
-class Csv_params:
-    """A class storing parameters to read census data to pass to dask
-    and pandas read_csv.
-
-    Attributes
-    ----------
-    sep: str
-        The value used to delimit fields in the file, e.g. "\t", a tab.
-    
-    encoding: str
-        The file encoding, e.g. 'utf-8'.
-    
-    blocksize: str
-        The number of bytes by which to cut up larger files - see dask read_csv
-        documentation.
-
-    quoting: int
-        Indicates if / how quotation marks are used in the csv file, see read_csv
-        documentation.
-
-    na_values: str
-        Values representing null data in the file. see read_csv documentation.
-    """
-
-    sep: str
-    encoding: str
-    blocksize: str  # may want to change this in future to include int
-    quoting: int
-    na_values: str  # may want to change this in future to include list
-
-    def __post_init__(self):
-        first_validate(self)
-        validate_sep(self.sep)
-        validate_quoting(self.quoting)
+#     def __post_init__(self):
+#         first_validate(self)
+#         validate_sep(self.sep)
+#         validate_quoting(self.quoting)
 
 
 @dataclass
@@ -232,11 +233,10 @@ class Census_output_params:
         Passed to pandas to_csv.
     """
 
-    partition_on: str
-    new_uid: str
-    sep: str
-    index: bool
-    filetype: str
+    to_csv_kwargs: dict
+    partition_on: str = "RegCnty"
+    new_uid: str = "unique_add_id"
+    filetype: str = ".tsv"
 
     def __post_init__(self):
         first_validate(self)
@@ -288,27 +288,28 @@ class Censusconfiguration:
     """
 
     country: str
-    year: int
-    runtype: bool
-    census_file: str
-    census_fields: Census_fields
-    csv_params: Csv_params  # parameters passed to dask read_csv
 
+    year: int
+
+    census_file: str
     census_standardisation_file: str
     comparison_params: Comparison_params
     census_output_params: Census_output_params
+    census_fields: dict
+    csv_params: dict
+    runtype: bool = False
 
     def __post_init__(self):
 
         validate_paths(self.census_file)
-        if isinstance(self.census_fields, dict):
-            if self.country == "EW":
-                self.census_fields = EWcensus_fields(**self.census_fields)
-            elif self.country == "SCOT":
-                self.census_fields = SCOTcensus_fields(**self.census_fields)
+        # if isinstance(self.census_fields, dict):
+        #     if self.country == "EW":
+        #         self.census_fields = EWcensus_fields(**self.census_fields)
+        #     elif self.country == "SCOT":
+        #         self.census_fields = SCOTcensus_fields(**self.census_fields)
 
-        if isinstance(self.csv_params, dict):
-            self.csv_params = Csv_params(**self.csv_params)
+        # if isinstance(self.csv_params, dict):
+        #     self.csv_params = Csv_params(**self.csv_params)
         if isinstance(self.census_output_params, dict):
             self.census_output_params = Census_output_params(
                 **self.census_output_params
@@ -316,29 +317,30 @@ class Censusconfiguration:
         if isinstance(self.comparison_params, dict):
             self.comparison_params = Comparison_params(**self.comparison_params)
         self.validate_censuscols(
-            self.census_fields,
             self.census_file,
+            self.census_fields,
             self.csv_params,
             self.year,
             self.country,
         )
-        first_validate(self)
+        # first_validate(self)
         validate_partition(
-            self.census_output_params.partition_on, self.census_fields.list_cols()
+            self.census_output_params.partition_on, list(self.census_fields.values()),
         )
 
     def validate_censuscols(
-        self, census_fields, census_file, csv_params, year, country
+        self, census_file, census_fields, csv_params, year, country
     ):
         """Checks that census fields given in input are valid columns
         in the census file"""
-        col_list = []
-        for fieldx in fields(census_fields):
-            attr = getattr(census_fields, fieldx.name)
-            col_list.append(attr)
+
+        col_list = list(census_fields.values())
 
         col_only_df = pd.read_csv(
-            census_file, sep=csv_params.sep, encoding=csv_params.encoding, nrows=0,
+            census_file,
+            sep=csv_params["sep"],
+            encoding=csv_params["encoding"],
+            nrows=0,
         )
 
         cols_in_df = col_only_df.columns.to_list()
@@ -687,6 +689,28 @@ class Target_geom:
 
 
 @dataclass
+class Geom_output_params:
+    """A class for storing output parameters of the target geometry dataset
+    to pass to geopandas `to_file`.
+    
+    Attributes
+    ----------
+    file_type: str
+        File extension, e.g. '.geojson'.
+    
+    crs: str
+        Projection authority string (eg “EPSG:4326”)
+    
+    driver: str
+        Type of driver to write file, e.g. 'GeoJSON'.
+"""
+
+    file_ext: str = ".geojson"
+    crs: str = "EPSG:27700"
+    driver: str = "GeoJSON"
+
+
+@dataclass
 class General:
     """A Class with general parameters
     Attributes
@@ -695,10 +719,14 @@ class General:
         Directory path to save all output files."""
 
     output_data_path: str
+    geom_output_params: dict
 
     def __post_init__(self):
-        create_outputdirs(self.output_data_path)
+        utils.set_filepath(self.output_data_path)
+        # create_outputdirs(self.output_data_path)
         validate_paths(self.output_data_path)
+        # if isinstance(self.geom_output_params, dict):
+        #     self.geom_output_params = Geom_output_params(**self.geom_output_params)
 
 
 @dataclass
@@ -733,6 +761,7 @@ class Boundary_lkup_config:
 
     filepath: str
     parid_field: str
+    link_id: str
     uid: str = ""
     sheet: str = ""
 
@@ -842,18 +871,18 @@ def validate_configs(config_dict):
     pass
 
 
-def create_outputdirs(*args):
-    """Set the output directory from a list of args.
-    Checks if output directory exists, if it doesn't it creates a directory.
+# def create_outputdirs(*args):
+#     """Set the output directory from a list of args.
+#     Checks if output directory exists, if it doesn't it creates a directory.
 
-    Returns
-    ----------
-    output_dir: pathlib.Path
-        Path to output directory.
-    """
-    args1 = [str(arg) for arg in args]
-    output_dir = pathlib.Path(*args1)
-    pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
+#     Returns
+#     ----------
+#     output_dir: pathlib.Path
+#         Path to output directory.
+#     """
+#     args1 = [str(arg) for arg in args]
+#     output_dir = pathlib.Path(*args1)
+#     pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    return output_dir
+#     return output_dir
 

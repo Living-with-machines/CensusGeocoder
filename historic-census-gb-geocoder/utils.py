@@ -2,6 +2,7 @@ import pathlib
 
 import numpy as np
 import pandas as pd
+
 from rapidfuzz import fuzz
 from recordlinkage.base import BaseCompareFeature
 from recordlinkage.utils import fillna as _fillna
@@ -91,8 +92,8 @@ def rapidfuzzy_partialratio(s1, s2):
     return conc.apply(fuzzy_apply)
 
 
-def compute_tfidf(census, census_fields):
-    """Compute TF-IDF scores for census addresses. These scores are used to
+def compute_tfidf(census, col_to_compute):
+    """Compute TF-IDF scores for a column in the census. These scores are used to
     weight the string comparisons so that common adddresses have to reach a higher
     matching threshold to be classed as a true match.
 
@@ -114,7 +115,7 @@ def compute_tfidf(census, census_fields):
         tfidf_vectorizer = TfidfVectorizer(
             norm="l2", use_idf=True, lowercase=False, dtype=np.float32
         )  # default is norm l2
-        tfidf_sparse = tfidf_vectorizer.fit_transform(census[census_fields.address])
+        tfidf_sparse = tfidf_vectorizer.fit_transform(census[col_to_compute])
         # tfidf_array = tfidf_sparse.toarray()
         # tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
         np.seterr(invalid="ignore")
@@ -123,14 +124,71 @@ def compute_tfidf(census, census_fields):
         # census["tfidf_w"] = census["tfidf"] / census[census_fields.address].str.len()
     except ValueError:
         print("Likely error with tf-idf not having any strings to compare")
-    return census[[census_fields.address, "tfidf"]]
+    return census[[col_to_compute, "tfidf"]]
 
 
-def make_path(*dirs):
-    """Takes input strings; creates a path if path doesn't exist;
-    returns a path"""
+# def set_path(*dirs):
+#     """Takes input strings; creates a path if path doesn't exist;
+#     returns a path"""
 
-    new_path = pathlib.Path(*dirs)
-    pathlib.Path(new_path).mkdir(parents=True, exist_ok=True)
+#     new_path = pathlib.Path(*dirs)
+#     pathlib.Path(new_path).mkdir(parents=True, exist_ok=True)
 
-    return new_path
+#     return new_path
+
+
+# def set_filename(output_dir, file_extension, *fname_components):
+#     fname_components_list = [
+#         str(fname_components) for fname_components in fname_components
+#     ]
+#     filename = (
+#         str(output_dir) / "_".join(fname_components_list)
+#         + str(".")
+#         + str(file_extension)
+#     )
+#     return filename
+
+
+# new_path = pathlib.Path("data", "output", "1911")
+# pathlib.Path(new_path).mkdir(parents=True, exist_ok=True)
+
+
+def set_filepath(*filepath_components):
+    filepath = pathlib.Path().joinpath(*filepath_components)
+    pathlib.Path(filepath).mkdir(parents=True, exist_ok=True)
+
+    return filepath
+
+
+# output_loc = set_filepath("data/output", "1911", "EW", "1911_EW_boundary.geojson",)
+
+# print(output_loc)
+
+# .mkdir(
+#     parents=True, exist_ok=True
+# )
+# print(testing)
+
+# output_dir = set_path("data", "output", "1911", "EW")
+
+# print(output_dir)
+# trial = set_filename(output_dir, "geojson", "1911", "EW", "boundary")
+# print(trial)
+
+
+def set_gis_file_extension(driver):
+    # driver = params.driver
+    if driver == "GeoJSON":
+        file_extension = ".geojson"
+    else:
+        pass
+    return file_extension
+
+
+def write_gis_file(gdf, filepath, **params):
+    print(params)
+    # print(params[""])
+    # print(**params)
+    # file_extension = set_gis_file_extension(params["driver"])
+    gdf.to_file(filepath, **params)
+

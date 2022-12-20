@@ -8,6 +8,15 @@ list_of_census = [
     "EW1891",
     "EW1901",
     "EW1911",
+    "scot1851",
+    "scot1861",
+    "scot1871",
+    "scot1881",
+    "scot1891",
+    "scot1901",
+]
+
+list_of_census = [
     "SCOT1851",
     "SCOT1861",
     "SCOT1871",
@@ -23,12 +32,12 @@ pathlib.Path(p_sample).mkdir(parents=True, exist_ok=True)
 for census in list_of_census:
     print(census)
     census_df = pd.read_csv(
-        p / f"{census}_anonymised.txt",
+        p / f"{census}_geocode_egress_2022_11_03_recid.txt",
         sep="\t",
         quoting=3,
         encoding="latin-1",
         na_values=".",
-        usecols=["safehaven_id", "address_anonymised", "RegCnty", "ParID", "ConParID"],
+        usecols=["RecID", "add_anon", "RegCnty", "ParID", "ConParID"],
     )
 
     sample_size = round(len(census_df) * 0.1)
@@ -36,7 +45,7 @@ for census in list_of_census:
     census_sample = census_df.sample(sample_size, random_state=1)
 
     census_sample.to_csv(
-        p_sample / f"{census}_anonymised_sample.txt",
+        p_sample / f"{census}_geocode_egress_2022_11_03_sample.txt",
         sep="\t",
         quoting=3,
         encoding="latin-1",

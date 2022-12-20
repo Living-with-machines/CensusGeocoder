@@ -87,7 +87,7 @@ def compare(
         ]:
             target_comparison.add(
                 utils.rapidfuzzy_wratio_comparer(
-                    left_on=census_params.census_fields.address,
+                    left_on=census_params.census_fields["address"],
                     right_on=geom_config.data_fields.address_field,
                     method=census_params.comparison_params.string_comp_alg,
                     label=f"{census_params.comparison_params.string_comp_alg}_s",
@@ -95,7 +95,7 @@ def compare(
             )
         else:
             target_comparison.string(
-                left_on=census_params.census_fields.address,
+                left_on=census_params.census_fields["address"],
                 right_on=geom_config.data_fields.address_field,
                 method=census_params.comparison_params.string_comp_alg,
                 label=f"{census_params.comparison_params.string_comp_alg}_s",

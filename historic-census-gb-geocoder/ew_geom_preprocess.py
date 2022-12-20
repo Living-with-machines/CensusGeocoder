@@ -33,7 +33,7 @@ def process_rsd_boundary_data(rsd_id_field, rsd_gis_config):
         ignore_fields=unwanted_cols,
         crs=rsd_gis_config.projection,
     )
-
+    rsd_boundary.geometry = rsd_boundary.geometry.buffer(0)
     rsd_boundary = rsd_boundary.dissolve(by=rsd_id_field).reset_index()
 
     print("Processed Registration Sub District (RSD) boundary data")
@@ -117,7 +117,7 @@ def process_parish_boundary_data(
     par_boundary.geometry = par_boundary.geometry.buffer(0)
     # Set precision of coordinates so overlay operations
     # between parish boundary and rsd boundary work properly
-    par_boundary.geometry = pg.set_precision(par_boundary.geometry.values.data, 0)
+    # par_boundary.geometry = pg.set_precision(par_boundary.geometry.values.data, 0)
 
     par_boundary_conparid = pd.merge(
         left=par_boundary,

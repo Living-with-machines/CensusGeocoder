@@ -6,6 +6,8 @@ import yaml
 
 import config
 import setupgeocoder
+import census
+import utils
 
 with open("inputs/input_config.yaml", "r") as f:
     geocode_config = yaml.load(f, Loader=yaml.FullLoader)
@@ -76,17 +78,72 @@ for x, y in geocode_config["census_config"].items():
                     scot_configuration.boundary_lkup_config,
                 )
 
+            output_p = {"crs": "EPSG:27700", "driver": "GeoJSON"}
+
+            # output_dir = config.create_outputdirs(
+            #     gen.output_data_path,
+            #     census_configuration.year,
+            #     census_configuration.country,
+            # )
+
+            file_extension = utils.set_gis_file_extension(
+                gen.geom_output_params["driver"]
+            )
+
+            output_loc = utils.set_filepath(
+                gen.output_data_path,
+                str(census_configuration.year),
+                census_configuration.country,
+            )
+
+            print(output_loc)
+
+            utils.write_gis_file(
+                processed_parish_boundary_data,
+                (
+                    output_loc
+                    / f"{str(census_configuration.year)}_{census_configuration.country}_boundary{file_extension}"
+                ),
+                **gen.geom_output_params,
+            )
+
             cenendtime = datetime.now() - censtarttime
             print(
                 f"Time to process census data and boundaries: "
                 f"{cenendtime.total_seconds() / 60} minutes"
             )
 
+            #     processed_parish_boundary_data.to_file(
+            #     f"{output_dir}/{geom_name}_{census_params.country}_{census_params.year}"
+            #     f"{geom_config.output_params.file_type}",
+            #     driver=geom_config.output_params.driver,
+            #     crs=geom_config.output_params.crs,
+            # ))
+
+            for partition in partition_list:
+                # print(partition)
+                output_dir = utils.set_filepath(
+                    gen.output_data_path,
+                    str(census_configuration.year),
+                    census_configuration.country,
+                )
+                cols_to_read = [
+                    census_configuration.census_fields["uid"],
+                    census_configuration.census_output_params.new_uid,
+                ]
+                census_subset = census.read_partition(
+                    partition, tmpcensusdir, census_configuration, cols_to_read
+                )
+
+                census.write_partition(
+                    census_subset, partition, census_configuration, output_dir
+                )
+
             for geom, geom_config in geocode_config["target_geoms"].items():
                 geomstarttime = datetime.now()
-                output_dir = config.create_outputdirs(
+                output_dir = utils.set_filepath(
                     gen.output_data_path,
-                    census_configuration.year,
+                    str(census_configuration.year),
                     census_configuration.country,
                     geom,
                 )

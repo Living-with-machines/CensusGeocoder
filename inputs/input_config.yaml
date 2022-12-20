@@ -1,25 +1,28 @@
 general:
   output_data_path: "data/output/" # specify output path
+  geom_output_params:
+    # file_ext: ".geojson"
+    crs: "EPSG:27700"
+    driver: "GeoJSON"
 
 census_config:
   EW_1851:
     country: "EW"
     year: 1851
-    runtype: True # set to 'True' to run geo-coding on this census; set 'False'
-    census_file: "data/input/census/EW1851_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id" # unique person id; for non-Turing implementation will be changed to 'RecID'
-      address: "address_anonymised" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
-      conparid: "ConParID" # see I-CeM documentation and readme
-      parid: "ParID" # see I-CeM documentation and readme
-      county: "RegCnty" # see I-CeM documentation and readme
-
+    runtype: False # set to 'True' to run geo-coding on this census; set 'False'
+    census_file: "data/input/census/EW1851_geocode_egress_2022_11_03.txt"
     csv_params: # parameters passed to dask/pandas read_csv
       sep: "\t" # passed to 'sep' parameter of dask read_csv
       encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
       blocksize: "25e6" # passed to 'blocksize' parameter of dask read_csv
       quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
-      na_values: "." # Passed to 'na_values' parameter of pandas read_csv
+      na_values: [".", " "] # Passed to 'na_values' parameter of pandas read_csv
+    census_fields:
+      uid: "sha256" # unique person id; for non-Turing implementation will be changed to 'RecID'
+      address: "add_anon" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
+      conparid: "ConParID" # see I-CeM documentation and readme
+      parid: "ParID" # see I-CeM documentation and readme
+      county: "RegCnty" # see I-CeM documentation and readme
 
     census_standardisation_file: "inputs/icem_street_standardisation.json" # regex replacement file
     comparison_params:
@@ -28,28 +31,29 @@ census_config:
     census_output_params:
       partition_on: "RegCnty" # must be one of the cols specified in 'census_fields'
       new_uid: "unique_add_id" # name of new unique id field (see documentation)
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   EW_1861:
     country: "EW"
     year: 1861
-    runtype: True
-    census_file: "data/input/census/EW1861_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      conparid: "ConParID"
-      parid: "ParID"
-      county: "RegCnty"
+    runtype: False
+    census_file: "data/input/census/EW1861_geocode_egress_2022_11_03.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "sha256"
+      address: "add_anon"
+      conparid: "ConParID"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -58,28 +62,29 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   EW_1881:
     country: "EW"
     year: 1881
     runtype: False
-    census_file: "data/input/census/EW1881_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      conparid: "ConParID"
-      parid: "ParID"
-      county: "RegCnty"
+    census_file: "data/input/census/EW1881_geocode_egress_2022_11_03.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "sha256"
+      address: "add_anon"
+      conparid: "ConParID"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -88,28 +93,29 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   EW_1891:
     country: "EW"
     year: 1891
-    runtype: True
-    census_file: "data/input/census/EW1891_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      conparid: "ConParID"
-      parid: "ParID"
-      county: "RegCnty"
+    runtype: False
+    census_file: "data/input/census/EW1891_geocode_egress_2022_11_03.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "sha256"
+      address: "add_anon"
+      conparid: "ConParID"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -118,28 +124,29 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   EW_1901:
     country: "EW"
     year: 1901
-    runtype: True
-    census_file: "data/input/census/EW1901_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      conparid: "ConParID"
-      parid: "ParID"
-      county: "RegCnty"
+    runtype: False
+    census_file: "data/input/census/EW1901_geocode_egress_2022_11_03_recid.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "RecID"
+      address: "add_anon"
+      conparid: "ConParID"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -148,28 +155,30 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   EW_1911:
     country: "EW"
     year: 1911
     runtype: False
-    census_file: "data/input/census/EW1911_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      conparid: "ConParID"
-      parid: "ParID"
-      county: "RegCnty"
+    census_file: "data/input/census/EW1911_geocode_egress_2022_11_03.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+      assume_missing: True
+    census_fields:
+      uid: "sha256"
+      address: "add_anon"
+      conparid: "ConParID"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -178,27 +187,28 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   SCOT_1851:
     country: "SCOT"
     year: 1851
     runtype: False
-    census_file: "data/input/census/SCOT1851_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      parid: "ParID"
-      county: "RegCnty"
+    census_file: "data/input/census/sample/SCOT1851_geocode_egress_2022_11_03_sample.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "RecID"
+      address: "add_anon"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -207,27 +217,28 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   SCOT_1861:
     country: "SCOT"
     year: 1861
     runtype: False
-    census_file: "data/input/census/SCOT1861_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      parid: "ParID"
-      county: "RegCnty"
+    census_file: "data/input/census/sample/SCOT1861_geocode_egress_2022_11_03_sample.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "RecID"
+      address: "add_anon"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -236,27 +247,28 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   SCOT_1871:
     country: "SCOT"
     year: 1871
     runtype: False
-    census_file: "data/input/census/SCOT1871_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      parid: "ParID"
-      county: "RegCnty"
+    census_file: "data/input/census/sample/SCOT1871_geocode_egress_2022_11_03_sample.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "RecID"
+      address: "add_anon"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -265,27 +277,28 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   SCOT_1881:
     country: "SCOT"
     year: 1881
     runtype: False
-    census_file: "data/input/census/SCOT1881_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      parid: "ParID"
-      county: "RegCnty"
+    census_file: "data/input/census/sample/SCOT1881_geocode_egress_2022_11_03_sample.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "RecID"
+      address: "add_anon"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -294,27 +307,28 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   SCOT_1891:
     country: "SCOT"
     year: 1891
-    runtype: False
-    census_file: "data/input/census/SCOT1891_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      parid: "ParID"
-      county: "RegCnty"
+    runtype: True
+    census_file: "data/input/census/SCOT1891_geocode_egress_2022_11_03_recid.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "RecID"
+      address: "add_anon"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -323,27 +337,28 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
   SCOT_1901:
     country: "SCOT"
     year: 1901
-    runtype: True
-    census_file: "data/input/census/SCOT1901_anonymised.txt"
-    census_fields:
-      uid: "safehaven_id"
-      address: "address_anonymised"
-      parid: "ParID"
-      county: "RegCnty"
+    runtype: False
+    census_file: "data/input/census/SCOT1901_geocode_egress_2022_11_03_recid.txt"
 
     csv_params:
       sep: "\t"
       encoding: "latin-1"
       blocksize: "25e6"
       quoting: 3
-      na_values: "."
+      na_values: [".", " "]
+    census_fields:
+      uid: "RecID"
+      address: "add_anon"
+      parid: "ParID"
+      county: "RegCnty"
 
     census_standardisation_file: "inputs/icem_street_standardisation.json"
     comparison_params:
@@ -352,9 +367,10 @@ census_config:
     census_output_params:
       partition_on: "RegCnty"
       new_uid: "unique_add_id"
-      sep: "\t"
-      index: False
       filetype: ".tsv"
+      to_csv_kwargs:
+        sep: "\t"
+        index: False
 
 ew_config:
   parish_gis_config:
@@ -434,7 +450,8 @@ scot_config:
     projection: "EPSG:27700"
   boundary_lkup_config:
     filepath: "data/input/scot/scot_parish_boundary/scotboundarylinking.xlsx" # path to post 1891 boundary and icem ParID lookup table
-    parid_field: "ParID" # field linking scottish boundary data to icem 'ParID'
+    parid_field: "ParID" # field linking scottish boundary data to icem 'ParID
+    link_id: "merged_id"
 
 target_geoms: # geometry data to link census data to
   os_open_roads: # name of geometry data

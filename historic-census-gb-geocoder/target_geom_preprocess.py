@@ -106,6 +106,7 @@ def process_raw_geo_data(
             target_gdf, boundary_data, geom_config, new_uid
         )
 
+    target_gdf_processed = target_gdf_processed.dropna().copy()
     target_gdf_processed = parse_address(target_gdf_processed, geom_config)
 
     if (
@@ -127,6 +128,14 @@ def process_raw_geo_data(
             driver=geom_config.output_params.driver,
             crs=geom_config.output_params.crs,
         )
+
+        # boundary_data.to_file(
+        #     f"{output_dir}/{census_params.country}_{census_params.year}_boundary"
+        #     f"{geom_config.output_params.file_type}",
+        #     driver=geom_config.output_params.driver,
+        #     crs=geom_config.output_params.crs,
+        # )
+
         target_df_processed_small = pd.DataFrame(
             target_gdf_processed.drop(columns=[target_gdf_processed.geometry.name])
         )
