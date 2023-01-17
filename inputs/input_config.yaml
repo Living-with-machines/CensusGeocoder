@@ -10,7 +10,7 @@ census_config:
     country: "EW"
     year: 1851
     runtype: False # set to 'True' to run geo-coding on this census; set 'False'
-    census_file: "data/input/census/EW1851_geocode_egress_2022_11_03.txt"
+    census_file: "data/input/census/EW1851_geocode_egress_2022_11_03_recid.txt"
     csv_params: # parameters passed to dask/pandas read_csv
       sep: "\t" # passed to 'sep' parameter of dask read_csv
       encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
@@ -18,7 +18,7 @@ census_config:
       quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
       na_values: [".", " "] # Passed to 'na_values' parameter of pandas read_csv
     census_fields:
-      uid: "sha256" # unique person id; for non-Turing implementation will be changed to 'RecID'
+      uid: "RecID" # unique person id; for non-Turing implementation will be changed to 'RecID'
       address: "add_anon" # currently address field stripped of house numbers for compliance with DSH; in future will be 'Address'
       conparid: "ConParID" # see I-CeM documentation and readme
       parid: "ParID" # see I-CeM documentation and readme
@@ -40,7 +40,7 @@ census_config:
     country: "EW"
     year: 1861
     runtype: False
-    census_file: "data/input/census/EW1861_geocode_egress_2022_11_03.txt"
+    census_file: "data/input/census/EW1861_geocode_egress_2022_11_03_recid.txt"
 
     csv_params:
       sep: "\t"
@@ -49,7 +49,7 @@ census_config:
       quoting: 3
       na_values: [".", " "]
     census_fields:
-      uid: "sha256"
+      uid: "RecID"
       address: "add_anon"
       conparid: "ConParID"
       parid: "ParID"
@@ -71,7 +71,7 @@ census_config:
     country: "EW"
     year: 1881
     runtype: False
-    census_file: "data/input/census/EW1881_geocode_egress_2022_11_03.txt"
+    census_file: "data/input/census/EW1881_geocode_egress_2022_11_03_recid.txt"
 
     csv_params:
       sep: "\t"
@@ -80,7 +80,7 @@ census_config:
       quoting: 3
       na_values: [".", " "]
     census_fields:
-      uid: "sha256"
+      uid: "RecID"
       address: "add_anon"
       conparid: "ConParID"
       parid: "ParID"
@@ -102,7 +102,7 @@ census_config:
     country: "EW"
     year: 1891
     runtype: False
-    census_file: "data/input/census/EW1891_geocode_egress_2022_11_03.txt"
+    census_file: "data/input/census/EW1891_geocode_egress_2022_11_03_recid.txt"
 
     csv_params:
       sep: "\t"
@@ -111,7 +111,7 @@ census_config:
       quoting: 3
       na_values: [".", " "]
     census_fields:
-      uid: "sha256"
+      uid: "RecID"
       address: "add_anon"
       conparid: "ConParID"
       parid: "ParID"
@@ -164,7 +164,7 @@ census_config:
     country: "EW"
     year: 1911
     runtype: False
-    census_file: "data/input/census/EW1911_geocode_egress_2022_11_03.txt"
+    census_file: "data/input/census/EW1911_geocode_egress_2022_11_03_recid.txt"
 
     csv_params:
       sep: "\t"
@@ -174,7 +174,7 @@ census_config:
       na_values: [".", " "]
       assume_missing: True
     census_fields:
-      uid: "sha256"
+      uid: "RecID"
       address: "add_anon"
       conparid: "ConParID"
       parid: "ParID"
@@ -345,7 +345,7 @@ census_config:
   SCOT_1901:
     country: "SCOT"
     year: 1901
-    runtype: False
+    runtype: True
     census_file: "data/input/census/SCOT1901_geocode_egress_2022_11_03_recid.txt"
 
     csv_params:
