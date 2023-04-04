@@ -671,6 +671,8 @@ class Target_geom:
     output_params: Output_params
     standardisation_file: str
     query_criteria: str
+    max_points_per_unit: int = 2
+    max_dist_between_points: int = 1000
     filename_disamb: str = ""
     geometry_format: str = ""
     encoding: str = ""
