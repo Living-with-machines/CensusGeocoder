@@ -2,6 +2,8 @@ import geopandas as gpd
 import pandas as pd
 import json
 import pathlib
+import numpy as np
+from scipy import spatial
 
 
 def set_geom_files(geom_config):
@@ -33,7 +35,7 @@ def set_geom_files(geom_config):
 
 
 def process_raw_geo_data(
-    geom_name, boundary_data, geom_config, census_params, output_dir
+    geom_name, boundary_data, geom_config, census_params, output_dir, geom_blocking_cols,
 ):
     """Process target geometry data. Save processed geometry data to
     file. Returns dataframe with geometry data removed (to reduce size)
@@ -101,13 +103,22 @@ def process_raw_geo_data(
             target_gdf, boundary_data, geom_config, new_uid
         )
 
+        target_gdf_processed = parse_address(target_gdf_processed, geom_config) #IMPORTANT THAT ADDRESS PARSING PRECEDES DEDUP BUT DON'T WANT 2 INSTANCES
+
     elif geom_config.geom_type == "point":
         target_gdf_processed = process_point(
             target_gdf, boundary_data, geom_config, new_uid
         )
+        target_gdf_processed = parse_address(target_gdf_processed, geom_config) #IMPORTANT THAT ADDRESS PARSING PRECEDES DEDUP BUT DON'T WANT 2 INSTANCES
+    
+        dedup_fields = geom_blocking_cols.copy()
+        dedup_fields.append(geom_config.data_fields.address_field)
+        # print(target_gdf_processed, "#"*40)
+        target_gdf_processed = dedup_streets(target_gdf_processed, dedup_fields, geom_config.data_fields.uid_field, 
+        geom_config.max_points_per_unit, geom_config.max_dist_between_points, new_uid, )
+        # print(target_gdf_processed)
+    # target_gdf_processed = target_gdf_processed.dropna(subset=geom_blocking_cols).copy() #assess impact of dropna
 
-    target_gdf_processed = target_gdf_processed.dropna().copy()
-    target_gdf_processed = parse_address(target_gdf_processed, geom_config)
 
     if (
         target_gdf_processed.crs != geom_config.output_params.crs
@@ -257,7 +268,7 @@ def process_point(point_gdf, boundary_data, geom_config, new_uid):
         + "_"
         + tmp["tmp_id"].astype(str)
     )
-    tmp2 = tmp.drop_duplicates(subset=[new_uid], keep=False)
+    tmp2 = tmp.drop_duplicates(subset=[new_uid], keep=False) # why?
     tmp3 = tmp2.set_index(new_uid)
     return tmp3
 
@@ -438,3 +449,36 @@ def process_wkt(target_df, geom_config):
         crs=geom_config.projection,
     )
     return target_gdf
+
+
+def calc_dist(coords):
+    np.seterr(all="ignore")
+    mean_dist = spatial.distance.pdist(np.array(list(zip(coords.x, coords.y)))).mean()
+    return mean_dist
+
+def dedup_streets(gdf, dedup_fields, uid_field, max_points, max_dist_btwn_points, new_uid ):
+
+    gdf = gdf.reset_index()
+    # print(gdf)
+    gdf["count"] = gdf.groupby(dedup_fields).transform("size")
+
+    gdf = gdf[gdf["count"] <= max_points].copy()
+    
+
+    dist_grouped = gdf.groupby(by=dedup_fields)["geometry"].apply(lambda x: calc_dist(x)).reset_index(name="dist_calc")
+    gdf_final = pd.merge(left = gdf, right = dist_grouped, on = dedup_fields)
+
+    # gdf_final["dist_calc"] = gdf_final["dist_calc"].fillna(0)
+    gdf_final = gdf_final[(gdf_final["dist_calc"] <= max_dist_btwn_points) | (gdf_final["dist_calc"].isna())]
+
+    gdf_multi_only = gdf_final[gdf_final.duplicated(subset=dedup_fields, keep = False)]
+
+    gdf_multi_only = gdf_multi_only.groupby(dedup_fields)[uid_field].apply(lambda x: str(x.to_list())).reset_index(name = f"{uid_field}_removed")
+    gdf_final = pd.merge(left = gdf_final, right = gdf_multi_only, on = dedup_fields, how="left")
+    # print(len(gdf_final))
+    gdf_final = gdf_final.drop_duplicates(subset=dedup_fields, keep = "first").copy()
+    # print(len(gdf_final))
+    gdf_final = gpd.GeoDataFrame(gdf_final)
+    gdf_final = gdf_final.set_index(new_uid)
+
+    return gdf_final
