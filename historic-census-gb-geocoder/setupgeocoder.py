@@ -1,4 +1,6 @@
 import pandas as pd
+import pathlib
+import geopandas as gpd
 
 import census
 import eval
@@ -157,9 +159,29 @@ class CensusGB_geocoder:
             Path to write output file.
         """
 
-        processed_geom_data, new_uid = target_geom_preprocess.process_raw_geo_data(
-            geom_name, historic_boundaries, geom_config, census_params, output_dir,
-        )
+        geom_path = pathlib.Path(f"data/output_geom_test/{census_params.year}/{census_params.country}/{geom_name}/{geom_name}_{census_params.country}_{census_params.year}.geojson")
+
+        if geom_path.exists():
+            new_uid =  (str(geom_name)
+            + "_"
+            + str(census_params.country)
+            + "_"
+            + str(census_params.year)
+            )
+            # print(new_uid)
+            
+            processed_geom_data = gpd.read_file(geom_path)
+            # print(processed_geom_data)
+            processed_geom_data = processed_geom_data.drop(columns="geometry").set_index(new_uid)
+            # print(processed_geom_data.info())
+
+
+
+        else:
+
+            processed_geom_data, new_uid = target_geom_preprocess.process_raw_geo_data(
+                geom_name, historic_boundaries, geom_config, census_params, output_dir, geom_blocking_cols,
+            )
 
         # (
         #     inds_list,
@@ -182,11 +204,17 @@ class CensusGB_geocoder:
             # print(census_subset)
             # inds_list_all.append(inds_in_part)
             # adds_list_all.append(adds_in_part)
-
+            # print(census_subset)
+            # print(census_subset.info())
+            # print(processed_geom_data)
+            # print(processed_geom_data.info())
             if not census_subset.empty:
-                census_subset_tfidf = utils.compute_tfidf(
-                    census_subset, census_params.census_fields["address"]
-                )
+                # census_subset = census_subset[[census_params.census_fields["address"]]]
+                # census_subset_tfidf = utils.compute_tfidf(
+                #     census_subset, census_params.census_fields["address"]
+                # )
+                # print(census_subset)
+                # print(census_subset_tfidf)
                 # print(processed_geom_data)
                 # print(geom_blocking_cols)
                 # print(census_blocking_cols)
@@ -199,7 +227,7 @@ class CensusGB_geocoder:
                 )
                 # print(census_subset_tfidf)
                 target_results = recordcomparison.compare(
-                    census_subset_tfidf,
+                    census_subset[[census_params.census_fields["address"]]],#_tfidf
                     processed_geom_data,
                     candidate_links,
                     geom_config,
@@ -207,52 +235,58 @@ class CensusGB_geocoder:
                 )
                 linked, linked_duplicates = recordcomparison.process_results(
                     target_results,
-                    census_subset_tfidf,
+                    census_subset,#_tfidf
                     processed_geom_data,
                     census_params,
                     geom_config,
                     new_uid,
+                    partition,
                 )
+                if not linked.empty and not linked_duplicates.empty:
+
+
+                    linked_output = linked.drop(
+                        columns=[
+                            census_params.census_fields["address"],
+                            geom_config.data_fields.address_field,
+                        ]
+                    )
+
+                    linked_duplicates_output = linked_duplicates.drop(
+                        columns=[
+                            census_params.census_fields["address"],
+                            geom_config.data_fields.address_field,
+                        ]
+                    )
+
+                    linked_output.to_csv(
+                        utils.set_filepath(
+                            output_dir,
+                            "linked",
+                            # census_params.country,
+                            # str(census_params.year),
+                            # geom_name,
+                        )
+                        / f"{partition}_link{census_params.census_output_params.filetype}",
+                        **census_params.census_output_params.to_csv_kwargs,
+                    )
+
+                    linked_duplicates_output.to_csv(
+                        utils.set_filepath(
+                            output_dir,
+                            "linked_duplicates",
+                            # census_params.country,
+                            # str(census_params.year),
+                            # geom_name,
+                        )
+                        / f"{partition}_linkdup{census_params.census_output_params.filetype}",
+                        **census_params.census_output_params.to_csv_kwargs,
+                    )
+                else:
+                    continue
+
             else:
                 continue
-
-            linked_output = linked.drop(
-                columns=[
-                    census_params.census_fields["address"],
-                    geom_config.data_fields.address_field,
-                ]
-            )
-
-            linked_duplicates_output = linked_duplicates.drop(
-                columns=[
-                    census_params.census_fields["address"],
-                    geom_config.data_fields.address_field,
-                ]
-            )
-
-            linked_output.to_csv(
-                utils.set_filepath(
-                    output_dir,
-                    "linked",
-                    # census_params.country,
-                    # str(census_params.year),
-                    # geom_name,
-                )
-                / f"{partition}_link{census_params.census_output_params.filetype}",
-                **census_params.census_output_params.to_csv_kwargs,
-            )
-
-            linked_duplicates_output.to_csv(
-                utils.set_filepath(
-                    output_dir,
-                    "linked_duplicates",
-                    # census_params.country,
-                    # str(census_params.year),
-                    # geom_name,
-                )
-                / f"{partition}_linkdup{census_params.census_output_params.filetype}",
-                **census_params.census_output_params.to_csv_kwargs,
-            )
 
             # adds_list = eval.append_list(
             #     linked, census_params.census_output_params.new_uid, adds_list,
@@ -278,6 +312,8 @@ class CensusGB_geocoder:
         #     inds_list = eval.append_list(
         #         cen_geom_lkp, census_params.census_fields.uid, inds_list,
         #     )
+
+
 
         # eval.eval_df_add(
         #     eval_df,
