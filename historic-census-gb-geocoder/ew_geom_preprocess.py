@@ -176,6 +176,10 @@ def join_parish_rsd_boundary(par_boundary, rsd_boundary, conparid, rsd_id_field)
     )
 
     par_rsd_boundary = par_rsd_boundary.dropna(subset=[conparid, rsd_id_field]).copy()
+
+    par_rsd_boundary[conparid] = pd.to_numeric(par_rsd_boundary[conparid], errors="raise", downcast="integer")
+    par_rsd_boundary[rsd_id_field] = pd.to_numeric(par_rsd_boundary[rsd_id_field], errors="raise", downcast="integer")
+    
     par_rsd_boundary["tmp_id"] = (
         par_rsd_boundary[conparid].astype(str)
         + "_"
