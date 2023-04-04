@@ -57,7 +57,7 @@ def clean_census_address_data(census_dd, address_field, standardisation_file):
     )
     census_dd = census_dd.fillna(value=np.nan)
     census_dd[address_field] = census_dd[address_field].str.strip()
-    census_dd = census_dd.dropna(subset=[address_field]).copy()
+    census_dd = census_dd.dropna(subset=address_field).copy()
 
     return census_dd
 
@@ -96,6 +96,11 @@ def process_ew_census(
     partition_list: list
         List of partition values from census data.
     """
+
+
+    census_cleaned = census_cleaned.dropna(subset=census_params.census_fields["conparid"]).copy()
+    census_cleaned = census_cleaned.astype({census_params.census_fields["conparid"]:"int32"})
+
     census_dd = dd.merge(
         left=census_cleaned,
         right=rsd_dictionary,
@@ -103,10 +108,7 @@ def process_ew_census(
         right_on=rsd_dictionary_config.cen_parid_field,
         how="left",
     )
-    census_dd[rsd_dictionary_config.rsd_id_field] = pd.to_numeric(
-        census_dd[rsd_dictionary_config.rsd_id_field], errors="coerce"
-    )
-
+    
     census_dd[census_params.census_output_params.new_uid] = (
         census_dd[census_params.census_fields["address"]].astype(str)
         + "_"
@@ -249,7 +251,7 @@ def process_scot_census(
         List of partition values from census data.
     """
 
-    print(census_cleaned[census_cleaned["RecID"] == 763827].compute().head())
+    # print(census_cleaned[census_cleaned["RecID"] == 763827].compute().head())
 
     census_dd = dd.merge(
         left=census_cleaned,
@@ -258,7 +260,7 @@ def process_scot_census(
         right_on=boundary_lkup_config.parid_field,
         how="left",
     )
-    print(census_dd[census_dd["RecID"] == 763827].compute().head(10))
+    # print(census_dd[census_dd["RecID"] == 763827].compute().head(10))
     census_dd[boundary_lkup_config.parid_field] = pd.to_numeric(
         census_dd[boundary_lkup_config.parid_field], errors="coerce"
     )
