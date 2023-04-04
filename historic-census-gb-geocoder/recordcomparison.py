@@ -84,6 +84,7 @@ def compare(
         if census_params.comparison_params.string_comp_alg in [
             "rapidfuzzy_wratio",
             "rapidfuzzy_partial_ratio",
+            "rapidfuzzy_partial_ratio_alignment"
         ]:
             target_comparison.add(
                 utils.rapidfuzzy_wratio_comparer(
@@ -91,6 +92,14 @@ def compare(
                     right_on=geom_config.data_fields.address_field,
                     method=census_params.comparison_params.string_comp_alg,
                     label=f"{census_params.comparison_params.string_comp_alg}_s",
+                )
+            )
+            target_comparison.add(
+                utils.rapidfuzzy_wratio_comparer(
+                    left_on=census_params.census_fields["address"],
+                    right_on=geom_config.data_fields.address_field,
+                    method="rapidfuzzy_partial_ratio_alignment",
+                    label="align",
                 )
             )
         else:
@@ -113,7 +122,7 @@ def compare(
 
 
 def process_results(
-    target_results, census, target_geom_data, census_params, geom_config, new_uid
+    target_results, census, target_geom_data, census_params, geom_config, new_uid, partition
 ):
     """Processes target results by selecting best batch using a combination of
     fuzzy string matching score and tf-idf weighting. Candidate links with more
@@ -174,14 +183,26 @@ def process_results(
             by=census_params.census_output_params.new_uid
         )
 
-        linked_all[f"{census_params.comparison_params.string_comp_alg}_ws"] = (
-            linked_all[f"{census_params.comparison_params.string_comp_alg}_s"]
-            * linked_all["tfidf"]
-        )
+        # linked_all[f"{census_params.comparison_params.string_comp_alg}_ws"] = (
+        #     linked_all[f"{census_params.comparison_params.string_comp_alg}_s"]
+        #     * linked_all["tfidf"]
+        # )
+
+        # linked_all.to_csv(f"{partition}_tf_idf_trial.tsv", sep="\t")
+
+        linked_all["fs"] = linked_all[f"{census_params.comparison_params.string_comp_alg}_s"] * linked_all["align"]
+
+        # linked_all_maxonly = linked_all[
+        #     linked_all[f"{census_params.comparison_params.string_comp_alg}_s"] # changed to just 's'
+        #     == linked_all.groupby(census_params.census_output_params.new_uid)[
+        #         f"{census_params.comparison_params.string_comp_alg}_s"
+        #     ].transform("max")
+        # ]
+
         linked_all_maxonly = linked_all[
-            linked_all[f"{census_params.comparison_params.string_comp_alg}_ws"]
+            linked_all["fs"] # changed to just 's'
             == linked_all.groupby(census_params.census_output_params.new_uid)[
-                f"{census_params.comparison_params.string_comp_alg}_ws"
+                "fs"
             ].transform("max")
         ]
 
