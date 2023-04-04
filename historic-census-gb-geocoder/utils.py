@@ -36,6 +36,8 @@ class rapidfuzzy_wratio_comparer(BaseCompareFeature):
             str_sim_alg = rapidfuzzy_wratio
         elif self.method == "rapidfuzzy_partial_ratio":
             str_sim_alg = rapidfuzzy_partialratio
+        elif self.method == "rapidfuzzy_partial_ratio_alignment":
+            str_sim_alg = rapidfuzzy_partialratioalignment
         else:
             raise ValueError("The algorithm '{}' is not known.".format(self.method))
 
@@ -83,6 +85,28 @@ def rapidfuzzy_partialratio(s1, s2):
         try:
             # divide by 100 to make comparable with levenshtein etc
             return (fuzz.partial_ratio(x[0], x[1])) / 100
+        except Exception as err:
+            if pd.isnull(x[0]) or pd.isnull(x[1]):
+                return np.nan
+            else:
+                raise err
+
+    return conc.apply(fuzzy_apply)
+
+def rapidfuzzy_partialratioalignment(s1, s2):
+    """Apply rapidfuzz partial_ratio_alignment to compare two pandas series"""
+
+    conc = pd.Series(list(zip(s1, s2)))
+
+    # from rapidfuzz import fuzz
+
+    def fuzzy_apply(x):
+
+        try:
+            calc = fuzz.partial_ratio_alignment(x[0], x[1])
+            alignment_dist = calc.dest_end - calc.dest_start
+            # divide by 100 to make comparable with levenshtein etc
+            return (alignment_dist)
         except Exception as err:
             if pd.isnull(x[0]) or pd.isnull(x[1]):
                 return np.nan
