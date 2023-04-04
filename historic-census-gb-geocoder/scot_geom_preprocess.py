@@ -31,9 +31,9 @@ def process_scot_boundary(boundary_config):
         crs=boundary_config.projection,
     )
 
-    parish_boundary[boundary_config.uid] = parish_boundary[
-        boundary_config.uid
-    ].str.upper()
+    # parish_boundary[boundary_config.uid] = parish_boundary[
+    #     boundary_config.uid
+    # ].str.upper()
 
     parish_boundary["tmp_id"] = parish_boundary[boundary_config.uid]
 
@@ -67,6 +67,7 @@ def process_scot_lkup(
         boundary_lkup_config.link_id,
         boundary_config.uid,
     ]
+    
     boundary_lkup = pd.read_excel(
         boundary_lkup_config.filepath,
         sheet_name=boundary_lkup_config.sheet,
