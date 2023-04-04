@@ -1,4 +1,4 @@
-# historic-census-gb-geocoder
+# CensusGeocoder
 
 ![overview](documentation/overview_large_new.png)
 
