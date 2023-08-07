@@ -21,7 +21,7 @@ class Geometry:
         self.read_params = read_params
         self.write_params = write_params
         self.data = None
-
+        self.geom_type = None
 
         
         self.field_list = utils.fieldtolist(self.fields, )
@@ -33,7 +33,8 @@ class Geometry:
     def create_uid(self,
                    list_of_idcols,
                    ):
-        uid = "_".join([idcol for idcol in list_of_idcols])
+        uid = "_".join([str(idcol) for idcol in list_of_idcols])
+        print(uid)
         self.data[uid] = self.data[list_of_idcols].astype(str).agg('_'.join, axis=1)
 
     def read_geometry_file(self, 
@@ -65,11 +66,27 @@ class Geometry:
         else:
             "do nothing"
 
-        return self.data
+        self.geom_type = self.getgeomtype()
+
+        
 
     
-    def assigntoboundary(self, ):
-        pass
+    def getgeomtype(self, ):
+        geom_types = self.data.geom_type.value_counts()
+        geoms = {
+        "point": ["Point"],
+        "line":["Linestring", "Multilinestring",],
+        "polygon":["Polygon", "MultiPolygon", ]}
+
+        geom_l = []
+        for k, v in geoms.items():
+            if any(i in geom_types.index for i in v):
+                geom_l.append(k)
+
+        if len(geom_l) > 1:
+            raise ValueError(f"Mixed geometry types: {geom_l}")
+        else:
+            return geom_l[0]
     
 
 
@@ -79,7 +96,7 @@ class TargetGeometry(Geometry):
                  standardisation_file, 
                  census_country, 
                  census_year, 
-                 geom_type,
+                #  geom_type,
                  *args,
                  **kwargs, 
                  ):
@@ -88,18 +105,22 @@ class TargetGeometry(Geometry):
         self.standardisation_file = standardisation_file
         self.census_country = census_country
         self.census_year = census_year
-        self.geom_type = geom_type
+        # self.geom_type = geom_type
 
         super().__init__(*args, **kwargs)
 
-        self.uid = self.create_uid(self.name, 
-                            self.census_country, 
-                            self.census_year, 
-                            )
+        # self.uid = self.create_uid([self.name, 
+        #                     self.census_country, 
+        #                     self.census_year,] 
+        #                     )
         
-        self.data = utils.clean_address_data(self.data, 
-                                            self.fields["address"], 
-                                            self.standardisation_file, )
+        # self.data = utils.clean_address_data(self.data, 
+        #                                     self.fields["address"], 
+        #                                     self.standardisation_file, )
+
+    # def assigntoboundary(self, ):
+    #     if self.data.geometry.geom_type == "Point"
+    #     pass
 
 
 class Boundary(Geometry):
