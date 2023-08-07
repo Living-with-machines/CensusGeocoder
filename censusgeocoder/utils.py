@@ -213,10 +213,37 @@ def get_file_ext(file_path, ):
     return file_ext
 
 
+def add_lkup(data, lkup_file, fields, lkup_params, ):
+
+    file_type = get_file_ext(lkup_file, )
+
+    if file_type in [".xlsx", ".xls", ]:
 
 
+        lkup = pd.read_excel(
+            lkup_file, usecols = fieldtolist(fields), **lkup_params, 
+                                    )
+        
+    elif file_type in [".tsv", ".csv", ".txt", ]:
 
+        lkup = pd.read_csv(lkup_file, usecols = fieldtolist(fields), **lkup_params, )
 
+    else:
+        raise ValueError("Not a valid lkup format.")
+    
+    data.data = pd.merge(left = data.data, right = lkup, left_on = data.fields["uid"], right_on = fields["geom_uid"], how = "left", )
+
+    return data.data
+
+def fieldtolist(fields,
+                ):
+    
+    field_list = []
+
+    for k, v in fields.items():
+        field_list.append(v)
+
+    return field_list
 
 
 

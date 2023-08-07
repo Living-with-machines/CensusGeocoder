@@ -24,47 +24,11 @@ class Geometry:
 
 
         
-        self.field_list = self.fieldtolist(self.fields, )
+        self.field_list = utils.fieldtolist(self.fields, )
 
+    def add_lkup(self, **kwargs, ):
+        self.data = utils.add_lkup(self, **kwargs, )
 
-
-    def add_lkup(self, lkup_file, fields, lkup_params, ):
-
-        file_type = utils.get_file_ext(lkup_file, )
-
-        if file_type in [".xlsx", ".xls", ]:
-
-
-            lkup = pd.read_excel(
-                lkup_file, usecols = self.fieldtolist(fields), **lkup_params, 
-                                        )
-            
-        elif file_type in [".tsv", ".csv", ".txt", ]:
-
-            lkup = pd.read_csv(lkup_file, usecols = self.fieldtolist(fields), **lkup_params, )
-
-        else:
-            raise ValueError("Not a valid lkup format.")
-        
-        self.data = pd.merge(left = self.data, right = lkup, left_on = self.fields["uid"], right_on = fields["geom_uid"], how = "left", )
-
-
-    # def create_uid(self, 
-    #                geom_name, 
-    #                census_country, 
-    #                census_year,
-
-    #                 ):
-        
-    #     uid = (
-    #     str(geom_name)
-    #     + "_"
-    #     + str(census_country)
-    #     + "_"
-    #     + str(census_year)
-    # )
-    
-    #     return uid
 
     def create_uid(self,
                    list_of_idcols,
@@ -104,16 +68,8 @@ class Geometry:
         return self.data
 
     
-    def fieldtolist(self, 
-                    fields,
-                    ):
-        
-        field_list = []
-
-        for k, v in fields.items():
-            field_list.append(v)
-
-        return field_list
+    def assigntoboundary(self, ):
+        pass
     
 
 
