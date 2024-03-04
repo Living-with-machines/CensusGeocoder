@@ -1,0 +1,54 @@
+target_geom1:
+  geom_name: "gb1900"
+  gis_file: "../data/input/target_geoms/gb1900/gb1900_gazetteer_complete_july_2018.csv"
+  gis_uid_field: "pin_id"
+  gis_geocode_field: "final_text"
+  gis_lat_long: True
+  gis_long_field: "osgb_east"
+  gis_lat_field: "osgb_north"
+  gis_projection: "EPSG:27700"
+  gis_read_params:
+    encoding: "utf-16"
+    sep: ","
+    usecols: ["pin_id", "final_text", "osgb_east", "osgb_north", ]
+    nrows: 20000
+
+  gis_field_to_clean: "final_text"
+  gis_convert_non_ascii: True
+  gis_standardisation_file: "../inputs/gb1900_standardisation.json"
+  gis_min_len: 5
+  cleaned_field_suffix: "_alt"
+  dedup: True
+  dedup_max_points: 2
+  dedup_max_distance_between_points: 1000
+
+
+
+  item_per_unit_uid: "street_uid"
+
+  gis_write_params:
+    sep: "\t"
+    encoding: "utf-8"
+    index: False
+
+target_geom2:
+  geom_name: "osopenroads"
+  gis_file: "../data/input/target_geoms/osopenroads/osopenroads.shp"
+  gis_uid_field: "nameTOID"
+  gis_convert_non_ascii: True
+  gis_standardisation_file: "../inputs/osopenroads_standardisation.json"
+  gis_geocode_field: "name1"
+  gis_field_to_clean: "name1"
+  cleaned_field_suffix: "_alt"
+
+  gis_read_params:
+    engine: "pyogrio"
+    columns: ["nameTOID", "name1", ]
+    max_features: 10000
+
+  item_per_unit_uid: "street_uid"
+
+  gis_write_params:
+    sep: "\t"
+    encoding: "utf-8"
+    index: False

@@ -1,0 +1,95 @@
+census:
+  country: "scot"
+  year: 1851
+  uid_field: "RecID"
+  field_to_geocode: "Address"
+  boundaries_field: ["merged_id"]
+  subset_field: "RC"
+  census_file: "../data/input/census/corrected/refactor_test_scot_1851.tsv"
+  read_csv_params:
+    sep: "\t" # passed to 'sep' parameter of dask read_csv
+    encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
+    quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
+    na_values: [".", " ", "-"] # Passed to 'na_values' parameter of pandas read_csv
+    # nrows: 100000
+    usecols: ["RecID", "Address","ParID", "RC"]
+    dtype: 
+      RecID: "int32"
+      Address: "str"
+      # ConParID: "int16"
+      # ParID: "int16"
+      RC: "int8"
+
+  field_to_clean: "Address"
+  standardisation_file: "../inputs/icem_street_standardisation.json" # regex replacement file
+  min_len: 5
+  cleaned_field_suffix: "_alt"
+
+  unique_field_to_geocode_name: "address_uid"
+
+
+  lkup_file: "../data/input/scot/scot_parish_boundary/scotboundarylinking.xlsx"
+  lkup_uid_field: "ParID"
+  lkup_census_field: "ParID"
+  lkup_params:
+    sheet_name: "1851_icem"
+    usecols: ["ParID", "merged_id", ]
+
+  # output_file: "somepath.txt"
+  # output_file_slim: "somepath.txt"
+
+  write_processed_csv_params:
+    sep: "\t"
+    encoding: "utf-8"
+    index: False
+
+  write_processed_csv_params_slim:
+    columns: ["address_uid", "Address_alt", "merged_id", "RC"]
+    sep: "\t"
+    encoding: "utf-8"
+    index: False
+
+  # read_processed_csv_params:
+  #   usecols: ["address_uid", "Address_alt", "ConParID", "CEN_1851", "RC"]
+  #   sep: "\t"
+  #   encoding: "utf-8"
+  #   dtype:
+  #     address_uid: "int16"
+  #     Address_alt: "str"
+  #     ConParID: "int16"
+  #     CEN_1851: "int16"
+  #     RC: "int8"
+
+
+  comparers:
+    rapidfuzzy_wratio: "rapidfuzzy_wratio_s"
+    rapidfuzzy_partial_ratio_alignment: "align"
+  sim_comp_thresh: 0.9
+  align_thresh: 7
+  final_score_field: "fs"
+
+boundaries:
+  boundary_1:
+    geom_name: "scotparish"
+    gis_file: "../data/input/scot/scot_parish_boundary/CivilParish_pre1891/CivilParish_pre1891.shp"
+    gis_uid_field: "JOIN_NAME_"
+    gis_read_params:
+      engine: "pyogrio"
+      columns: ["JOIN_NAME_"]
+      # max_features: 1000
+    geom_format: None
+    gis_write_params:
+      sep: "\t"
+      encoding: "utf-8"
+      index: False
+    lkup_file: "../data/input/scot/scot_parish_boundary/scotboundarylinking.xlsx"
+    lkup_field_uid: "JOIN_NAME_"
+    lkup_field_censuslink: "merged_id"
+    lkup_read_params:
+      sheet_name: "1851_gis"
+      na_values: "."
+      usecols: ["JOIN_NAME_", "merged_id" ]
+    gis_write_params:
+      sep: "\t"
+      encoding: "utf-8"
+      index: False

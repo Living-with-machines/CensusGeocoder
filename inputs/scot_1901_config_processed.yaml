@@ -1,0 +1,38 @@
+census:
+  country: "scot"
+  year: 1901
+  uid_field: "address_uid"
+  field_to_geocode: "Address_alt"
+  boundaries_field: ["merged_id"]
+  subset_field: "RC"
+  # census_file: "../data/refactor_test_1851.tsv"
+
+  read_csv_params:
+    usecols: ["address_uid", "Address_alt", "merged_id", "RC"]
+    sep: "\t"
+    encoding: "utf-8"
+    dtype:
+      address_uid: "int32"
+      Address_alt: "str"
+      RC: "int8"
+
+  unique_field_to_geocode_name: "address_uid" #may want to allow removal for processing input version
+
+
+  write_processed_csv_params:
+    sep: "\t"
+    encoding: "utf-8"
+    index: False
+
+  write_processed_csv_params_slim:
+    columns: ["address_uid", "Address_alt", "merged_id", "RC"]
+    sep: "\t"
+    encoding: "utf-8"
+    index: False
+
+  comparers:
+    rapidfuzzy_wratio: "rapidfuzzy_wratio_s"
+    rapidfuzzy_partial_ratio_alignment: "align"
+  sim_comp_thresh: 0.9
+  align_thresh: 7
+  final_score_field: "fs"

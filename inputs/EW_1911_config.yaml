@@ -1,0 +1,113 @@
+census:
+  country: "EW"
+  year: 1911
+  uid_field: "RecID"
+  field_to_geocode: "Address"
+  boundaries_field: ["ConParID", "CEN_1911"]
+  subset_field: "RC"
+  census_file: "../data/input/census/corrected/refactor_test_EW_1911_corrected_geocode.tsv"
+  read_csv_params:
+    sep: "\t" # passed to 'sep' parameter of dask read_csv
+    encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
+    quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
+    na_values: [".", " ", "-"] # Passed to 'na_values' parameter of pandas read_csv
+    # nrows: 10000
+    usecols: ["RecID", "Address", "ConParID", "ParID", "RC"]
+    dtype: 
+      RecID: "int32"
+      Address: "str"
+      # ConParID: "int32"
+      ParID: "int32"
+      RC: "int8"
+
+  field_to_clean: "Address"
+  standardisation_file: "../inputs/icem_street_standardisation.json" # regex replacement file
+  min_len: 5
+  cleaned_field_suffix: "_alt"
+
+  unique_field_to_geocode_name: "address_uid"
+
+
+  lkup_file: "../data/input/ew/parish_dicts_encoding/1911_ICeM_DICTIONARY_CODED.txt"
+  lkup_uid_field: "ParID"
+  lkup_census_field: "ParID"
+  lkup_params:
+    encoding: "utf-8"
+    sep: "\t"
+    quoting: 3
+    usecols: ["ParID", "CEN_1911", ]
+
+  # output_file: "somepath.txt"
+  # output_file_slim: "somepath.txt"
+
+  write_processed_csv_params:
+    sep: "\t"
+    encoding: "utf-8"
+    index: False
+
+  write_processed_csv_params_slim:
+    columns: ["address_uid", "Address_alt", "ConParID", "CEN_1911", "RC"]
+    sep: "\t"
+    encoding: "utf-8"
+    index: False
+
+  # read_processed_csv_params:
+  #   usecols: ["address_uid", "Address_alt", "ConParID", "CEN_1911", "RC"]
+  #   sep: "\t"
+  #   encoding: "utf-8"
+  #   dtype:
+  #     address_uid: "int16"
+  #     Address_alt: "str"
+  #     ConParID: "int16"
+  #     CEN_1911: "int16"
+  #     RC: "int8"
+
+
+  comparison_method: "1911_bespoke"
+  comparers:
+    rapidfuzzy_wratio: "rapidfuzzy_wratio_s"
+    rapidfuzzy_partial_ratio_alignment: "align"
+    rapidfuzzy_get_src_start_pos: "src_start_pos"
+  sim_comp_thresh: 0.9
+  align_thresh: 7
+  final_score_field: "fs"
+
+boundaries:
+  boundary_1:
+    geom_name: "parish"
+    gis_file: "../data/input/ew/1851EngWalesParishandPlace/1851EngWalesParishandPlace_valid.shp"
+    gis_uid_field: "ID"
+    gis_read_params:
+      engine: "pyogrio"
+      columns: ["ID",]
+      # max_features: 1000
+    geom_format: None
+    lkup_file: "../data/input/ew/icem_parish_lkup/UKDS_GIS_to_icem.xlsx"
+    lkup_field_uid: "UKDS_ID"
+    lkup_field_censuslink: "conparid_01-11"
+    lkup_read_params:
+      sheet_name: "link"
+      na_values: "."
+      usecols: ["UKDS_ID", "conparid_01-11", ]
+    gis_write_params:
+      sep: "\t"
+      encoding: "utf-8"
+      index: False
+
+  boundary_2:
+    geom_name: "rsd"
+    gis_file: "../data/input/ew/rsd_boundary_data/RSD_1851_1911_JR_valid.shp"
+    gis_uid_field: "CEN_1911"
+    gis_read_params:
+      engine: "pyogrio"
+      columns: ["CEN_1911"]
+      # max_features: 1000
+    geom_format: None
+    gis_write_params:
+      sep: "\t"
+      encoding: "utf-8"
+      index: False
+
+
+
+
