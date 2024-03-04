@@ -2,8 +2,11 @@
 	"\\sST\\.$|\\sST$":" STREET",
 	"\\sRD\\.$|\\sRD$":" ROAD",
 	"\\sPL\\.$|\\sPL$":" PLACE",
-	"\\-":" ",
 	"[^A-Z\\s]":"",
 	"\\s+":" ",
-	"^\\s*$":null
+	"^\\s":"",
+	"^[A-Z]\\s":" ",
+	"^AND\\s":"",
+	"^\\s*$":null,
+	" ST (?!PANCRAS|JOHN|THOMAS|STEPHEN|JAMES|MARY|GEORGE|PETER|MARTIN|CUTHBERT|DUNSTAN|GILES|MARGARET|AGNES|MICHAEL|OSWOLD|KATHERINE|LEONARD|CHRISTOPHER|ANDREW|ANN|CHARLES|DAVID|ALBAN|SAVIOUR|JOSEPH)":" STREET "
 }
