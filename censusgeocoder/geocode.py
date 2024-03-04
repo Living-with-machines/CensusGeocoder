@@ -108,7 +108,10 @@ class GeoCode:
 
         self.tgt_rslts = self.compare(self.cand_links)
 
-        self.lnked, self.lnked_dup, self.lnked_left = self.process_results(
+        # self.lnked, self.lnked_dup, self.lnked_left, = self.process_results(
+        #     self.tgt_rslts
+        # )
+        self.rslts_dict = self.process_results(
             self.tgt_rslts
         )
 
@@ -128,7 +131,7 @@ class GeoCode:
         if self.census_data.empty or self.target_geometry_data.empty:
             print("No census or target geom data for this county")
             target_candidate_links = (
-                pd.MultiIndex()
+                pd.MultiIndex(levels=[[],],codes=[[],])
             )  # check this doesn't break the code
         else:
             targetgeom_indexer = recordlinkage.Index()
@@ -263,7 +266,7 @@ class GeoCode:
                 & (linked_all.index.isin(linked_duplicates) == False)
             ]
 
-        return linked, linked_duplicates, linked_leftovers
+        return {"linked":linked, "linked_duplicates":linked_duplicates, "linked_leftovers": linked_leftovers}
 
     def _set_comparisons(
         self,

@@ -1,8 +1,8 @@
 import setuptools
 
 setuptools.setup(
-    name="historic-census-gb-geocoder",
-    version="n/a",
+    name="censusgeocoder",
+    version="1.0",
     description="Geocodes Historic Great British Census Data 1851-1911",
     author=u"josh-rhodes",
     # author_email="",

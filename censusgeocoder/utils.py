@@ -11,7 +11,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import geopandas as gpd
 import json
 
-def get_file_or_filelist(file_path):
+from inspect import signature
+
+from scipy import spatial
+
+from unidecode import unidecode
+
+def get_file_or_filelist(file_path, 
+                         file_type: str = None):
     """Accepts a directory or single filepath and creates a list of file(s)
     containing target geometry data.
 
@@ -33,13 +40,13 @@ def get_file_or_filelist(file_path):
         file_list.append(str(p))
     else:
         for file_p in p.iterdir():
-            # if geom_config.filename_disamb in str(file_p):
-            file_list.append(str(file_p))
-
+            if file_type == file_p.suffix:
+                file_list.append(str(file_p))
+    print(file_list)
     return file_list
 
 
-def read_shp_geom(file_path, cols_to_keep, geom_config):
+def read_shp_geom(file_path, **params):
     """Reads target geometry from a single shapefile or multiple
     shapefiles. Returns target geometry in geopandas GeoDataFrame.
 
@@ -63,26 +70,28 @@ def read_shp_geom(file_path, cols_to_keep, geom_config):
 
     filelist = get_file_or_filelist(file_path, )
 
-    tmp_file = gpd.read_file(filelist[0], rows=1)
-    list_of_all_cols = tmp_file.columns.values.tolist()
+    # tmp_file = gpd.read_file(filelist[0], rows=1)
+    # list_of_all_cols = tmp_file.columns.values.tolist()
 
-    unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
+    # unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
 
-    target_gdf = gpd.GeoDataFrame(
-        pd.concat(
-            [
-                gpd.read_file(
-                    target_shp, ignore_fields=unwanted_cols, crs=geom_config["projection"],
-                )
-                for target_shp in filelist
-            ]
-        ),
-        crs=geom_config["projection"],
-    )
+    gdf_list = []
+
+    for file_ in filelist:
+        if pathlib.Path(file_).suffix == ".shp":
+
+            gpd.read_file(file_, 
+                          **params, )
+
+
+    
+    target_gdf = pd.concat(gdf_list)
+    
+
     return target_gdf
 
 
-def read_csv_geom(file_path, cols_to_keep, geom_config):
+def read_csv_geom(file_path, **read_params, ):
     """Reads target geometry from a single delimited file or multiple
     delimited files. Returns target geometry data in pandas DataFrame.
 
@@ -110,9 +119,7 @@ def read_csv_geom(file_path, cols_to_keep, geom_config):
         [
             pd.read_csv(
                 csv_file,
-                sep=geom_config["sep"],
-                encoding=geom_config["encoding"],
-                usecols=cols_to_keep,
+                **read_params,
             )
             for csv_file in filelist
         ]
@@ -120,31 +127,54 @@ def read_csv_geom(file_path, cols_to_keep, geom_config):
     return target_df
 
 
-def clean_address_data(df, field_to_clean, standardisation_file):
+def clean_address_data(df: pd.DataFrame, 
+                       field_to_clean,
+                       standardisation_file,
+                       min_length,
+                       suffix,
+                       convert_non_ascii: bool = False,
+                       ):
     """Generic clean address data
     Applies regex pattern replacements from file
     Strips leading and trailing spaces
     Converts to uppercase
     Drops NaN
     """
+    
+    field_to_clean_new = f"{field_to_clean}{suffix}"
+    # print(df.info())
+    # df = df.fillna(value=np.nan)
+    # print(df.info())
+    df[field_to_clean_new] = df[field_to_clean]
 
+    if convert_non_ascii == True:
+        df[field_to_clean_new] = df[field_to_clean_new].apply(lambda a: a if pd.isna(a) else unidecode(a))
 
-        # if geom_config.query_criteria != "":
-        # target_gdf = target_gdf.query(
-        #     geom_config.query_criteria, engine="python"
-        # ).copy()
-    if standardisation_file is not None:
+    df[field_to_clean_new] = df[field_to_clean_new].str.upper()
+    
+    if standardisation_file != None:
         with open(standardisation_file) as f:
             street_standardisation = json.load(f)
-        df[field_to_clean] = df[field_to_clean].replace(
-            street_standardisation, regex=True
-        )
-        df = df.fillna(value=np.nan)
-        df[field_to_clean] = df[field_to_clean].str.strip()
-        df[field_to_clean] = df[field_to_clean].str.upper()
-        df = df.dropna(subset=field_to_clean).copy()
 
-    return df
+
+        for patt, repla in street_standardisation.items():
+            df[field_to_clean_new] = df[field_to_clean_new].replace(patt, 
+                                                                                    repla, 
+                                                                                    regex=True)
+
+
+        df = df.fillna(value=np.nan)
+    df[field_to_clean_new] = df[field_to_clean_new].str.strip()
+
+    if min_length != None:
+
+        df[field_to_clean_new] = np.where(df[field_to_clean_new].str.len() >= min_length,
+                                            df[field_to_clean_new],
+                                            np.nan
+                                            )
+
+
+    return df, field_to_clean_new
 
 
 def process_coords(target_df, long_field, lat_field, projection, ):
@@ -213,27 +243,39 @@ def get_file_ext(file_path, ):
     return file_ext
 
 
-def add_lkup(data, lkup_file, fields, lkup_params, ):
+# def add_lkup(data, lkup_file, fields, lkup_params, base_link, lkup_link,):
 
-    file_type = get_file_ext(lkup_file, )
+#     # if base_uid == None:
+#     #     base_uid = data.fields["uid"]
 
-    if file_type in [".xlsx", ".xls", ]:
+#     file_type = get_file_ext(lkup_file, )
+
+#     if file_type in [".xlsx", ".xls", ]:
 
 
-        lkup = pd.read_excel(
-            lkup_file, usecols = fieldtolist(fields), **lkup_params, 
-                                    )
+#         lkup = pd.read_excel(
+#             lkup_file, usecols = fieldtolist(fields), **lkup_params, 
+#                                     )
         
-    elif file_type in [".tsv", ".csv", ".txt", ]:
+#     elif file_type in [".tsv", ".csv", ".txt", ]:
 
-        lkup = pd.read_csv(lkup_file, usecols = fieldtolist(fields), **lkup_params, )
+#         lkup = pd.read_csv(lkup_file, usecols = fieldtolist(fields), **lkup_params, )
 
-    else:
-        raise ValueError("Not a valid lkup format.")
+#     else:
+#         raise ValueError("Not a valid lkup format.")
     
-    data.data = pd.merge(left = data.data, right = lkup, left_on = data.fields["uid"], right_on = fields["geom_uid"], how = "left", )
+#     data.data = pd.merge(left = data.data, right = lkup, left_on = base_link, right_on = lkup_link, how = "left", )
 
-    return data.data
+#     data.data = data.data.dropna(subset=fieldtolist(fields)) #check
+
+#     return data.data
+
+
+def add_lkup(data, lkup_file, read_library, read_params, left_on, right_on, how = "left", ):
+    lkup_data = read_library(lkup_file, **read_params, )
+    print(lkup_data.info())
+    new_data = pd.merge(left = data, right = lkup_data, left_on = left_on, right_on = right_on, how = how, )
+    return new_data
 
 def fieldtolist(fields,
                 ):
@@ -246,6 +288,35 @@ def fieldtolist(fields,
     return field_list
 
 
+def fieldtolist_comp(fields, subset, ):
+    output_list = []
+    for k, v in fields.items():
+        for k1, v1 in v.items():
+            if k1 == subset:
+                col_val = v1
+                output_list.append(col_val)
+            else:
+                "Do nothing"
+    return output_list
+
+
+
+def create_write_params(write_params, write_fields, ):
+    if write_fields != None and write_params != None:
+        write_params = write_params
+        columns = []
+        for k, v in write_fields.items():
+            for k1, v1 in v.items():
+                if k1 == "val":
+                    col_val = v1
+                    columns.append(col_val)
+                # elif k1 == "dtype":
+                #     dtype_dict[col_val] = v1
+                # else:
+                #     "Do nothing"
+        write_params["columns"] = columns
+
+    return write_params
 
 
 
@@ -278,6 +349,8 @@ class rapidfuzzy_wratio_comparer(BaseCompareFeature):
             str_sim_alg = rapidfuzzy_partialratio
         elif self.method == "rapidfuzzy_partial_ratio_alignment":
             str_sim_alg = rapidfuzzy_partialratioalignment
+        elif self.method == "rapidfuzzy_get_src_start_pos":
+            str_sim_alg = rapidfuzzy_get_src_start_pos
         else:
             raise ValueError("The algorithm '{}' is not known.".format(self.method))
 
@@ -347,6 +420,28 @@ def rapidfuzzy_partialratioalignment(s1, s2):
             alignment_dist = calc.dest_end - calc.dest_start
             # divide by 100 to make comparable with levenshtein etc
             return (alignment_dist)
+        except Exception as err:
+            if pd.isnull(x[0]) or pd.isnull(x[1]):
+                return np.nan
+            else:
+                raise err
+
+    return conc.apply(fuzzy_apply)
+
+
+
+def rapidfuzzy_get_src_start_pos(s1, s2):
+    """Apply rapidfuzz partial_ratio_alignment to compare two pandas series"""
+
+    conc = pd.Series(list(zip(s1, s2)))
+
+    # from rapidfuzz import fuzz
+
+    def fuzzy_apply(x):
+
+        try:
+            calc = fuzz.partial_ratio_alignment(x[0], x[1])
+            return (calc.src_start)
         except Exception as err:
             if pd.isnull(x[0]) or pd.isnull(x[1]):
                 return np.nan
@@ -456,3 +551,89 @@ def write_gis_file(gdf, filepath, **params):
     # file_extension = set_gis_file_extension(params["driver"])
     gdf.to_file(filepath, **params)
 
+def calc_dist(coords):
+    np.seterr(all="ignore")
+    mean_dist = spatial.distance.pdist(np.array(list(zip(coords.x, coords.y)))).mean()
+    return mean_dist
+
+
+
+def flatten(arg):
+    if not isinstance(arg, list): # if not list
+        yield arg
+    else:
+        for sub in arg:
+            yield from flatten(sub)
+
+
+
+def validate_pandas_read_csv_kwargs(file_path, csv_params):
+    from pandas import read_csv
+    sig = signature(read_csv)
+    sig.bind(file_path, **csv_params)
+
+
+def validate_pandas_excel_kwargs(file_path, excel_params):
+    from pandas import read_excel
+    sig = signature(read_excel)
+    sig.bind(file_path, **excel_params)
+
+
+def validate_pandas_to_csv_kwargs(file_path, csv_params):
+    from pandas import DataFrame
+    df = DataFrame()
+    sig = signature(df.to_csv)
+    sig.bind(file_path, **csv_params)
+
+
+def validate_geopandas_read_file_kwargs(file_path, params):
+    from geopandas import read_file
+    sig = signature(read_file)
+    sig.bind(file_path, **params)
+
+def get_readlibrary(file_path, 
+                    read_params, ):
+    """docstring"""
+
+    # file_list = get_file_or_filelist(file_path, 
+    #                                  file_type, )
+
+    ext = pathlib.Path(file_path).suffix
+
+    if ext in [".txt", ".tsv", ".csv", ]:
+        validate_pandas_read_csv_kwargs(file_path, read_params)
+        # if geom != True:
+        #     read_library = pd.read_csv
+        # else:
+        read_library = pd.read_csv
+
+    elif ext in [".xlsx", ]:
+        validate_pandas_excel_kwargs(file_path, read_params)
+        read_library = pd.read_excel
+
+    elif ext in [".geojson", ".shp", ]:
+        # validate_geopandas_read_file_kwargs(file_path, read_params)
+        read_library =  gpd.read_file
+
+    return read_library
+
+
+def validate_paths(filepath):
+    """Checks the filepaths are valid. If not, returns an error"""
+
+    new_path = pathlib.Path(filepath)
+    if not new_path.exists():
+        new_path.mkdir(parents=True)
+        # msg = f"'{new_path}' is not a valid file path."
+        # raise ValueError(msg)
+    return new_path
+
+def write_df_to_file(output_df, output_path_components, pandas_write_params):
+
+    output_file_path = pathlib.Path(*output_path_components)
+
+    if not output_file_path.parent.exists():
+        output_file_path.parent.mkdir(parents=True)
+
+
+    output_df.to_csv(output_file_path, **pandas_write_params)
