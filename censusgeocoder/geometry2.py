@@ -250,11 +250,21 @@ class Geometry:
         #     **self.vars.gis_write_params,
         # )
 
-
         filename = f"{self.vars.census_country}_{self.vars.census_year}_{self.vars.geom_name}_{status}.tsv"
-        output_path_components = [str(x) for x in [self.vars.output_path, self.vars.census_country, self.vars.census_year, self.vars.geom_name, filename]]
+        output_path_components = [
+            str(x)
+            for x in [
+                self.vars.output_path,
+                self.vars.census_country,
+                self.vars.census_year,
+                self.vars.geom_name,
+                filename,
+            ]
+        ]
 
-        utils.write_df_to_file(self.data, output_path_components, self.vars.gis_write_params)
+        utils.write_df_to_file(
+            self.data, output_path_components, self.vars.gis_write_params
+        )
 
     def create_tgforlinking(
         self,
@@ -436,7 +446,7 @@ class Boundary(Geometry):
                 geom_name=merged_boundaries_name,
                 census_year=self.vars.census_year,
                 census_country=self.vars.census_country,
-                gis_write_params=self.vars.gis_write_params
+                gis_write_params=self.vars.gis_write_params,
             )
         )
 

@@ -24,29 +24,29 @@ class GeoCode:
         DataFrame containing target geometry data (no geometries stored).
 
     target_geometry_geocode_field: str
-        Column name of pandas.Series containing field in target_geometry_data to 
+        Column name of pandas.Series containing field in target_geometry_data to
         perform string comparison with census_geocode_field.
 
     target_geometry_indexfield:
         Column name of pandas.Series in target_geometry_data DataFrame containing index values.
 
     census_block: list
-        List of column name(s) of pandas.Series in census_data DataFrame to limit 
+        List of column name(s) of pandas.Series in census_data DataFrame to limit
         string comparisons between census_data and target_geometry_data.
 
     target_geom_block: list
-        List of column name(s) of pandas.Series in target_geometry_data DataFrame 
+        List of column name(s) of pandas.Series in target_geometry_data DataFrame
         to limit string comparisons between census_data and target_geometry_data.
 
     comparers: dict
         Dictionary of comparison functions and corresponding labels to pass to utils.rapidfuzzy_wratio_comparer.
 
     sim_thresh: int
-        Threshold to filter string similarity comparison scores; possible matches 
+        Threshold to filter string similarity comparison scores; possible matches
         must have a similarity score equal to or higher than sim_thresh.
 
     align_thresh: int
-        Threshold to filter length of string alignment; possible matches have 
+        Threshold to filter length of string alignment; possible matches have
         an alignment length equal to or higher than align_thresh.
 
     comparison_method: str
@@ -111,9 +111,7 @@ class GeoCode:
         # self.lnked, self.lnked_dup, self.lnked_left, = self.process_results(
         #     self.tgt_rslts
         # )
-        self.rslts_dict = self.process_results(
-            self.tgt_rslts
-        )
+        self.rslts_dict = self.process_results(self.tgt_rslts)
 
     def create_candidate_links(
         self,
@@ -130,8 +128,13 @@ class GeoCode:
 
         if self.census_data.empty or self.target_geometry_data.empty:
             print("No census or target geom data for this county")
-            target_candidate_links = (
-                pd.MultiIndex(levels=[[],],codes=[[],])
+            target_candidate_links = pd.MultiIndex(
+                levels=[
+                    [],
+                ],
+                codes=[
+                    [],
+                ],
             )  # check this doesn't break the code
         else:
             targetgeom_indexer = recordlinkage.Index()
@@ -266,7 +269,11 @@ class GeoCode:
                 & (linked_all.index.isin(linked_duplicates) == False)
             ]
 
-        return {"linked":linked, "linked_duplicates":linked_duplicates, "linked_leftovers": linked_leftovers}
+        return {
+            "linked": linked,
+            "linked_duplicates": linked_duplicates,
+            "linked_leftovers": linked_leftovers,
+        }
 
     def _set_comparisons(
         self,
