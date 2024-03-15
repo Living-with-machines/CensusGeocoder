@@ -40,13 +40,11 @@ class Census_vars:
 
     unique_field_to_geocode_name: str
 
-    # output_file_slim: str
 
     write_processed_csv_params: dict
 
     write_processed_csv_params_slim: dict
 
-    # read_processed_csv_params: dict
 
     comparers: dict
     comparison_method: str | None = None
@@ -72,11 +70,11 @@ class Census_vars:
     subset_field: str = None
 
     census_read_library: str = field(init=False)
-    # census_processed_read_library: str = field(init=False) #this one is the problem
+
     census_lkup_read_library: str = field(init=False)
     subsetlist: list = field(init=False)
 
-    # field_to_clean_new: str = field(init=False)
+
 
     def __post_init__(self):
         self.census_read_library = utils.get_readlibrary(
@@ -88,8 +86,6 @@ class Census_vars:
         )
 
         if self.process != False:
-            # self.census_processed_read_library = utils.get_readlibrary(self.output_file_slim, self.read_processed_csv_params, )
-            # utils.validate_pandas_read_csv_kwargs(self.census_file, self.read_processed_csv_params,)
 
             if self.lkup_file != None:
                 self.census_lkup_read_library = utils.get_readlibrary(
@@ -99,9 +95,6 @@ class Census_vars:
 
             else:
                 self.census_lkup_read_library = None
-
-        # utils.validate_pandas_to_csv_kwargs(self.output_file, self.write_processed_csv_params)
-        # utils.validate_pandas_to_csv_kwargs(self.output_file_slim, self.write_processed_csv_params_slim)
 
 
 class Census:
