@@ -27,6 +27,70 @@ class Census_vars:
 
     uid_field: str
         Column name of pandas.Series containing unique census person id.
+
+    field_to_geocode: str
+        Column name of pandas.Series containing field to geocode, e.g. Address field.
+
+    boundaries_field: list
+        # List of column names of boundary fields. [NEEDS EDITING]
+
+    census_file: str
+        Path to census file.
+
+    read_csv_params: dict
+        Dictionary of parameters for reading csv files passed to pandas.read_csv().
+
+    unique_field_to_geocode_name: str
+        [UNSURE]
+
+    write_processed_csv_params: dict
+        Dictionary of parameters for [?????] writing csv files pass to pandas.to_csv().
+
+    write_processed_csv_params_slim: dict
+        Dictionary of parameters for [?????] writing csv files pass to pandas.to_csv().
+
+    comparers: dict
+        Dictionary of comparison methods for [?????].
+
+    comparison_method: str | None = None
+        [?????]
+
+    sim_comp_thresh: int | float
+        Threshold for determining if string comparisons are sufficiently similar to be considered a match.
+
+    align_thresh: int | float | None = None [POSSIBLY CHANGE TO 0 DEFAULT]
+        Threshold for alignment score, a match must be based on an alignment higher than align_thresh to be considered a match.
+
+    final_score_field: str = "fs"
+        Column name of field storing the final matching score.
+
+    output_path: str = "../data/output_art_revs2"
+        Directory path to write outputs to.
+
+    output_filetype: str = ".tsv"
+        Type of file (and file extension) of output files.
+
+    process: bool = True
+        Process census or read-in pre-processed census data. If False, processing steps are skipped.
+
+    lkup_file: str = None
+        
+    lkup_uid_field: str = None
+    lkup_census_field: str = None
+    lkup_params: dict = None
+
+    convert_non_ascii: bool = False
+    field_to_clean: str = None
+    standardisation_file: str = None
+    min_len: int = None
+    cleaned_field_suffix: str = None
+
+    subset_field: str = None
+
+    census_read_library: str = field(init=False)
+
+    census_lkup_read_library: str = field(init=False)
+    subsetlist: list = field(init=False)
     """
 
     country: str
@@ -48,8 +112,8 @@ class Census_vars:
 
     comparers: dict
     comparison_method: str | None = None
-    sim_comp_thresh: int | float | None = None
-    align_thresh: int | float | None = None
+    sim_comp_thresh: int | float = 0
+    align_thresh: int | float | None = None #set to 0?
     final_score_field: str = "fs"
 
     output_path: str = "../data/output_art_revs2"
