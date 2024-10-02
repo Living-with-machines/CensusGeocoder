@@ -138,11 +138,6 @@ class Census_vars:
         self.census_read_library = utils.get_readlibrary(
             self.census_file, self.read_csv_params
         )
-        # utils.validate_pandas_read_csv_kwargs(
-        #     self.census_file,
-        #     self.read_csv_params,
-        # ) already done in get_readlibrary
-
 
 class Census:
     """A class for processing census data.
@@ -160,6 +155,16 @@ class Census:
 
     Methods
     -------
+
+    `geocode()`
+        Geocodes `field_to_geocode` using `geometry.GeoCode()`. Writes 3 types of output files (see `geometry.GeoCode.process_results()`).
+        If subset list specified, iterates over subsets, geo-coding each subset and writing output files to their own directory.
+
+    Notes
+    -------
+
+    Some details on the private methods:
+
     `_addcensusvars()`
         Checks vars is type Census_vars, if not raise TypeError.
 
