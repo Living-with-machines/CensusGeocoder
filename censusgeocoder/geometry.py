@@ -36,7 +36,7 @@ class Geometry_vars:
     gis_write_params: dict = None
     # geom_type: str = None
 
-    output_path: str = "../data/output_art_revs2"
+    output_path: str = "../data/output_new_scotrdtesting"
     output_filetype: str = ".tsv"
 
     gis_convert_non_ascii: bool = False
@@ -51,6 +51,9 @@ class Geometry_vars:
     dedup: bool = False
     dedup_max_points: int = None
     dedup_max_distance_between_points: int = None
+
+
+    merge_method: str = "intersection"
 
     item_per_unit_uid: str = None
     blockcols: str | list = None
@@ -130,6 +133,7 @@ class Geometry:
             **self.vars.lkup_read_params,
         )
 
+        # print(lkup_data.info())
         geom_lkup_merged = pd.merge(
             left=self.data,
             right=lkup_data,
@@ -137,6 +141,19 @@ class Geometry:
             right_on=self.vars.lkup_field_uid,
             how="left",
         )
+        # print(geom_lkup_merged.info())
+
+
+        lkup_cols_added = [col for col in lkup_data.columns if col != self.vars.lkup_field_uid]
+        print(lkup_cols_added)
+
+        geom_lkup_merged = geom_lkup_merged.dropna(subset = lkup_cols_added)
+        for col in lkup_cols_added:
+            geom_lkup_merged[col] = pd.to_numeric(
+                geom_lkup_merged[col], downcast="integer"
+                    )
+        # print(geom_lkup_merged.info())
+        
         # data.data = pd.merge(left = data.data, right = lkup, left_on = base_link, right_on = lkup_link, how = "left", )
 
         # data.data = data.data.dropna(subset=fieldtolist(fields)) #check
@@ -310,20 +327,29 @@ class TargetGeometry(Geometry):
         elif self.vars.geom_type == line:
             self.data = gpd.overlay(
                 df1=self.data, df2=boundary.data, how="identity", keep_geom_type=True
-            )
+            ).dropna() #removes lines where no data is added (i.e. where street is outside boundary)
+            
+            #conparid and cen are made float because above there are nan values; convert back to int
+            numeric_cols = self.data.select_dtypes(include="number").columns
+            for col in numeric_cols:
+                self.data[col] = pd.to_numeric(
+                        self.data[col], downcast="integer"
+                    )
 
             dissolve_cols = []
             if type(self.vars.blockcols) == list:
                 dissolve_cols.extend(self.vars.blockcols)
             else:
                 dissolve_cols.append(self.vars.blockcols)
+            # print(boundary.data.info())
 
             dissolve_cols.append(self.vars.gis_uid_field)
             # print(dissolve_cols)
-            # print(self.data)
-
+            # print(self.data.info())
+            # print(boundary.data.info())
             self.data = self.data.dissolve(by=dissolve_cols, as_index=False)
-            # print(self.data)
+            # print(boundary.data.info())
+            # print(self.data.info())
             # self.data.to_csv("testing_non_unique_index.tsv", sep = "\t")
 
             # do I need to drop duplicates here????
@@ -331,77 +357,91 @@ class TargetGeometry(Geometry):
     def dedup_streets(
         self,
     ):
-        if self.vars.dedup == False:
-            self.data = self.data.drop_duplicates(
-                subset=self.vars.item_per_unit_uid, keep=False
-            ).copy()
-
-            self._write_geom_data("dedupedtest")
-
-            # potentially dedup copies of street lines (multiple streets with same name in same parish/rsd)
+        
+        # Have added this in to avoid errors thrown/breaks when deduping a blank df; ideally not all
+        # the code block would be wrapped in this if-else statement; but i want to keep the main py file
+        # clean so haven't wrapped the dedup_streets function in an if-else there.
+        if self.data.empty:
+            pass
         else:
-            # dedup_fields = ["conparid_51-91", "CEN_1851", "final_text_alt"]
-            # dedup_fields_flattened = list(utils.flatten(self.vars.blockcols))
-            # print(dedup_fields_flattened)
-            self.data["count"] = self.data.groupby(
-                self.vars.item_per_unit_uid
-            ).transform("size")
 
-            # self.data = self.data[self.data["count"] <= self.vars.dedup_max_points].copy()
+            if self.vars.dedup == False:
+                self.data = self.data.drop_duplicates(
+                    subset=self.vars.item_per_unit_uid, keep=False
+                ).copy()
 
-            # dist_grouped = self.data.groupby(by=dedup_fields_flattened)["geometry"].apply(lambda x: utils.calc_dist(x)).reset_index(name="dist_calc")
+                self._write_geom_data("dedupedtest")
 
-            # print(self.data)
-            dist_grouped = (
-                self.data[self.data["count"] <= self.vars.dedup_max_points]
-                .groupby(by=self.vars.item_per_unit_uid)["geometry"]
-                .apply(lambda x: utils.calc_dist(x))
-                .reset_index(name="dist_calc")
-            )
-            # print(dist_grouped)
-            gdf_final = pd.merge(
-                left=self.data,
-                right=dist_grouped,
-                on=self.vars.item_per_unit_uid,
-                how="left",
-            )
+                # potentially dedup copies of street lines (multiple streets with same name in same parish/rsd)
+            else:
+                # dedup_fields = ["conparid_51-91", "CEN_1851", "final_text_alt"]
+                # dedup_fields_flattened = list(utils.flatten(self.vars.blockcols))
+                # print(dedup_fields_flattened)
+                self.data["count"] = self.data.groupby(
+                    self.vars.item_per_unit_uid
+                ).transform("size")
 
-            # gdf_final["dist_calc"] = gdf_final["dist_calc"].fillna(0)
-            gdf_final = gdf_final[
-                (gdf_final["dist_calc"] <= self.vars.dedup_max_distance_between_points)
-                | (gdf_final["dist_calc"].isna())
-            ]
-            # print(gdf_final)
-            gdf_multi_only = gdf_final[
-                gdf_final.duplicated(subset=self.vars.item_per_unit_uid, keep=False)
-            ]
+                # self.data = self.data[self.data["count"] <= self.vars.dedup_max_points].copy()
 
-            gdf_multi_only = (
-                gdf_multi_only.groupby(by=self.vars.item_per_unit_uid)[
-                    self.vars.gis_uid_field
+                # dist_grouped = self.data.groupby(by=dedup_fields_flattened)["geometry"].apply(lambda x: utils.calc_dist(x)).reset_index(name="dist_calc")
+
+                # print(self.data)
+                print(self.data)
+                print(self.data.info())
+                dist_grouped = (
+                    self.data[self.data["count"] <= self.vars.dedup_max_points]
+                    .groupby(by=self.vars.item_per_unit_uid)["geometry"]
+                    .apply(lambda x: utils.calc_dist(x))
+                    .reset_index(name="dist_calc")
+                )
+                print(dist_grouped)
+                print(dist_grouped.info())
+                # print(dist_grouped)
+                gdf_final = pd.merge(
+                    left=self.data,
+                    right=dist_grouped,
+                    on=self.vars.item_per_unit_uid,
+                    how="left",
+                )
+                print(gdf_final)
+                print(gdf_final.info())
+
+                # gdf_final["dist_calc"] = gdf_final["dist_calc"].fillna(0)
+                gdf_final = gdf_final[
+                    (gdf_final["dist_calc"] <= self.vars.dedup_max_distance_between_points)
+                    | (gdf_final["dist_calc"].isna())
                 ]
-                .apply(lambda x: str(x.to_list()))
-                .reset_index(name=f"{self.vars.gis_uid_field}_removed")
-            )
-            self.data = pd.merge(
-                left=gdf_final,
-                right=gdf_multi_only,
-                on=self.vars.item_per_unit_uid,
-                how="left",
-            )
-            print(len(self.data))
+                # print(gdf_final)
+                gdf_multi_only = gdf_final[
+                    gdf_final.duplicated(subset=self.vars.item_per_unit_uid, keep=False)
+                ]
 
-            self._write_geom_data("deduped1")
+                gdf_multi_only = (
+                    gdf_multi_only.groupby(by=self.vars.item_per_unit_uid)[
+                        self.vars.gis_uid_field
+                    ]
+                    .apply(lambda x: str(x.to_list()))
+                    .reset_index(name=f"{self.vars.gis_uid_field}_removed")
+                )
+                self.data = pd.merge(
+                    left=gdf_final,
+                    right=gdf_multi_only,
+                    on=self.vars.item_per_unit_uid,
+                    how="left",
+                )
+                print(len(self.data))
 
-            self.data = (
-                self.data[self.data["count"] <= self.vars.dedup_max_points]
-                .drop_duplicates(subset=self.vars.item_per_unit_uid, keep="first")
-                .copy()
-            )
+                self._write_geom_data("deduped1")
 
-            self._write_geom_data("deduped2")
+                self.data = (
+                    self.data[self.data["count"] <= self.vars.dedup_max_points]
+                    .drop_duplicates(subset=self.vars.item_per_unit_uid, keep="first")
+                    .copy()
+                )
 
-            print(len(self.data))
+                self._write_geom_data("deduped2")
+
+                print(len(self.data))
 
     def create_uid_of_geocode_field(
         self,
@@ -417,7 +457,7 @@ class TargetGeometry(Geometry):
             groupby_cols
         ).ngroup()
         # self.data.to_csv("testing_non_unique_index_afteruid.tsv", sep = "\t", columns = ["conparid_01-11", "CEN_1911", "nameTOID", "name1","name1_alt", "street_uid"])
-
+        # print(self.data.info())
 
 class Boundary(Geometry):
     """
@@ -453,12 +493,12 @@ class Boundary(Geometry):
         for boundary in boundary_list:
             boundary_uids.append(boundary.vars.uid)
             merged_boundaries.data = gpd.overlay(
-                self.data, boundary.data, how="intersection", keep_geom_type=True
+                self.data, boundary.data, how=self.vars.merge_method, keep_geom_type=True
             )
 
         merged_boundaries._setgeomtype()
         merged_boundaries.vars.uid = boundary_uids
-
+        # print(merged_boundaries.vars.uid)
         merged_boundaries._write_geom_data("processed")
 
         return merged_boundaries
