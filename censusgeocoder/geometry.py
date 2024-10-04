@@ -1,8 +1,7 @@
 import geopandas as gpd
 import pandas as pd
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 import utils
-import pathlib
 
 point = "point"
 line = "line"
@@ -11,36 +10,95 @@ polygon = "polygon"
 
 @dataclass
 class Geometry_vars:
-    """Class for storing and validating geometry variables"""
+    """Base Class for storing geometry variables
+
+
+    Attributes
+    ----------
+
+    geom_name: str
+        Name of Geometry
+
+    census_year: int
+        Year of census, e.g. 1851
+
+    census_country: str
+        Census country, e.g. EW or Scotland
+
+    gis_file: str
+        Path to geometry file.
+
+    gis_uid_field: str
+        Name of pd.Series containing geometry uid.
+
+    gis_read_params: dict
+        Parameters for reading `gis_file` passed to read library specified in `utils.get_readlibrary()`.
+
+    lkup_file: str
+        Path to lookup file
+
+    lkup_field_uid: str
+        Name of pd.Series containing uid of lkup.
+
+    lkup_field_censuslink: str
+        Name of pd.Series containing lookup values linking lkup to census.
+
+    lkup_read_params: dict
+        Parameters for reading `lkup_file` passed to read library specified in `utils.get_readlibrary()`.
+
+    gis_write_params: dict
+        Paramaters for writing geometry data passed to `utils.write_df_to_file()`.
+
+    output_path: str
+        Directory to write output files to.
+
+    output_filetype: str
+        Output file suffix, e.g. ".tsv".
+
+    gis_lat_long: bool
+        Indicates if geometry data stored in lat/long format across two columns.
+
+    gis_long_field: str
+        Name of pd.Series containing longitude data.
+
+    gis_lat_field: str
+        Name of pd.Series containing latitude data.
+
+    gis_projection: str
+        CRS Projection of the geometry data, e.g. "EPSG:27700"
+
+    process
+    ##############Need to add.
+
+
+
+    geom_type: str:
+        Type of geometry: Point, Line, Polygon etc. Set by inspecting geometry data, see `_setgeomtype()`.
+
+    uid: str
+        ####Unsure need to check
+
+
+    """
 
     geom_name: str
     census_year: int
     census_country: str
-    gis_file: str | list = None
-    gis_file_type: str = None
+    gis_file: str = None
+
     gis_uid_field: str = None
     gis_read_params: dict = None
-    geom_format: str = None
-    gis_field_to_clean: str = None
-    gis_standardisation_file: str = None
-    gis_min_len: int = None
-    cleaned_field_suffix: str = None
 
     lkup_file: str = None
     lkup_field_uid: str = None
     lkup_field_censuslink: str = None
     lkup_read_params: dict = None
 
-    gis_read_library: str = field(init=False)
-    lkup_read_library: str = field(init=False)
     gis_write_params: dict = None
-    # geom_type: str = None
 
-    output_path: str = "../data/output_new_scotrdtesting"
+    output_path: str = "../data/output"
     output_filetype: str = ".tsv"
 
-    gis_convert_non_ascii: bool = False
-    gis_geocode_field: str = None
     gis_lat_long: bool = False
     gis_long_field: str = None
     gis_lat_field: str = None
@@ -48,47 +106,83 @@ class Geometry_vars:
 
     process: bool = True
 
+    geom_type: str = field(init=False)
+    uid: str | list = field(init=False)
+
+    def __post_init__(self):
+        if self.process is not True:
+            self.geom_type = None  # remove?
+            self.uid = None  # remove?
+
+
+@dataclass
+class TargetGeometry_vars(Geometry_vars):
+    """Class for storing target geometry variables
+
+    Attributes
+    ----------
+
+    gis_field_to_clean: str
+        Name of pd.Series containing field (e.g. Address data) to clean and standardise.
+
+    gis_standardisation_file: str
+        Path to standardisation file for cleaning and standardising `gis_field_to_clean`.
+
+    gis_min_len: int
+        Minimum length in characters of entries in `gis_geocode_field` can be.
+
+    cleaned_field_suffix: str
+        Suffix to add to `gis_field_to_clean` after cleaning and standardising.
+
+    dedup: bool
+        Indicates whether to deduplicate entries in geometry data or not.
+
+    dedup_max_points: int
+         For point geometries only - max number of points in a geo-blocking unit before they are considered duplicates.
+         For more information, see Documentation about processing GB1900 data.
+
+    dedup_max_distance_between_points: int
+        Distance between points used to determine if points refer to same entity (e.g. a long road) or different entities.
+        For more information, see Documentation about processing GB1900 data.
+
+    item_per_unit_uid: str
+        Unique identifier of each entity in the target geometry dataset. Calculated for each geo-blocking unit, so streets
+        that span multiple geo-blocking units will have different `item_per_unit_uid` values.
+
+    gis_convert_non_ascii: bool
+        Indicates whether non ascii characters should be converted or not.
+        See documentation about converting Welsh placenames in GB1900.
+
+    gis_geocode_field: str
+        Name of pd.Series in geometry data that contains address data to link to census addresses.
+
+    blockcols: str | list
+        Name or list of names of pd.Series columns containing the geo-blocking ids, e.g. ConParID, CEN_1851 etc
+
+    """
+
+    gis_field_to_clean: str = None
+    gis_standardisation_file: str = None
+    gis_min_len: int = None
+    cleaned_field_suffix: str = None
+
     dedup: bool = False
     dedup_max_points: int = None
     dedup_max_distance_between_points: int = None
 
+    item_per_unit_uid: str = "tg_uid"
 
-    merge_method: str = "intersection"
+    gis_convert_non_ascii: bool = False
+    gis_geocode_field: str = None
 
-    item_per_unit_uid: str = None
     blockcols: str | list = None
-    geom_type: str = field(init=False)
-    uid: str | list = field(init=False)
 
-    # _created_from_merge: bool = False
 
-    def __post_init__(self):
-        if self.process != True:
-            self.geom_type = None
-            self.uid = None
+@dataclass
+class Boundary_vars(Geometry_vars):
+    """Class for storing boundary variables"""
 
-        if self.gis_file == None:
-            self.gis_read_library = None
-        else:
-            self.gis_read_library = utils.get_readlibrary(
-                self.gis_file,
-                self.gis_read_params,
-            )
-
-        if self.lkup_file == None:
-            self.lkup_read_library = None
-        else:
-            self.lkup_read_library = utils.get_readlibrary(
-                self.lkup_file,
-                self.lkup_read_params,
-            )
-
-    # def create_uid(self,
-    #                list_of_idcols,
-    #                ):
-    #     uid = "_".join([str(idcol) for idcol in list_of_idcols])
-    #     print(uid)
-    #     self.data[uid] = self.data[list_of_idcols].astype(str).agg('_'.join, axis=1)
+    pass
 
 
 class Geometry:
@@ -96,18 +190,31 @@ class Geometry:
 
     def __init__(
         self,
-        geometry_vars,
+        vars
+
     ):
-        if type(geometry_vars) == Geometry_vars:
-            self.vars = geometry_vars
+        self._addvars(vars)
+
+    def _addvars(self,vars):
+        if type(vars) is Geometry_vars:
+                self.vars = vars
         else:
-            raise TypeError("Must be a Geometry_vars class")
+            raise TypeError(
+                    f"vars is {vars.__class__.__name__} must be {Geometry_vars.__name__}"
+            )
 
     def process(
         self,
     ):
-        if self.vars.lkup_file != None:
-            self.data = self._add_lkup()
+        """Processes geometry data by adding lookup if available and dissolving geometries on specified uid field."""
+        if self.vars.lkup_file is not None:
+            # self.data = self._add_lkup()
+            self.data = utils.add_lkup(data = self.data,
+                                       lkup_file=self.vars.lkup_file,
+                                       lkup_params=self.vars.lkup_read_params,
+                                       left_on=self.vars.gis_uid_field,
+                                       right_on=self.vars.lkup_field_uid,
+                                       )
 
             self.vars.uid = self.vars.lkup_field_censuslink
 
@@ -123,42 +230,42 @@ class Geometry:
             self.data = self._dissolve(dissolve_field=self.vars.gis_uid_field)
             self.vars.uid = self.vars.gis_uid_field
 
-        self._write_geom_data("processed")  # improve by adding custom / variable name
-
-    def _add_lkup(
-        self,
-    ):
-        lkup_data = self.vars.lkup_read_library(
-            self.vars.lkup_file,
-            **self.vars.lkup_read_params,
+        self._write_geom_data(
+            "processed",  # specifies part of output name to identify this file
+            self.vars.gis_write_params,
         )
 
-        # print(lkup_data.info())
-        geom_lkup_merged = pd.merge(
-            left=self.data,
-            right=lkup_data,
-            left_on=self.vars.gis_uid_field,
-            right_on=self.vars.lkup_field_uid,
-            how="left",
-        )
-        # print(geom_lkup_merged.info())
+    # def _add_lkup(
+    #     self,
+    # ):
+
+    #     lkup_data = utils.read_file(
+    #         self.vars.lkup_file,
+    #         self.vars.lkup_read_params,
+    #     )
 
 
-        lkup_cols_added = [col for col in lkup_data.columns if col != self.vars.lkup_field_uid]
-        print(lkup_cols_added)
+    #     geom_lkup_merged = pd.merge(
+    #         left=self.data,
+    #         right=lkup_data,
+    #         left_on=self.vars.gis_uid_field,
+    #         right_on=self.vars.lkup_field_uid,
+    #         how="left",
+    #     )
 
-        geom_lkup_merged = geom_lkup_merged.dropna(subset = lkup_cols_added)
-        for col in lkup_cols_added:
-            geom_lkup_merged[col] = pd.to_numeric(
-                geom_lkup_merged[col], downcast="integer"
-                    )
-        # print(geom_lkup_merged.info())
-        
-        # data.data = pd.merge(left = data.data, right = lkup, left_on = base_link, right_on = lkup_link, how = "left", )
 
-        # data.data = data.data.dropna(subset=fieldtolist(fields)) #check
+    #     lkup_cols_added = [
+    #         col for col in lkup_data.columns if col != self.vars.lkup_field_uid
+    #     ]
+    #     print(lkup_cols_added)
 
-        return geom_lkup_merged
+    #     geom_lkup_merged = geom_lkup_merged.dropna(subset=lkup_cols_added)
+    #     for col in lkup_cols_added:
+    #         geom_lkup_merged[col] = pd.to_numeric(
+    #             geom_lkup_merged[col], downcast="integer"
+    #         )
+
+    #     return geom_lkup_merged
 
     def read_processed_geom(
         self,
@@ -168,40 +275,40 @@ class Geometry:
     def get_geometry_data(
         self,
     ):
-        self.data = self._read_geometry_file()
 
-        if type(self.vars.gis_read_library) != utils.read_shp_geom:
-            if self.vars.gis_lat_long == True:
-                self.data = utils.process_coords(
-                    self.data,
-                    self.vars.gis_long_field,
-                    self.vars.gis_lat_field,
-                    self.vars.gis_projection,
-                )
+        self.data = utils.read_file(
+            self.vars.gis_file,
+            self.vars.gis_read_params,
+        )
 
-            else:
-                "read geometry column of df"
-
-        else:
-            "do nothing"
-
-        if self.vars.gis_field_to_clean != None:
-            self.data, self.vars.gis_geocode_field = utils.clean_address_data(
+        if (
+            self.vars.gis_lat_long == True
+        ):  # checks if geometry data in latlong columns; if true process to convert to wkt geom column
+            self.data = utils.process_coords(
                 self.data,
-                self.vars.gis_field_to_clean,
-                self.vars.gis_standardisation_file,
-                self.vars.gis_min_len,
-                self.vars.cleaned_field_suffix,
-                self.vars.gis_convert_non_ascii,
+                self.vars.gis_long_field,
+                self.vars.gis_lat_field,
+                self.vars.gis_projection,
             )
+
+        # if self.vars.gis_field_to_clean is not None:
+        #     self.data, self.vars.gis_geocode_field = utils.clean_address_data(
+        #         self.data,
+        #         self.vars.gis_field_to_clean,
+        #         self.vars.gis_standardisation_file,
+        #         self.vars.gis_min_len,
+        #         self.vars.cleaned_field_suffix,
+        #         self.vars.gis_convert_non_ascii,
+        #     )
 
         self._setgeomtype()
 
-        self._write_geom_data("standardised")
+        # self._write_geom_data("standardised",
+        #                       self.vars.gis_write_params)
 
-        self.data = self.data.dropna(subset=self.vars.gis_geocode_field).copy()
+        # self.data = self.data.dropna(subset=self.vars.gis_geocode_field).copy()
 
-        self._write_geom_data("standardised1")
+        # self._write_geom_data("standardised1", self.vars.gis_write_params)
 
     def _read_geometry_file(
         self,
@@ -254,7 +361,7 @@ class Geometry:
         # self.data = self.data.dissolve(by=dissolve_field).reset_index()
         return geometry_data.copy()
 
-    def _write_geom_data(self, status):
+    def _write_geom_data(self, status, params):
         # output_dir = f"../data/output_art_revs1/{self.vars.census_country}/{self.vars.census_year}/{self.vars.geom_name}"
         # output_dir = utils.validate_paths(output_dir)
         # file_path = pathlib.PurePath(
@@ -279,25 +386,7 @@ class Geometry:
             ]
         ]
 
-        utils.write_df_to_file(
-            self.data, output_path_components, self.vars.gis_write_params
-        )
-
-    def create_tgforlinking(
-        self,
-    ):
-        # this will create a smaller dataset for linking and write output
-
-        col_list = []
-        col_list.extend(list(utils.flatten(self.vars.blockcols)))
-        col_list.extend(
-            [
-                self.vars.gis_geocode_field,
-                self.vars.item_per_unit_uid,
-            ]
-        )
-        self.data = self.data[col_list].copy()
-        self._write_geom_data("slim")
+        utils.write_df_to_file(self.data, output_path_components, params)
 
 
 class TargetGeometry(Geometry):
@@ -308,8 +397,18 @@ class TargetGeometry(Geometry):
         *args,
         **kwargs,
     ):
+        
         super().__init__(*args, **kwargs)
 
+    def _addvars(self, vars):
+        if type(vars) is TargetGeometry_vars:
+                self.vars = vars
+        else:
+            raise TypeError(
+                    f"vars is {vars.__class__.__name__} must be {TargetGeometry_vars.__name__}"
+            )
+
+        
     def assigntoboundary(
         self,
         boundary,
@@ -327,14 +426,12 @@ class TargetGeometry(Geometry):
         elif self.vars.geom_type == line:
             self.data = gpd.overlay(
                 df1=self.data, df2=boundary.data, how="identity", keep_geom_type=True
-            ).dropna() #removes lines where no data is added (i.e. where street is outside boundary)
-            
-            #conparid and cen are made float because above there are nan values; convert back to int
+            ).dropna()  # removes lines where no data is added (i.e. where street is outside boundary)
+
+            # conparid and cen are made float because above there are nan values; convert back to int
             numeric_cols = self.data.select_dtypes(include="number").columns
             for col in numeric_cols:
-                self.data[col] = pd.to_numeric(
-                        self.data[col], downcast="integer"
-                    )
+                self.data[col] = pd.to_numeric(self.data[col], downcast="integer")
 
             dissolve_cols = []
             if type(self.vars.blockcols) == list:
@@ -357,7 +454,7 @@ class TargetGeometry(Geometry):
     def dedup_streets(
         self,
     ):
-        
+
         # Have added this in to avoid errors thrown/breaks when deduping a blank df; ideally not all
         # the code block would be wrapped in this if-else statement; but i want to keep the main py file
         # clean so haven't wrapped the dedup_streets function in an if-else there.
@@ -370,7 +467,7 @@ class TargetGeometry(Geometry):
                     subset=self.vars.item_per_unit_uid, keep=False
                 ).copy()
 
-                self._write_geom_data("dedupedtest")
+                self._write_geom_data("dedupedtest", self.vars.gis_write_params)
 
                 # potentially dedup copies of street lines (multiple streets with same name in same parish/rsd)
             else:
@@ -408,7 +505,10 @@ class TargetGeometry(Geometry):
 
                 # gdf_final["dist_calc"] = gdf_final["dist_calc"].fillna(0)
                 gdf_final = gdf_final[
-                    (gdf_final["dist_calc"] <= self.vars.dedup_max_distance_between_points)
+                    (
+                        gdf_final["dist_calc"]
+                        <= self.vars.dedup_max_distance_between_points
+                    )
                     | (gdf_final["dist_calc"].isna())
                 ]
                 # print(gdf_final)
@@ -431,7 +531,7 @@ class TargetGeometry(Geometry):
                 )
                 print(len(self.data))
 
-                self._write_geom_data("deduped1")
+                self._write_geom_data("deduped1", self.vars.gis_write_params)
 
                 self.data = (
                     self.data[self.data["count"] <= self.vars.dedup_max_points]
@@ -439,7 +539,7 @@ class TargetGeometry(Geometry):
                     .copy()
                 )
 
-                self._write_geom_data("deduped2")
+                self._write_geom_data("deduped2", self.vars.gis_write_params)
 
                 print(len(self.data))
 
@@ -459,6 +559,40 @@ class TargetGeometry(Geometry):
         # self.data.to_csv("testing_non_unique_index_afteruid.tsv", sep = "\t", columns = ["conparid_01-11", "CEN_1911", "nameTOID", "name1","name1_alt", "street_uid"])
         # print(self.data.info())
 
+
+    def clean_tg(self,):
+
+        if self.vars.gis_field_to_clean is not None:
+            self.data, self.vars.gis_geocode_field = utils.clean_address_data(
+                self.data,
+                self.vars.gis_field_to_clean,
+                self.vars.gis_standardisation_file,
+                self.vars.gis_min_len,
+                self.vars.cleaned_field_suffix,
+                self.vars.gis_convert_non_ascii,
+            )
+
+        self.data = self.data.dropna(subset=self.vars.gis_geocode_field).copy()
+
+        self._write_geom_data("standardised1", self.vars.gis_write_params)
+
+    def create_tgforlinking(
+        self,
+    ):
+        # this will create a smaller dataset for linking and write output
+
+        col_list = []
+        col_list.extend(list(utils.flatten(self.vars.blockcols)))
+        col_list.extend(
+            [
+                self.vars.gis_geocode_field,
+                self.vars.item_per_unit_uid,
+            ]
+        )
+        self.data = self.data[col_list].copy()
+        self._write_geom_data("slim", self.vars.gis_write_params)
+
+
 class Boundary(Geometry):
     """
     For boundaries only"""
@@ -469,6 +603,16 @@ class Boundary(Geometry):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
+
+    def _addvars(self, vars):
+        if type(vars) is Boundary_vars:
+                self.vars = vars
+        else:
+            raise TypeError(
+                    f"vars is {vars.__class__.__name__} must be {Boundary_vars.__name__}"
+            )
+
+        self.merge_method = "intersection"
 
     def merge_boundaries(
         self,
@@ -482,7 +626,7 @@ class Boundary(Geometry):
             base_bndry_name + "_" + "_".join([x.vars.geom_name for x in boundary_list])
         )
         merged_boundaries = Boundary(
-            Geometry_vars(
+            Boundary_vars(
                 geom_name=merged_boundaries_name,
                 census_year=self.vars.census_year,
                 census_country=self.vars.census_country,
@@ -493,12 +637,15 @@ class Boundary(Geometry):
         for boundary in boundary_list:
             boundary_uids.append(boundary.vars.uid)
             merged_boundaries.data = gpd.overlay(
-                self.data, boundary.data, how=self.vars.merge_method, keep_geom_type=True
+                self.data,
+                boundary.data,
+                how=self.merge_method,
+                keep_geom_type=True,
             )
 
         merged_boundaries._setgeomtype()
         merged_boundaries.vars.uid = boundary_uids
         # print(merged_boundaries.vars.uid)
-        merged_boundaries._write_geom_data("processed")
+        merged_boundaries._write_geom_data("processed", self.vars.gis_write_params)
 
         return merged_boundaries
