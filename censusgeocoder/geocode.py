@@ -79,7 +79,7 @@ class GeoCode:
         from `target_geometry_data`.
 
     `_compare()`
-        Performs fuzzy string matching between candidate links returned by `create_candidate_links()`.
+        Performs fuzzy string matching between candidate links returned by `_create_candidate_links()`.
         Returns a pd.DataFrame of all possible matches after filtering on thresholds.
 
     `_process_results()`
@@ -136,11 +136,11 @@ class GeoCode:
             self.target_geometry_indexfield
         )  # set index of target geometry data to specified index field
 
-        self.cand_links = self.create_candidate_links()
+        self.cand_links = self._create_candidate_links()
 
-        self.tgt_rslts = self.compare(self.cand_links)
+        self.tgt_rslts = self._compare(self.cand_links)
 
-        self.rslts_dict = self.process_results(self.tgt_rslts)
+        self.rslts_dict = self._process_results(self.tgt_rslts)
 
     def _create_candidate_links(
         self,
