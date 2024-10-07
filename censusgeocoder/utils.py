@@ -19,23 +19,49 @@ from unidecode import unidecode
 
 def clean_address_data(
     df: pd.DataFrame,
-    field_to_clean,
-    standardisation_file,
-    min_length,
-    suffix,
+    field_to_clean: str,
+    standardisation_file: str,
+    min_length: int,
+    suffix: str,
     convert_non_ascii: bool = False,
-):
-    """Generic clean address data
+) -> tuple[pd.DataFrame, str]:
+    """Cleans `field_to_clean` returns `pd.DataFrame` with added `pd.Series` containing cleaned data, and name of cleaned field.
     Applies regex pattern replacements from file
     Strips leading and trailing spaces
     Converts to uppercase
-    Drops NaN
+
+    Parameters
+    ----------
+    
+    df: `pd.DataFrame`
+        `pd.DataFrame` of data including a field to be cleaned
+
+    field_to_clean: str
+        Name of `pd.Series` in `df` that will be cleaned
+    
+    min_length: int
+        Minimum number of characters that `field_to_clean` must contain otherwise class as NaN
+    
+    suffix: str
+        Suffix to add to `field_to_clean` to distinguish cleaned field from original field in dataframe.
+    
+    convert_non_ascii: bool
+        Whether to convert non ascii characters in `field_to_clean` or not. See Documentation re. non ascii characters in GB1900.
+
+
+    Returns
+    -------
+
+    df: `pd.DataFrame`
+        `pd.DataFrame` containing original data with added `pd.Series` containing cleaned data
+
+    field_to_clean_new: str
+        Name of `pd.Series` in `df` that contains cleaned data.
+
     """
 
     field_to_clean_new = f"{field_to_clean}{suffix}"
-    # print(df.info())
-    # df = df.fillna(value=np.nan)
-    # print(df.info())
+
     df[field_to_clean_new] = df[field_to_clean]
 
     if convert_non_ascii is True:
@@ -65,31 +91,38 @@ def clean_address_data(
             np.nan,
         )
 
-    return df, field_to_clean_new
+    return (df, field_to_clean_new)
 
 
 def process_coords(
-    target_df,
-    long_field,
-    lat_field,
-    projection,
+    target_df: pd.DataFrame,
+    long_field: str,
+    lat_field: str,
+    projection: str,
 ):
-    """Processes coordindates in a pandas dataframe. Returns
-    a geopandas GeoDataFrame with geometry data and specified crs.
+    """Processes coordindates in a `pd.DataFrame` reading them into a geometry field in a `gpd.GeoDatFrame`.
+    Returns a gpd.GeoDataFrame with geometry data and specified crs.
 
     Parameters
     ----------
 
-    target_df:  pandas.DataFrame
-        Pandas dataframe containing target geometry data.
+    target_df:  `pd.DataFrame`
+        `pd.DataFrame` containing coordinates but not read into geometry field of a `gpd.GeoDataFrame`.
 
-    geom_config: Dataclass
-        Dataclass containing parameters for target geometry data.
+    long_field: str
+        Name of `pd.Series` containing longitude values.
+    
+    lat_field: str
+        Name of `pd.Series` containing latitude values.
+
+    projection: str
+        Intended CRS projection.
 
     Returns
     -------
-    target_gdf:  geopandas.GeoDataFrame
-        Geopandas geodataframe containing target geometry data.
+    target_gdf:  `gpd.GeoDataFrame`
+        `gpd.GeoDataFrame` containing original data (minus the original lat and long fields) with geometry column in WKT.
+
     """
     target_gdf = gpd.GeoDataFrame(
         target_df,
