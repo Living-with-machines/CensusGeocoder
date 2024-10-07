@@ -186,7 +186,40 @@ class Boundary_vars(Geometry_vars):
 
 
 class Geometry:
-    """Base Geometry Class"""
+    """Base Geometry Class
+    
+    Attributes
+    ----------
+    
+    vars: `Geometry_vars`
+        Instance of `Geometry_vars` storing variables for reading and processing geometry data.
+
+    Methods
+    -------
+
+    
+    `get_geometry_data()`
+        Reads geometry data
+
+    `process()`
+        Processes geometry data by adding lookup if available and dissolving geometries on specified uid field.
+
+    Notes
+    -----
+
+    Private methods:
+
+    `_setgeomtype()`
+        Checks geometry type of geometry data
+
+    `_dissolve()`
+        Dissolves geometry data on specified dissolve field. Returns `gpd.GeoDataFrame` containing dissolved geometry data.
+
+    `_write_geom_data()`
+        Writes geometry data to file.
+
+
+    """
 
     def __init__(
         self,
@@ -202,79 +235,14 @@ class Geometry:
             raise TypeError(
                     f"vars is {vars.__class__.__name__} must be {Geometry_vars.__name__}"
             )
-
-    def process(
-        self,
-    ):
-        """Processes geometry data by adding lookup if available and dissolving geometries on specified uid field."""
-        if self.vars.lkup_file is not None:
-            # self.data = self._add_lkup()
-            self.data = utils.add_lkup(data = self.data,
-                                       lkup_file=self.vars.lkup_file,
-                                       lkup_params=self.vars.lkup_read_params,
-                                       left_on=self.vars.gis_uid_field,
-                                       right_on=self.vars.lkup_field_uid,
-                                       )
-
-            self.vars.uid = self.vars.lkup_field_censuslink
-
-            self.data = self._dissolve(
-                dissolve_field=self.vars.lkup_field_censuslink,
-                fields_to_drop=[
-                    self.vars.gis_uid_field,
-                    self.vars.lkup_field_uid,
-                ],
-            )
-
-        else:
-            self.data = self._dissolve(dissolve_field=self.vars.gis_uid_field)
-            self.vars.uid = self.vars.gis_uid_field
-
-        self._write_geom_data(
-            "processed",  # specifies part of output name to identify this file
-            self.vars.gis_write_params,
-        )
-
-    # def _add_lkup(
-    #     self,
-    # ):
-
-    #     lkup_data = utils.read_file(
-    #         self.vars.lkup_file,
-    #         self.vars.lkup_read_params,
-    #     )
-
-
-    #     geom_lkup_merged = pd.merge(
-    #         left=self.data,
-    #         right=lkup_data,
-    #         left_on=self.vars.gis_uid_field,
-    #         right_on=self.vars.lkup_field_uid,
-    #         how="left",
-    #     )
-
-
-    #     lkup_cols_added = [
-    #         col for col in lkup_data.columns if col != self.vars.lkup_field_uid
-    #     ]
-    #     print(lkup_cols_added)
-
-    #     geom_lkup_merged = geom_lkup_merged.dropna(subset=lkup_cols_added)
-    #     for col in lkup_cols_added:
-    #         geom_lkup_merged[col] = pd.to_numeric(
-    #             geom_lkup_merged[col], downcast="integer"
-    #         )
-
-    #     return geom_lkup_merged
-
-    def read_processed_geom(
-        self,
-    ):
-        self.data = self._read_geometry_file()
-
+        
     def get_geometry_data(
         self,
     ):
+        """Reads geometry data into a gpd.GeoDataFrame, checks if geometries stored in 2 lat/long columns - creates a WKT geometry column if so; 
+        also sets geometry type (which determines boundary assignment method for target geometries).
+        
+        """
 
         self.data = utils.read_file(
             self.vars.gis_file,
@@ -291,38 +259,52 @@ class Geometry:
                 self.vars.gis_projection,
             )
 
-        # if self.vars.gis_field_to_clean is not None:
-        #     self.data, self.vars.gis_geocode_field = utils.clean_address_data(
-        #         self.data,
-        #         self.vars.gis_field_to_clean,
-        #         self.vars.gis_standardisation_file,
-        #         self.vars.gis_min_len,
-        #         self.vars.cleaned_field_suffix,
-        #         self.vars.gis_convert_non_ascii,
-        #     )
-
         self._setgeomtype()
 
-        # self._write_geom_data("standardised",
-        #                       self.vars.gis_write_params)
-
-        # self.data = self.data.dropna(subset=self.vars.gis_geocode_field).copy()
-
-        # self._write_geom_data("standardised1", self.vars.gis_write_params)
-
-    def _read_geometry_file(
+    def process(
         self,
     ):
-        geometry_data = self.vars.gis_read_library(
-            self.vars.gis_file,
-            **self.vars.gis_read_params,
+        """Processes geometry data by adding lookup if available and dissolving geometries on specified uid field.
+        
+        """
+        if self.vars.lkup_file is not None:
+
+            self.data = utils.add_lkup(data = self.data,
+                                       lkup_file=self.vars.lkup_file,
+                                       lkup_params=self.vars.lkup_read_params,
+                                       left_on=self.vars.gis_uid_field,
+                                       right_on=self.vars.lkup_field_uid,
+                                       fields_to_drop=[self.vars.gis_uid_field, 
+                                                       self.vars.lkup_field_uid, ]
+                                       )
+
+            self.vars.uid = self.vars.lkup_field_censuslink
+
+            self.data = self._dissolve(
+                dissolve_field=self.vars.lkup_field_censuslink,)
+
+
+        else:
+            self.data = self._dissolve(dissolve_field=self.vars.gis_uid_field)
+            self.vars.uid = self.vars.gis_uid_field
+
+        self._write_geom_data(
+            "processed",  # specifies part of output name to identify this file
+            self.vars.gis_write_params,
         )
 
-        return geometry_data
+    def read_processed_geom( #TO DEAL WITH
+        self,
+    ):
+        self.data = self._read_geometry_file() #change to utils read file
 
     def _setgeomtype(
         self,
     ):
+        """Checks geometry type of geometry data. Raises ValueError if mixed types since CensusGeocoder only works for geometry datasets of a single type. 
+        Sets geometry type to either 'point', 'line' or 'polygon'. Used to determine boundary assignment operations for target geometry datasets.
+        
+        """
         geom_types = self.data.geom_type.value_counts()
 
         geoms = {
@@ -350,31 +332,41 @@ class Geometry:
     def _dissolve(
         self,
         dissolve_field,
-        fields_to_drop=None,
-    ):
-        # self.data.geometry = self.data.geometry.buffer(0)
+    ) -> gpd.GeoDataFrame:
+        """Dissolves geometry data on specified dissolve field. Returns `gpd.GeoDataFrame` containing dissolved geometry data.
+        
+        Parameters
+        ----------
+        
+        dissolve_field: str
+            Name of pd.Series on which to dissolve geometries.
+            
+        Returns
+        -------
+        
+        geometry_data: `gpd.GeoDataFrame`
+            `gpd.GeoDataFrame` containing dissolved geometry data.
+        """
+
         geometry_data = self.data.dissolve(by=dissolve_field).reset_index()
 
-        if fields_to_drop != None:
-            geometry_data = geometry_data.drop(columns=fields_to_drop)
-
-        # self.data = self.data.dissolve(by=dissolve_field).reset_index()
         return geometry_data.copy()
 
     def _write_geom_data(self, status, params):
-        # output_dir = f"../data/output_art_revs1/{self.vars.census_country}/{self.vars.census_year}/{self.vars.geom_name}"
-        # output_dir = utils.validate_paths(output_dir)
-        # file_path = pathlib.PurePath(
-        #     output_dir,
-        #     f"{self.vars.census_country}_{self.vars.census_year}_{self.vars.geom_name}_{status}.tsv",
-        # )
-
-        # self.data.to_csv(
-        #     file_path,
-        #     **self.vars.gis_write_params,
-        # )
-
-        filename = f"{self.vars.census_country}_{self.vars.census_year}_{self.vars.geom_name}_{status}.tsv"
+        """Writes geometry data to file.
+        
+        Parameters
+        ----------
+        
+        status: str
+            Description of output file, e.g. 'processed' indicating stage of geocoding process that file is from.
+            
+        params: dict
+            Dictionary containing parameters to pass to `utils.write_df_to_file()` used by `pd.to_csv()`
+            
+        """
+  
+        filename = f"{self.vars.census_country}_{self.vars.census_year}_{self.vars.geom_name}_{status}{self.vars.output_filetype}"
         output_path_components = [
             str(x)
             for x in [
