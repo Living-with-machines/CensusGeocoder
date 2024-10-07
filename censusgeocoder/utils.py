@@ -450,18 +450,6 @@ def read_file(
 
     return data
 
-
-def validate_paths(filepath):
-    """Checks the filepaths are valid. If not, returns an error"""
-
-    new_path = pathlib.Path(filepath)
-    if not new_path.exists():
-        new_path.mkdir(parents=True)
-        # msg = f"'{new_path}' is not a valid file path."
-        # raise ValueError(msg)
-    return new_path
-
-
 def write_df_to_file(
     output_df: pd.DataFrame,
     output_path_components: list,
