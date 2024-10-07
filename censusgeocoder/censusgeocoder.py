@@ -1,11 +1,11 @@
-from censusgeocoder.census import Census, Census_vars
-from censusgeocoder.geometry import TargetGeometry, Boundary, TargetGeometry_vars, Boundary_vars
+from census import Census, Census_vars
+from geometry import TargetGeometry, Boundary, TargetGeometry_vars, Boundary_vars
 import yaml
 
-with open("../inputs_new/targetgeom_config.yaml", "r") as f:
+with open("../inputs/targetgeom_config.yaml", "r") as f:
     tg_config = yaml.load(f, Loader=yaml.FullLoader)
 
-with open("../inputs_new/gen_config.yaml", "r") as f:
+with open("../inputs/gen_config.yaml", "r") as f:
     gen_config = yaml.load(f, Loader=yaml.FullLoader)
 
 for cen_country, year_list in gen_config["census_years"].items():
@@ -13,7 +13,7 @@ for cen_country, year_list in gen_config["census_years"].items():
     for cen_year in year_list:
         print(cen_year)
 
-        with open(f"../inputs_new/{cen_country}_{cen_year}_config.yaml", "r") as f:
+        with open(f"../inputs/{cen_country}_{cen_year}_config.yaml", "r") as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
 
         census_config = config["census"]

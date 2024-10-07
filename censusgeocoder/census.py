@@ -5,7 +5,7 @@ import pandas as pd
 
 import utils
 import geocode
-from censusgeocoder.geometry import TargetGeometry
+from geometry import TargetGeometry
 
 
 @dataclass
