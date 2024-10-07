@@ -4,21 +4,15 @@ census:
   uid_field: "RecID"
   field_to_geocode: "Address"
   boundaries_field: ["ConParID", "CEN_1861"]
-  subset_field: "RC"
-  census_file: "../data/input/census/corrected/refactor_test_EW_1861_v1_corrected_geocode.tsv"
+  subset_field: "subset_id"
+  census_file: "../data/input_new/census/1861_ew_geocode.txt"
   read_csv_params:
-    sep: "\t" # passed to 'sep' parameter of dask read_csv
+    sep: "\t" # passed to 'sep' parameter of pandas read_csv
     encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
     quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
-    na_values: [".", " ", "-"] # Passed to 'na_values' parameter of pandas read_csv
-    # nrows: 10000
-    usecols: ["RecID", "Address", "ConParID", "ParID", "RC"]
-    dtype: 
-      RecID: "int32"
-      Address: "str"
-      ConParID: "int16"
-      # ParID: "int16"
-      RC: "int8"
+    na_values: [".", " ", " - "] # Passed to 'na_values' parameter of pandas read_csv
+    nrows: 100000
+    usecols: ["RecID", "Address", "ParID", "subset_id"]
 
   field_to_clean: "Address"
   standardisation_file: "../inputs/icem_street_standardisation.json" # regex replacement file
@@ -27,18 +21,16 @@ census:
 
   unique_field_to_geocode_name: "address_uid"
 
-
-  lkup_file: "../data/input/ew/parish_dicts_encoding/1861_ICeM_DICTIONARY_CODED.txt"
-  lkup_uid_field: "ParID"
-  lkup_census_field: "ParID"
-  lkup_params:
-    encoding: "utf-8"
-    sep: "\t"
-    quoting: 3
-    usecols: ["ParID", "CEN_1861", ]
-
-  # output_file: "somepath.txt"
-  # output_file_slim: "somepath.txt"
+  lkups:
+    conpar:
+      lkup_file: "../data/input_new/ew/parish_dicts_encoding/1861_ICeM_DICTIONARY_CODED_conparidadded.txt"
+      lkup_uid_field: "ParID"
+      lkup_census_field: "ParID"
+      lkup_params:
+        encoding: "utf-8"
+        sep: "\t"
+        quoting: 3
+        usecols: ["ParID", "CEN_1861", "ConParID"]
 
   write_processed_csv_params:
     sep: "\t"
@@ -46,22 +38,10 @@ census:
     index: False
 
   write_processed_csv_params_slim:
-    columns: ["address_uid", "Address_alt", "ConParID", "CEN_1861", "RC"]
+    columns: ["address_uid", "Address_alt", "ConParID", "CEN_1861", "subset_id"]
     sep: "\t"
     encoding: "utf-8"
     index: False
-
-  # read_processed_csv_params:
-  #   usecols: ["address_uid", "Address_alt", "ConParID", "CEN_1851", "RC"]
-  #   sep: "\t"
-  #   encoding: "utf-8"
-  #   dtype:
-  #     address_uid: "int16"
-  #     Address_alt: "str"
-  #     ConParID: "int16"
-  #     CEN_1851: "int16"
-  #     RC: "int8"
-
 
   comparers:
     rapidfuzzy_wratio: "rapidfuzzy_wratio_s"
@@ -79,7 +59,6 @@ boundaries:
       engine: "pyogrio"
       columns: ["ID",]
       # max_features: 1000
-    geom_format: None
     lkup_file: "../data/input/ew/icem_parish_lkup/UKDS_GIS_to_icem.xlsx"
     lkup_field_uid: "UKDS_ID"
     lkup_field_censuslink: "conparid_51-91"
@@ -100,12 +79,7 @@ boundaries:
       engine: "pyogrio"
       columns: ["CEN_1861"]
       # max_features: 1000
-    geom_format: None
     gis_write_params:
       sep: "\t"
       encoding: "utf-8"
       index: False
-
-
-
-

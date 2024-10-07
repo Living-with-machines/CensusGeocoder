@@ -3,22 +3,16 @@ census:
   year: 1871
   uid_field: "RecID"
   field_to_geocode: "Address"
-  boundaries_field: ["merged_id"]
-  subset_field: "RC"
-  census_file: "../data/input/census/corrected/refactor_test_scot_1871.tsv"
+  boundaries_field: ["merged_id", "conrd_town"]
+  subset_field: "subset_id"
+  census_file: "../data/input_new/census/1871_sct_geocode.txt"
   read_csv_params:
-    sep: "\t" # passed to 'sep' parameter of dask read_csv
+    sep: "\t" # passed to 'sep' parameter of pandas read_csv
     encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
     quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
-    na_values: [".", " ", "-"] # Passed to 'na_values' parameter of pandas read_csv
-    # nrows: 100000
-    usecols: ["RecID", "Address","ParID", "RC"]
-    dtype: 
-      RecID: "int32"
-      Address: "str"
-      # ConParID: "int16"
-      # ParID: "int16"
-      RC: "int8"
+    na_values: [".", " ", " - "] # Passed to 'na_values' parameter of pandas read_csv
+    nrows: 100000
+    usecols: ["RecID", "Address","ParID", "subset_id"]
 
   field_to_clean: "Address"
   standardisation_file: "../inputs/icem_street_standardisation.json" # regex replacement file
@@ -27,16 +21,22 @@ census:
 
   unique_field_to_geocode_name: "address_uid"
 
-
-  lkup_file: "../data/input/scot/scot_parish_boundary/scotboundarylinking.xlsx"
-  lkup_uid_field: "ParID"
-  lkup_census_field: "ParID"
-  lkup_params:
-    sheet_name: "1871_icem"
-    usecols: ["ParID", "merged_id", ]
-
-  # output_file: "somepath.txt"
-  # output_file_slim: "somepath.txt"
+  lkups:
+    scot_parishes:
+      lkup_file: "../data/input/scot/scot_parish_boundary/scotboundarylinking.xlsx"
+      lkup_uid_field: "ParID"
+      lkup_census_field: "ParID"
+      lkup_params:
+        sheet_name: "1871_icem"
+        usecols: ["ParID", "merged_id", ]
+    scot_conrdtowns:
+      lkup_file: "../data/input_new/scot/OneDrive-2023-04-04/conrd_town_recid_1871.txt"
+      lkup_uid_field: "recid"
+      lkup_census_field: "RecID"
+      lkup_params:
+        sep: ","
+        quoting: 3
+        usecols: ["recid", "conrd_town", ]
 
   write_processed_csv_params:
     sep: "\t"
@@ -44,21 +44,10 @@ census:
     index: False
 
   write_processed_csv_params_slim:
-    columns: ["address_uid", "Address_alt", "merged_id", "RC"]
+    columns: ["address_uid", "Address_alt", "merged_id", "subset_id", "conrd_town"]
     sep: "\t"
     encoding: "utf-8"
     index: False
-
-  # read_processed_csv_params:
-  #   usecols: ["address_uid", "Address_alt", "ConParID", "CEN_1851", "RC"]
-  #   sep: "\t"
-  #   encoding: "utf-8"
-  #   dtype:
-  #     address_uid: "int16"
-  #     Address_alt: "str"
-  #     ConParID: "int16"
-  #     CEN_1851: "int16"
-  #     RC: "int8"
 
   comparers:
     rapidfuzzy_wratio: "rapidfuzzy_wratio_s"
@@ -76,7 +65,6 @@ boundaries:
       engine: "pyogrio"
       columns: ["JOIN_NAME_"]
       # max_features: 1000
-    geom_format: None
     gis_write_params:
       sep: "\t"
       encoding: "utf-8"
@@ -88,6 +76,18 @@ boundaries:
       sheet_name: "1871_gis"
       na_values: "."
       usecols: ["JOIN_NAME_", "merged_id" ]
+    gis_write_params:
+      sep: "\t"
+      encoding: "utf-8"
+      index: False
+  boundary_2:
+    geom_name: "scotconrdtown"
+    gis_file: "../data/input_new/scot/Scotland_ConRD_Town_1851_1901/Scotland_ConRD_Town_1851_1901.shp"
+    gis_uid_field: "ConRD_town"
+    gis_read_params:
+      engine: "pyogrio"
+      columns: ["ConRD_town"]
+      # max_features: 1000
     gis_write_params:
       sep: "\t"
       encoding: "utf-8"
