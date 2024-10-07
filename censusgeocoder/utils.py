@@ -370,7 +370,7 @@ def validate_geopandas_read_file_kwargs(file_path, params):
 def get_readlibrary(
     file_path,
     read_params,
-) -> pd.read_csv | pd.read_excel | gpd.read_file:
+):
     """Get the correct library to read a file
 
     Parameters
