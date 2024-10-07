@@ -203,9 +203,7 @@ class Geometry:
 
     `process()`
         Processes geometry data by adding lookup if available and dissolving geometries on specified uid field.
-
-
-
+        
 
     Notes
     -----
@@ -574,9 +572,7 @@ class TargetGeometry(Geometry):
     def clean_tg(
         self,
     ):
-        """Cleans target geometry dataset, drops resulting rows of data with NaNs after cleaning, writes to output file.
-        
-        """
+        """Cleans target geometry dataset, drops resulting rows of data with NaNs after cleaning, writes to output file."""
 
         if self.vars.gis_field_to_clean is not None:
             self.data, self.vars.gis_geocode_field = utils.clean_address_data(
