@@ -139,60 +139,6 @@ def process_coords(
     )
     return target_gdf
 
-def get_file_ext(
-    file_path,
-):
-    file_ext = pathlib.Path(file_path).suffix
-    return file_ext
-
-def fieldtolist(
-    fields,
-):
-
-    field_list = []
-
-    for k, v in fields.items():
-        field_list.append(v)
-
-    return field_list
-
-
-def fieldtolist_comp(
-    fields,
-    subset,
-):
-    output_list = []
-    for k, v in fields.items():
-        for k1, v1 in v.items():
-            if k1 == subset:
-                col_val = v1
-                output_list.append(col_val)
-            else:
-                "Do nothing"
-    return output_list
-
-
-def create_write_params(
-    write_params,
-    write_fields,
-):
-    if write_fields != None and write_params != None:
-        write_params = write_params
-        columns = []
-        for k, v in write_fields.items():
-            for k1, v1 in v.items():
-                if k1 == "val":
-                    col_val = v1
-                    columns.append(col_val)
-                # elif k1 == "dtype":
-                #     dtype_dict[col_val] = v1
-                # else:
-                #     "Do nothing"
-        write_params["columns"] = columns
-
-    return write_params
-
-
 class rapidfuzzy_wratio_comparer(BaseCompareFeature):
     """Provides funtionality for recordlinkage BaseCompareFeature to use
     algorithm from rapidfuzz rather than fuzzywuzzy.
