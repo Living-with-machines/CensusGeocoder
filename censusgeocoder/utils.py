@@ -6,7 +6,6 @@ import pandas as pd
 from rapidfuzz import fuzz
 from recordlinkage.base import BaseCompareFeature
 from recordlinkage.utils import fillna as _fillna
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 import geopandas as gpd
 import json
