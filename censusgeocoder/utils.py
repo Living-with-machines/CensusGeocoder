@@ -18,121 +18,6 @@ from scipy import spatial
 from unidecode import unidecode
 
 
-def get_file_or_filelist(file_path, file_type: str = None):
-    """Accepts a directory or single filepath and creates a list of file(s)
-    containing target geometry data.
-
-    Parameters
-    -------
-
-    geom_config: Dataclass
-        Dataclass containing parameters for target geometry data.
-
-    Returns
-    -------
-    geom_files: list
-        List containing file(s) of target geometry data.
-    """
-
-    file_list = []
-    p = pathlib.Path(file_path)
-    if p.is_file():
-        file_list.append(str(p))
-    else:
-        for file_p in p.iterdir():
-            if file_type == file_p.suffix:
-                file_list.append(str(file_p))
-    print(file_list)
-    return file_list
-
-
-def read_shp_geom(file_path, **params):
-    """Reads target geometry from a single shapefile or multiple
-    shapefiles. Returns target geometry in geopandas GeoDataFrame.
-
-    Parameters
-    ----------
-
-    filelist: list
-        List of filepaths.
-
-    cols_to_keep: list
-        Columns from target geometry data to read.
-
-    geom_config: Dataclass
-        Dataclass containing parameters for target geometry data.
-
-    Returns
-    -------
-    target_gdf:  geopandas.GeoDataFrame
-        Geopandas geodataframe containing target geometry data.
-    """
-
-    filelist = get_file_or_filelist(
-        file_path,
-    )
-
-    # tmp_file = gpd.read_file(filelist[0], rows=1)
-    # list_of_all_cols = tmp_file.columns.values.tolist()
-
-    # unwanted_cols = [col for col in list_of_all_cols if col not in cols_to_keep]
-
-    gdf_list = []
-
-    for file_ in filelist:
-        if pathlib.Path(file_).suffix == ".shp":
-
-            gpd.read_file(
-                file_,
-                **params,
-            )
-
-    target_gdf = pd.concat(gdf_list)
-
-    return target_gdf
-
-
-def read_csv_geom(
-    file_path,
-    **read_params,
-):
-    """Reads target geometry from a single delimited file or multiple
-    delimited files. Returns target geometry data in pandas DataFrame.
-
-    Parameters
-    ----------
-
-    filelist: list
-        List of filepaths.
-
-    cols_to_keep: list
-        Columns from target geometry data to read.
-
-    geom_config: Dataclass
-        Dataclass containing parameters for target geometry data.
-
-    Returns
-    -------
-    target_df:  pandas.DataFrame
-        Pandas dataframe containing target geometry data.
-    """
-
-    filelist = get_file_or_filelist(
-        file_path,
-    )
-
-    target_df = pd.concat(
-        [
-            pd.read_csv(
-                csv_file,
-                **read_params,
-            )
-            for csv_file in filelist
-        ]
-    )
-    return target_df
-
-
 def clean_address_data(
     df: pd.DataFrame,
     field_to_clean,
@@ -154,14 +39,14 @@ def clean_address_data(
     # print(df.info())
     df[field_to_clean_new] = df[field_to_clean]
 
-    if convert_non_ascii == True:
+    if convert_non_ascii is True:
         df[field_to_clean_new] = df[field_to_clean_new].apply(
             lambda a: a if pd.isna(a) else unidecode(a)
         )
 
     df[field_to_clean_new] = df[field_to_clean_new].str.upper()
 
-    if standardisation_file != None:
+    if standardisation_file is not None:
         with open(standardisation_file) as f:
             street_standardisation = json.load(f)
 
@@ -173,7 +58,7 @@ def clean_address_data(
         df = df.fillna(value=np.nan)
     df[field_to_clean_new] = df[field_to_clean_new].str.strip()
 
-    if min_length != None:
+    if min_length is not None:
 
         df[field_to_clean_new] = np.where(
             df[field_to_clean_new].str.len() >= min_length,
@@ -222,93 +107,11 @@ def process_coords(
     )
     return target_gdf
 
-
-# def process_wkt(target_df, projection, ):
-#     """Processes wkt strings in a pandas dataframe. Returns
-#     a geopandas GeoDataFrame with geometry data and specified crs.
-
-#     Parameters
-#     ----------
-
-#     target_df:  pandas.DataFrame
-#         Pandas dataframe containing target geometry data.
-
-#     geom_config: Dataclass
-#         Dataclass containing parameters for target geometry data.
-
-#     Returns
-#     -------
-#     target_gdf:  geopandas.GeoDataFrame
-#         Geopandas geodataframe containing target geometry data.
-#     """
-#     target_gdf = gpd.GeoDataFrame(
-#         target_df,
-#         geometry=gpd.GeoSeries.from_wkt(
-#             target_df[geom_config.data_fields.geometry_field]
-#         ),
-#         crs=projection,
-#     )
-#     return target_gdf
-
-
 def get_file_ext(
     file_path,
 ):
     file_ext = pathlib.Path(file_path).suffix
     return file_ext
-
-
-# def add_lkup(data, lkup_file, fields, lkup_params, base_link, lkup_link,):
-
-#     # if base_uid == None:
-#     #     base_uid = data.fields["uid"]
-
-#     file_type = get_file_ext(lkup_file, )
-
-#     if file_type in [".xlsx", ".xls", ]:
-
-
-#         lkup = pd.read_excel(
-#             lkup_file, usecols = fieldtolist(fields), **lkup_params,
-#                                     )
-
-#     elif file_type in [".tsv", ".csv", ".txt", ]:
-
-#         lkup = pd.read_csv(lkup_file, usecols = fieldtolist(fields), **lkup_params, )
-
-#     else:
-#         raise ValueError("Not a valid lkup format.")
-
-#     data.data = pd.merge(left = data.data, right = lkup, left_on = base_link, right_on = lkup_link, how = "left", )
-
-#     data.data = data.data.dropna(subset=fieldtolist(fields)) #check
-
-#     return data.data
-
-
-def add_lkup(
-    data,
-    lkup_file,
-    read_library,
-    read_params,
-    left_on,
-    right_on,
-    how="left",
-):
-    lkup_data = read_library(
-        lkup_file,
-        **read_params,
-    )
-    print(lkup_data.info())
-    new_data = pd.merge(
-        left=data,
-        right=lkup_data,
-        left_on=left_on,
-        right_on=right_on,
-        how=how,
-    )
-    return new_data
-
 
 def fieldtolist(
     fields,
@@ -488,88 +291,11 @@ def rapidfuzzy_get_src_start_pos(s1, s2):
     return conc.apply(fuzzy_apply)
 
 
-def compute_tfidf(census, col_to_compute):
-    """Compute TF-IDF scores for a column in the census. These scores are used to
-    weight the string comparisons so that common adddresses have to reach a higher
-    matching threshold to be classed as a true match.
-
-    Parameters
-    ----------
-    census: pandas.DataFrame
-        A pandas dataframe containing census data.
-
-    census_fields: Dataclass
-        Dataclass containing census columns.
-
-    Returns
-    -------
-    pandas.DataFrame
-        A pandas dataframe containing census data with two additional columns with
-        tf-idf and tf-idf weighting.
-    """
-    try:
-        tfidf_vectorizer = TfidfVectorizer(
-            norm="l2", use_idf=True, lowercase=False, dtype=np.float32
-        )  # default is norm l2
-        tfidf_sparse = tfidf_vectorizer.fit_transform(census[col_to_compute])
-        # tfidf_array = tfidf_sparse.toarray()
-        # tfidf_array_sums = np.sum(tfidf_array, axis=1).tolist()
-        np.seterr(invalid="ignore")
-        tfidf_mean = np.sum(tfidf_sparse, axis=1) / np.sum(tfidf_sparse != 0, axis=1)
-        census["tfidf"] = tfidf_mean
-        # census["tfidf_w"] = census["tfidf"] / census[census_fields.address].str.len()
-    except ValueError:
-        print("Likely error with tf-idf not having any strings to compare")
-    return census[[col_to_compute, "tfidf"]]
-
-
-# def set_path(*dirs):
-#     """Takes input strings; creates a path if path doesn't exist;
-#     returns a path"""
-
-#     new_path = pathlib.Path(*dirs)
-#     pathlib.Path(new_path).mkdir(parents=True, exist_ok=True)
-
-#     return new_path
-
-
-# def set_filename(output_dir, file_extension, *fname_components):
-#     fname_components_list = [
-#         str(fname_components) for fname_components in fname_components
-#     ]
-#     filename = (
-#         str(output_dir) / "_".join(fname_components_list)
-#         + str(".")
-#         + str(file_extension)
-#     )
-#     return filename
-
-
-# new_path = pathlib.Path("data", "output", "1911")
-# pathlib.Path(new_path).mkdir(parents=True, exist_ok=True)
-
-
 def set_filepath(*filepath_components):
     filepath = pathlib.Path().joinpath(*filepath_components)
     pathlib.Path(filepath).mkdir(parents=True, exist_ok=True)
 
     return filepath
-
-
-# output_loc = set_filepath("data/output", "1911", "EW", "1911_EW_boundary.geojson",)
-
-# print(output_loc)
-
-# .mkdir(
-#     parents=True, exist_ok=True
-# )
-# print(testing)
-
-# output_dir = set_path("data", "output", "1911", "EW")
-
-# print(output_dir)
-# trial = set_filename(output_dir, "geojson", "1911", "EW", "boundary")
-# print(trial)
 
 
 def set_gis_file_extension(driver):
@@ -638,9 +364,6 @@ def get_readlibrary(
 ):
     """docstring"""
 
-    # file_list = get_file_or_filelist(file_path,
-    #                                  file_type, )
-
     ext = pathlib.Path(file_path).suffix
 
     if ext in [
@@ -669,6 +392,16 @@ def get_readlibrary(
 
     return read_library
 
+def read_file(file_path,
+              read_params,
+              ) -> pd.DataFrame | gpd.GeoDataFrame:
+
+    read_library = get_readlibrary(file_path, read_params, )
+    
+    data = read_library(file_path, **read_params)
+
+    return data
+
 
 def validate_paths(filepath):
     """Checks the filepaths are valid. If not, returns an error"""
@@ -689,3 +422,43 @@ def write_df_to_file(output_df, output_path_components, pandas_write_params):
         output_file_path.parent.mkdir(parents=True)
 
     output_df.to_csv(output_file_path, **pandas_write_params)
+
+
+def add_lkup(
+    data,
+    lkup_file,
+    lkup_params,
+    left_on,
+    right_on,
+    how="left",
+    lkup_val = "integer",
+    fields_to_drop = None
+):
+    read_library= get_readlibrary(
+        lkup_file,
+        lkup_params,
+    )
+
+    lkup_data = read_library(lkup_file, **lkup_params)
+
+    new_data = pd.merge(
+        left=data,
+        right=lkup_data,
+        left_on=left_on,
+        right_on=right_on,
+        how=how,
+    )
+
+    lkup_cols_added = [col for col in lkup_data.columns if col != right_on]
+
+    new_data = new_data.dropna(subset=lkup_cols_added)
+
+    if lkup_val in ["integer", "float"]:
+        for col in lkup_cols_added:
+            new_data[col] = pd.to_numeric(new_data[col], downcast=lkup_val)
+
+    if fields_to_drop is not None:
+        print("removing fields here now")
+        new_data = new_data.drop(columns=fields_to_drop)
+
+    return new_data
