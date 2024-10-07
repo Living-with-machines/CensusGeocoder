@@ -188,8 +188,6 @@ def rapidfuzzy_wratio(s1, s2):
 
     conc = pd.Series(list(zip(s1, s2)))
 
-    # from rapidfuzz import fuzz
-
     def fuzzy_apply(x):
 
         try:
@@ -209,8 +207,6 @@ def rapidfuzzy_partialratio(s1, s2):
 
     conc = pd.Series(list(zip(s1, s2)))
 
-    # from rapidfuzz import fuzz
-
     def fuzzy_apply(x):
 
         try:
@@ -229,8 +225,6 @@ def rapidfuzzy_partialratioalignment(s1, s2):
     """Apply rapidfuzz partial_ratio_alignment to compare two pandas series"""
 
     conc = pd.Series(list(zip(s1, s2)))
-
-    # from rapidfuzz import fuzz
 
     def fuzzy_apply(x):
 
@@ -253,8 +247,6 @@ def rapidfuzzy_get_src_start_pos(s1, s2):
 
     conc = pd.Series(list(zip(s1, s2)))
 
-    # from rapidfuzz import fuzz
-
     def fuzzy_apply(x):
 
         try:
@@ -267,31 +259,6 @@ def rapidfuzzy_get_src_start_pos(s1, s2):
                 raise err
 
     return conc.apply(fuzzy_apply)
-
-
-def set_filepath(*filepath_components):
-    filepath = pathlib.Path().joinpath(*filepath_components)
-    pathlib.Path(filepath).mkdir(parents=True, exist_ok=True)
-
-    return filepath
-
-
-def set_gis_file_extension(driver):
-    # driver = params.driver
-    if driver == "GeoJSON":
-        file_extension = ".geojson"
-    else:
-        pass
-    return file_extension
-
-
-def write_gis_file(gdf, filepath, **params):
-    print(params)
-    # print(params[""])
-    # print(**params)
-    # file_extension = set_gis_file_extension(params["driver"])
-    gdf.to_file(filepath, **params)
-
 
 def calc_dist(coords):
     np.seterr(all="ignore")
