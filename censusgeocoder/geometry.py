@@ -218,9 +218,6 @@ class Geometry:
     `_setgeomtype()`
         Checks geometry type of geometry data
 
-    # `_dissolve()`
-    #     Dissolves geometry data on specified dissolve field. Returns `gpd.GeoDataFrame` containing dissolved geometry data.
-
     `_write_geom_data()`
         Writes geometry data to file.
 
@@ -339,29 +336,6 @@ class Geometry:
             raise ValueError(f"Mixed geometry types: {geom_l}")
         else:
             self.vars.geom_type = geom_l[0]
-
-    # def _dissolve(
-    #     self,
-    #     dissolve_field,
-    # ) -> gpd.GeoDataFrame:
-    #     """Dissolves geometry data on specified dissolve field. Returns `gpd.GeoDataFrame` containing dissolved geometry data.
-
-    #     Parameters
-    #     ----------
-
-    #     dissolve_field: str
-    #         Name of pd.Series on which to dissolve geometries.
-
-    #     Returns
-    #     -------
-
-    #     geometry_data: `gpd.GeoDataFrame`
-    #         `gpd.GeoDataFrame` containing dissolved geometry data.
-    #     """
-
-    #     geometry_data = self.data.dissolve(by=dissolve_field).reset_index()
-
-    #     return geometry_data.copy()
 
     def _write_geom_data(self, status, params):
         """Writes geometry data to file.
