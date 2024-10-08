@@ -2,11 +2,11 @@
 
 ![overview](documentation/overview_large_new.png)
 
-## What is historic-census-gb-geocoder?
+## What is CensusGecooder?
 
-**historic-census-gb-geocoder** links streets in [digitised historic census data for Great Britain 1851-1911](#integrated-census-microdata-i-cem) to their 'real-world' geographic location. For example, it takes the text 'Ruby Street' from the census and links it to a geometry dataset of your choice. We link to [OS Open Roads](#os-open-roads) and [GB1900](#gb1900-gazetteer) as our target geometry datasets as the best alternatives until a full vector dataset of nineteenth/early twentieth century streets is created (we'd love if this was available someday!)
+**CensusGeocoder** links addresses in [digitised historic census data for Great Britain 1851-1911](#integrated-census-microdata-i-cem) to their 'real-world' geographic location. For example, it takes the text 'Ruby Street' from the census and links it to a geometry dataset of your choice. We link to [OS Open Roads](#os-open-roads) and [GB1900](#gb1900-gazetteer) as our target geometry datasets as the best alternatives until a full vector dataset of nineteenth/early twentieth century streets is created (we'd love if this was available someday!)
 
-**historic-census-gb-geocoder** allows you to use historic census data in new and powerful ways. Previously, the smallest spatial unit people in historic census data could be geo-located by was either a parish or registration sub-district (as well as larger units like registration districts and counties). But each of these administrative units - even parishes - necessitates aggregating individuals to quite large areas. Any sub-parish distinctions (like types of streets that people lived on, or perhaps how close someone lived to a factory or railway line) are lost. Typically, researchers used the centroids of parish polygons to conduct spatial analysis of the census. This meant that everyone in the parish was treated the same, e.g. *x* km from a station. **historic-census-gb-geocoder** locates individuals at street level, so we can now differentiate people street-by-street, and talk of people being *x* meters from a point of interest.
+**CensusGeocoder** allows you to use historic census data in new and powerful ways. Previously, the smallest spatial unit people in historic census data could be geo-located by was either a parish or registration sub-district (as well as larger units like registration districts and counties). But each of these administrative units - even parishes - necessitates aggregating individuals to quite large areas. Any sub-parish distinctions (like types of streets that people lived on, or perhaps how close someone lived to a factory or railway line) are lost. Typically, researchers used the centroids of parish polygons to conduct spatial analysis of the census. This meant that everyone in the parish was treated the same, e.g. *x* km from a station. **CensusGeocoder** locates individuals at property and street level, so we can now differentiate people street-by-street, and talk of people being *x* meters from a point of interest.
 
 ## How does it work?
 
@@ -32,7 +32,7 @@ Here's the location of streets containing the words 'BOUNDARY LANE' in OS Open R
 
 <!-- ![all_boundary_lanes](documentation/run_through/boundary_lane_all.png) -->
 
-<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/boundary_lane_all.png" alt="Streets containing the text 'Boundary Lane' across England and Wales" width="500" height="500">
+<img src="https://github.com/Living-with-machines/CensusGeocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/boundary_lane_all.png" alt="Streets containing the text 'Boundary Lane' across England and Wales" width="500" height="500">
 
 OS Open Roads identify streets' exact locations but there's no inherent spatial relationship between them and the census. We need to classify the streets in the OS Open Roads according to historic boundaries that relate to the census data, in order to be able to differentiate all these streets with the same or similar names.
 
@@ -58,7 +58,7 @@ Norfolk|Blofield|POSTWICK|Blofield|103249|4501|26
 Norfolk|Blofield|THORPE NEXT NORWICH|Blofield|103248|4504|44
 Nottinghamshire|Worksop|WORKSOP|Worksop|107257|9734|15
 
-For each street in the census, we have quite a lot of geographical information that helps us distinguish streets. The `ConParID` and `ParID` fields link to existing GIS boundary datasets, which we can use to carve up our target geometry datasets.
+For each street in the census, we have quite a lot of geographical information that helps us distinguish streets with the same name. The `ConParID` and `ParID` fields link to existing GIS boundary datasets, which we can use to carve up our target geometry datasets.
 
 `ConParID` refers to 'Consistent Parish ID'. There are two series of consistent parish boundaries - one that covers 1851 to 1891, and another set covering 1901 and 1911. Consistent parish boundaries don't reflect real parish boundaries, they're artificial units constructed by aggregating multiple parishes. See [here](https://www.essex.ac.uk/research-projects/integrated-census-microdata) for more information under the heading 'Consistent Parish Geographies'. We can map these consistent parish units: the `ConParID` field links to [Parish Boundary Data](#parish-boundary-data-england-and-wales-only) via a [lookup table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only).
 
@@ -72,7 +72,7 @@ ParID|CEN_1901|YEAR|COUNTRY|DIVISION|REGCNTY|REGDIST|SUBDIST|PARISH|
 
 Below is a map of Manchester overlaid with these two different boundary datasets. The large area in green is the area covered by the consistent parish unit (this particular one is `ConParID` 108139). The black lines are the boundaries of the Registration Sub-Districts (RSDs) in that area. Each area bounded by a black line has its own `CEN_1901` id value.
 
-<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/manchesterconpar.png" alt="Manchester consistent parish and RSD" width="500" height="500">
+<img src="https://github.com/Living-with-machines/CensusGeocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/manchesterconpar.png" alt="Manchester consistent parish and RSD" width="500" height="500">
 
 Sometimes RSDs are larger than a consistent parish unit, but often they're smaller around urban centres like Manchester or London. In this example, they break up that large green area into smaller RSD/consistent parish combinations. This helps us disambiguate streets of the same name better than if we relied solely on the consistent parish unit - it's so large in this case that there are bound to be multiple streets with the same name and no way for us to know which one is which (in a systematic geographic sense for geo-blocking purposes). Creating new boundaries by combining RSDs and consistent parish units creates the smallest boundary units that we have for the historic census data.
 
@@ -80,7 +80,7 @@ Let's briefly turn back to OS Open Roads. We'll use these historic boundaries to
 
 Let's zoom in on the 'BOUNDARY LANE' to the south of Manchester:
 
-<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/boundary_lane_manchesterzoom.png" alt="Manchester consistent parish and RSD zoomed" width="500" height="500">
+<img src="https://github.com/Living-with-machines/CensusGeocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/boundary_lane_manchesterzoom.png" alt="Manchester consistent parish and RSD zoomed" width="500" height="500">
 
 We're within `ConParID` 108139 now. The image shows us the modern 'BOUNDARY LANE' from OS Open Roads overlaying a historic OS map. The path of the modern road closely follows but is not exactly the same as the historic road. This is one of the many challenges of using modern road vector data in lieu of historic road vector data!
 
@@ -96,7 +96,7 @@ We can select all the streets in OS Open Roads and the census with `ConParID` 10
 
 This returns 388 streets from OS Open Roads:
 
-<img src="https://github.com/Living-with-machines/historic-census-gb-geocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/4640004_os_roads.png" alt="Roads in ConParID 4640004" width="500" height="500">
+<img src="https://github.com/Living-with-machines/CensusGeocoder/blob/5ead73515372cd9747b36147e18b13356ecc2310/documentation/run_through/4640004_os_roads.png" alt="Roads in ConParID 4640004" width="500" height="500">
 
 There are 1052 unique addresses in the census within the same area. These aren't all different streets, they're just the unique addresses recorded in the census (after we've removed house numbers etc). E.g. we're left with 'YORK PLACE' on which lots of people will live and more specific entries like 'THE GREYHOUND YORK PLACE'.
 
@@ -149,7 +149,7 @@ We start with parishes in 1851. I-CeM provides a lookup table that links each pa
 Add details here on how to access the data outputs.
 
 # Contents
-- [What is historic-census-gb-geocoder?](#What-is-historic-census-gb-geocoder?)
+- [What is CensusGeocoder?](#What-is-CensusGeocoder?)
 - [How does it work](#how-does-it-work)
 - [I just want the data!](#i-just-want-the-data)
 - [Pre-installation](#pre-installation)
@@ -183,7 +183,7 @@ Add details here on how to access the data outputs.
 
 ## Pre-installation
 
-`historic-census-gb-geocoder` relies on several datasets, which are deposited with the UK Data Service (UKDS). For some, all you need to do is register, and sign their standard end user licence. But for others (the names and addresses version of the census), the application is more involved. Please see individual datasets listed under [Data Inputs](#data-input) to see what you require from the UKDS. Then head over to their [website](https://ukdataservice.ac.uk) and follow their instructions for accessing the data.
+`CensusGeocoder` relies on several datasets, which are deposited with the UK Data Service (UKDS). For some, all you need to do is register, and sign their standard end user licence. But for others (the names and addresses version of the census), the application is more involved. Please see individual datasets listed under [Data Inputs](#data-input) to see what you require from the UKDS. Then head over to their [website](https://ukdataservice.ac.uk) and follow their instructions for accessing the data.
 
 
 ## Installation
@@ -192,7 +192,7 @@ Add details here on how to access the data outputs.
 
 I recommend installation via Anaconda (refer to [Anaconda website and follow the instructions](https://docs.anaconda.com/anaconda/install/)).
 
-* Create a new environment for `historic-census-gb-geocoder` called `geocoder_py38`:
+* Create a new environment for `CensusGeocoder` called `geocoder_py38`:
 
 ```bash
 conda create -n geocoder_py38 python=3.8
@@ -203,183 +203,147 @@ conda create -n geocoder_py38 python=3.8
 ```bash
 conda activate geocoder_py38
 ```
-### Method 1
+<!-- ### Method 1
 
 ***Not added to pypi yet - use method 2***
-* Install `historic-census-gb-geocoder`:
+* Install `CensusGeocoder`:
 
  ```bash
-pip install historic-census-gb-geocoder
-```
+pip install CensusGeocoder
+``` -->
 
-### Method 2
+### Method 1
 
-* Clone `historic-census-gb-geocoder` source code:
+* Clone `CensusGeocoder` source code:
 
 ```bash
-git clone git@github.com:Living-with-machines/historic-census-gb-geocoder.git
+git clone git@github.com:Living-with-machines/CensusGeocoder.git
 ```
 
 * Install:
 
 ```bash
-cd /path/to/historic-census-gb-geocoder
+cd /path/to/CensusGeocoder
 pip install -v -e .
 ```
 
-Edit `/path/to/` as appropriate to the directory that you cloned `historic-census-gb-geocoder` into. E.g. `/Users/jrhodes/historic-census-gb-geocoder`
+Edit `/path/to/` as appropriate to the directory that you cloned `CensusGeocoder` into. E.g. `/Users/jrhodes/CensusGeocoder`
 
 ### To run
 
 ```bash
-python3 historic-census-gb-geocoder/historic_census_gb_geocoder.py
+cd census_geocoder
+python3 census_geocoder.py
 ```
 
 ### Set parameters
 ### Folder structure and data
 
-<!-- The [input_config.yaml](inputs/input_config.yaml) file allows you to adjust many variables for each census year, the other input files, and the target geometry datasets. These are detailed in the respective section under [Data Inputs](#data-inputs). -->
+The filepaths for all the input data can be set by the user in [input_config.yaml](inputs/input_config.yaml) - for further information see the respective section under [Data Input](#data-input). We recommend the following directory structure for  `inputs`, `data/input`, and `data/output`. 
 
-The filepaths for all the input data can be set by the user in [input_config.yaml](inputs/input_config.yaml) - for further information see the respective section under [Data Input](#data-input). We recommend the following directory structure for `data/input`, `inputs`, and `sample`.
-
-**NB for LwM testers - the contents of `data/input` can be found on Azure in the storage account `censusplacelinking` inside the blob container `historic-census-gb-geocoder`.**
-
-The parent output directory is also set by the user in [input_config.yaml](inputs/input_config.yaml):
+The parent output directory can also set by the user in [gen_config.yaml](inputs/gen_config.yaml):
 
 ```yaml
 general:
-  output_data_path: "data/output/"
+  output_path: "data/output/"
 ```
 
-The directory structure of `data/output/` is created automatically when `historic-census-gb-geocoder` runs, and creates directories for each census year, country, and target geometry dataset.
+The directory structure of `data/output/` is created automatically when `CensusGeocoder` runs, and creates directories for each census year, country, and subset (if provided, though recommended) and target geometry dataset.
 
 ```bash
-├── data
-│   └── input
-│       ├── census
-│       │   ├── sample
-│       │   │   ├── EW1851_sample.txt
-│       │   │   └──  ...
-│       │   ├── EW1851.txt
-│       │   ├── EW1861.txt
-│       │   ├── EW1881.txt
-│       │   ├── EW1891.txt
-│       │   ├── EW1901.txt
-│       │   ├── EW1911.txt
-│       │   ├── SCOT1851.txt
-│       │   ├── SCOT1861.txt
-│       │   ├── SCOT1871.txt
-│       │   ├── SCOT1881.txt
-│       │   ├── SCOT1891.txt
-│       │   └── SCOT1901.txt
-│       ├── ew
-│       │   ├── 1851EngWalesParishandPlace
-│       │   │   ├── 1851EngWalesParishandPlace.dbf
-│       │   │   ├── 1851EngWalesParishandPlace.prj
-│       │   │   ├── 1851EngWalesParishandPlace.sbn
-│       │   │   ├── 1851EngWalesParishandPlace.sbx
-│       │   │   ├── 1851EngWalesParishandPlace.shp
-│       │   │   └── 1851EngWalesParishandPlace.shx
-│       │   ├── parish_dicts_encoding
-│       │   │   ├── 1851_ICeM_DICTIONARY_CODED.txt
-│       │   │   ├── 1861_ICeM_DICTIONARY_CODED.txt
-│       │   │   ├── 1871_DICTIONARY_CODED.txt
-│       │   │   ├── 1881_ICeM_DICTIONARY_CODED.txt
-│       │   │   ├── 1891_ICeM_DICTIONARY_CODED.txt
-│       │   │   ├── 1901_ICeM_DICTIONARY_CODED.txt
-│       │   │   ├── 1911_ICeM_DICTIONARY_CODED.txt
-│       │   │   ├── PAR1851_RSD_MATCH.txt
-│       │   │   └── finalEWnondiss1851_1911.txt
-│       │   ├── icem_parish_lkup
-│       │   │   └── UKDS_GIS_to_icem.xlsx
-│       │   └── rsd_boundary_data
-│       │       ├── RSD_1851_1911_JR.cpg
-│       │       ├── RSD_1851_1911_JR.dbf
-│       │       ├── RSD_1851_1911_JR.prj
-│       │       ├── RSD_1851_1911_JR.sbn
-│       │       ├── RSD_1851_1911_JR.sbx
-│       │       ├── RSD_1851_1911_JR.shp
-│       │       ├── RSD_1851_1911_JR.shp.xml
-│       │       └── RSD_1851_1911_JR.shx
-│       ├── scot
-│       │   └── scot_parish_boundary
-│       │       ├── CivilParish1930
-│       │       │   ├── CivilParish1930.dbf
-│       │       │   ├── CivilParish1930.prj
-│       │       │   ├── CivilParish1930.shp
-│       │       │   ├── CivilParish1930.shp.xml
-│       │       │   ├── CivilParish1930.shx
-│       │       │   └── CivilParish1930Lookup.xls
-│       │       ├── CivilParish_pre1891
-│       │       │   ├── CivilParish_pre1891.CPG
-│       │       │   ├── CivilParish_pre1891.dbf
-│       │       │   ├── CivilParish_pre1891.prj
-│       │       │   ├── CivilParish_pre1891.sbn
-│       │       │   ├── CivilParish_pre1891.sbx
-│       │       │   ├── CivilParish_pre1891.shp
-│       │       │   ├── CivilParish_pre1891.shp.xml
-│       │       │   ├── CivilParish_pre1891.shx
-│       │       │   └── scotland-parishes-1755-1891.xlsx
-│       │       └── scotboundarylinking.xlsx
-│       └── target_geoms
-│           ├── oproad_essh_gb-2
-│           │   ├── data
-│           │   │   ├── sample
-│           │   │   │   ├── HP_RoadLink.shp
-│           │   │   │   └── ...
-│           │   │   ├── HP_RoadLink.cpg
-│           │   │   ├── HP_RoadLink.dbf
-│           │   │   ├── HP_RoadLink.prj
-│           │   │   ├── HP_RoadLink.shp
-│           │   │   ├── HP_RoadLink.shx
-│           │   │   ├── HP_RoadNode.cpg
-│           │   │   ├── HP_RoadNode.dbf
-│           │   │   ├── HP_RoadNode.prj
-│           │   │   ├── HP_RoadNode.shp
-│           │   │   ├── HP_RoadNode.shx
-│           │   │   └── ...
-│           │   ├── doc
-│           │   │   └── licence.txt
-│           │   └── readme.txt
-│           ├── gb1900
-│           │   ├── sample
-│           │   │   └── gb1900_gazetteer_complete_july_2018_sample.csv
-│           │   └── gb1900_gazetteer_complete_july_2018.csv
-│           └── target_geom3
-│               └── ...
+
 ├── inputs
 │   ├── gb1900_standardisation.json
 │   ├── icem_street_standardisation.json
-│   └── input_config.yaml
+│   ├── osopenroads_standardisation.json
+│   ├── EW_1851_config.yaml
+│   ├── EW_1861_config.yaml
+│   ├── EW_1881_config.yaml
+│   ├── EW_1891_config.yaml
+│   ├── EW_1901_config.yaml
+│   ├── EW_1911_config.yaml
+│   ├── scot_1851_config.yaml
+│   ├── scot_1861_config.yaml
+│   ├── scot_1871_config.yaml
+│   ├── scot_1881_config.yaml
+│   ├── scot_1891_config.yaml
+│   ├── scot_1901_config.yaml
+│   └── gen_config.yaml
+
+
+├── data
+│   └── input
+│       ├── census
+│       │   ├── 1851_ew_geocode.txt
+│       │   ├── 1861_ew_geocode.txt
+│       │   ├── ...
+│       ├── ew
+│       │   ├── 1851EngWalesParishandPlace
+│       │   │   ├── ...
+│       │   ├── parish_dicts_encoding
+│       │   │   ├── 1851_ICeM_DICTIONARY_CODED_conparidadded.txt
+│       │   │   ├── ...
+│       │   ├── icem_parish_lkup
+│       │   │   └── UKDS_GIS_to_icem.xlsx
+│       │   └── rsd_boundary_data
+│       │       ├── ...
+│       ├── scot
+│       │   └── scot_parish_boundary
+│       │       ├── CivilParish1930
+│       │       │   ├── ...
+│       │       ├── CivilParish_pre1891
+│       │       │   ├── ...
+│       │       │   └── scotland-parishes-1755-1891.xlsx
+│       │       ├── conrd_town_recid
+│       │       │   ├── conrd_town_recid_1851.txt
+│       │       │   ├── ...
+│       │       └── scotboundarylinking.xlsx
+│       └── target_geoms
+│           ├── osopenroads
+│           │   ├── ...
+│           ├── gb1900
+│           │   └── gb1900_gazetteer_complete_july_2018.csv
+│           └── target_geom3
+│               └── ...
 └── output
-        └── 1851
-            └── EW
-                ├── target_geom1
-                │   ├── linked
-                │   ├── linked_duplicates
-                │   └── lookup
-                └── target_geom2
-                    ├── linked
-                    ├── linked_duplicates
-                    └── lookup
+        └── EW
+            └── 1851
+                ├── 0
+                │   ├── EW_1851_address_uid_0.tsv
+                │   ├── EW_1851_census_for_linking_0.tsv
+                │   ├── EW_1851_cleaned_0.tsv
+                │   ├── EW_1851_gb1900_competing_matches_0.tsv
+                │   ├── EW_1851_gb1900_matches_lq_0.tsv
+                │   ├── EW_1851_gb1900_matches_0.tsv
+                │   ├── EW_1851_osopenroads_competing_matches_0.tsv
+                │   ├── EW_1851_osopenroads_matches_lq_0.tsv
+                │   ├── EW_1851_osopenroads_matches_0.tsv
+                ├── 1
+                │   ├── EW_1851_address_uid_1.tsv
+                │   └── ...
+                ├── ...
+                ├── gb1900
+                │   ├── EW_1851_gb1900_deduped_distcount.tsv
+                │   ├── EW_1851_gb1900_deduped_distcount2.tsv
+                │   ├── EW_1851_gb1900_processed.tsv
+                │   ├── EW_1851_gb1900_slim.tsv
+                │   ├── EW_1851_gb1900_standardised.tsv
+                ├── osopenroads
+                │   ├── EW_1851_osopenroads_deduped_nodistcalc.tsv
+                │   ├── EW_1851_osopenroads_processed.tsv
+                │   ├── EW_1851_osopenroads_slim.tsv
+                │   ├── EW_1851_osopenroads_standardised.tsv
+                ├── parish
+                │   └── EW_1851_parish_processed.tsv
+                ├── parish_rsd
+                │   └── EW_1851_parish_rsd_processed.tsv
+                └── rsd
+                    └── EW_1851_rsd_processed.tsv
+
 ```
 
-<!-- 
-
-## In depth discussion of processing steps etc?
-
-How it works etc....
-
-A census address is considered linked to a target address when:
-
-  1. The fuzzy string comparison score is greater than the user-specified threshold
-  2. It has the highest score after applying tf-idf weighting to the comparison score. Only census-address/target-address matches containing the following fields: 
-    1. Assign streets in a target geometry dataset to the appropriate historic administrative unit. When a target geometry dataset comprises linestrings, it creates new geometries so that long roads spanning more than one historic administrative unit are split at the boundary of each unit so people are linked to the correct portion of the street based on which unit they live in.
-  
-  -->
-
 ## Data Input
-This is a list and discription of the datasets you need to download and save locally in order to run the scripts correctly. Each section below describes the dataset, citation and copyright details, and how to set parameters in the relevant section of [input_config.yaml](inputs/input_config.yaml).
+This is a list and discription of the datasets you need to download and save locally in order to run the scripts correctly. Each section below describes the dataset, citation and copyright details, and how to set parameters in the relevant section of [EW_1851_config.yaml](inputs/EW_1851_config.yaml).
 
 
 ### Integrated Census Microdata (I-CeM)
@@ -392,7 +356,7 @@ These files have been created by merging two versions of the I-CeM datasets toge
 
 Further documentation on I-CeM, including how it was created and the variables it contains can be found [here](https://www.essex.ac.uk/research-projects/integrated-census-microdata).
 
-The `historic-census-gb-geocoder` uses the following fields from these census files:
+The `CensusGeocoder` uses the following fields from these census files:
 
 *England and Wales only
 
@@ -495,7 +459,7 @@ A shapefile (`.shp`) and associated files of 1851 Parish Boundary data for Engla
 
 ![1851EngWalesParishandPlace](documentation/1851EngWalesParishandPlace.png "1851EngWalesParishandPlace")
 
-This boundary dataset can be linked to I-CeM using [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only) to create consistent parish geographies for England and Wales across the period 1851-1911. The consistent parish geographies are used by `historic-census-gb-geocoder` in conjunction with boundary datasets for Registration Sub Districts (RSD) to assign streets in target geometry datasets to a historic parish/RSD administrative unit (see [Overview](#overview) for more details.)
+This boundary dataset can be linked to I-CeM using [1851EngWalesParishandPlace I-CeM Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only) to create consistent parish geographies for England and Wales across the period 1851-1911. The consistent parish geographies are used by `CensusGeocoder` in conjunction with boundary datasets for Registration Sub Districts (RSD) to assign streets in target geometry datasets to a historic parish/RSD administrative unit (see [Overview](#overview) for more details.)
 
 FIELD|DESCRIPTION
 --|--
@@ -534,7 +498,7 @@ ew_config:
 #### Description
 A lookup table that links I-CeM to parish boundary data. A full description of the dataset and its intended uses can be found [here - Consistent Parish Geographies](https://www.essex.ac.uk/research-projects/integrated-census-microdata)
 
-`historic-census-gb-geocoder` only uses three fields from the lookup table, which are:
+`CensusGeocoder` only uses three fields from the lookup table, which are:
 
 FIELD|DESCRIPTION
 --|--
@@ -612,7 +576,7 @@ rsd_gis_config:
 #### Description
 A series of data dictionaries for linking I-CeM to the RSD Boundary Data. You can ignore `finalEWnondiss1851_1911.txt`, `PAR1851_RSD_MATCH.txt` and `1871_DICTIONARY_CODED.txt`. There are 6 other files - one for each census year in I-CeM - that link the `ParID` field in I-CeM to a `CEN_****` (e.g. `CEN_1851`) field in the RSD Boundary data above. 
 
-`historic-census-gb-geocoder` uses the following fields from the lookup tables (this example is taken from the 1851 file):
+`CensusGeocoder` uses the following fields from the lookup tables (this example is taken from the 1851 file):
 
 FIELD|DESCRIPTION
 --|--
@@ -685,7 +649,7 @@ SMALL ISLES | 100119 |
 
 ### Target Geometry Data
 
-Currently, `historic-census-gb-geocoder` links I-CeM data to OS Open Roads 
+Currently, `CensusGeocoder` links I-CeM data to OS Open Roads 
 and GB1900 but users can adjust [input_config.yaml](inputs/input_config.yaml) to 
 link census data to any number of existing target geometry datasets in shapefiles or in csv files. To add additional target geometries, just add the appropriate lines under the `target_geoms` heading using the examples for reading .shp and .csv files below:
 
@@ -749,7 +713,7 @@ Currently used to expand abbreviations in GB1900, e.g. Rd to Road. Lots of scope
 
 Shapefiles and documentation from the Ordnance Survey's Open access modern road vector data. Available here to download: https://www.ordnancesurvey.co.uk/business-government/products/open-map-roads.
 
-`oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. historic-census-gb-geocoder only requires the `RoadLink` files.
+`oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. CensusGeocoder only requires the `RoadLink` files.
 
 ##### Citation
 
@@ -939,7 +903,7 @@ Brecknockshire|332|32|2|5978|2531|5.553696888591502|1.264322402212564|0.07902015
 
 ## String Comparison Parameters
 
-There are lots of different algorithms for comparing the similarity of two text strings. `historic-census-gb-geocoder` allows you to choose from a variety of fuzzy string comparison algorithms.
+There are lots of different algorithms for comparing the similarity of two text strings. `CensusGeocoder` allows you to choose from a variety of fuzzy string comparison algorithms.
 
 The default string comparison is an implementation of `partial_ratio` from the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library.
 
@@ -966,7 +930,7 @@ comparison_params:
 ```
 
 ## Credit, re-use terms, and how to cite
-`historic-census-gb-geocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-input)
+`CensusGeocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-input)
 
 ## Acknowledgements
 
