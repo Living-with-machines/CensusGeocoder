@@ -5,7 +5,7 @@ census:
   field_to_geocode: "Address"
   boundaries_field: ["ConParID", "CEN_1851"]
   subset_field: "subset_id"
-  census_file: "../data/input_new/census/1851_ew_geocode.txt"
+  census_file: "../data/input/census/1851_ew_geocode.txt"
   read_csv_params:
     sep: "\t" # passed to 'sep' parameter of pandas read_csv
     encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
@@ -23,7 +23,7 @@ census:
 
   lkups:
     conpar:
-      lkup_file: "../data/input_new/ew/parish_dicts_encoding/1851_ICeM_DICTIONARY_CODED_conparidadded.txt"
+      lkup_file: "../data/input/ew/parish_dicts_encoding/1851_ICeM_DICTIONARY_CODED_conparidadded.txt"
       lkup_uid_field: "ParID"
       lkup_census_field: "ParID"
       lkup_params:

@@ -5,7 +5,7 @@ census:
   field_to_geocode: "Address"
   boundaries_field: ["merged_id", "conrd_town"]
   subset_field: "subset_id"
-  census_file: "../data/input_new/census/1861_sct_geocode.txt"
+  census_file: "../data/input/census/1861_sct_geocode.txt"
   read_csv_params:
     sep: "\t" # passed to 'sep' parameter of pandas read_csv
     encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
@@ -30,7 +30,7 @@ census:
         sheet_name: "1861_icem"
         usecols: ["ParID", "merged_id", ]
     scot_conrdtowns:
-      lkup_file: "../data/input_new/scot/OneDrive-2023-04-04/conrd_town_recid_1861.txt"
+      lkup_file: "../data/input/scot/conrd_town_recid/conrd_town_recid_1861.txt"
       lkup_uid_field: "recid"
       lkup_census_field: "RecID"
       lkup_params:
@@ -82,7 +82,7 @@ boundaries:
       index: False
   boundary_2:
     geom_name: "scotconrdtown"
-    gis_file: "../data/input_new/scot/Scotland_ConRD_Town_1851_1901/Scotland_ConRD_Town_1851_1901.shp"
+    gis_file: "../data/input/scot/Scotland_ConRD_Town_1851_1901/Scotland_ConRD_Town_1851_1901.shp"
     gis_uid_field: "ConRD_town"
     gis_read_params:
       engine: "pyogrio"
