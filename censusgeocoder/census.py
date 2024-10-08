@@ -510,7 +510,7 @@ class Census:
 
                 for outputfiletype, outputdata in geocoded.rslts_dict.items():
 
-                    filename = f"{self.vars.country}_{self.vars.year}_{target_geometry.vars.geom_name}_{subset}_{outputfiletype}{self.vars.output_filetype}"
+                    filename = f"{self.vars.country}_{self.vars.year}_{target_geometry.vars.geom_name}_{outputfiletype}_{subset}{self.vars.output_filetype}"
 
                     output_path_components = [
                         str(x)
