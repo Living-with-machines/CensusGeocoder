@@ -15,7 +15,7 @@ target_geom1:
 
   gis_field_to_clean: "final_text"
   gis_convert_non_ascii: True
-  gis_standardisation_file: "../inputs/gb1900_standardisation.json"
+  gis_standardisation_file: "../configuration/standardisation_files/gb1900_standardisation.json"
   gis_min_len: 5
   cleaned_field_suffix: "_alt"
   dedup: True
@@ -36,7 +36,7 @@ target_geom2:
   gis_file: "../data/input/target_geoms/osopenroads/osopenroads.shp"
   gis_uid_field: "nameTOID"
   gis_convert_non_ascii: True
-  gis_standardisation_file: "../inputs/osopenroads_standardisation.json"
+  gis_standardisation_file: "../configuration/standardisation_files/osopenroads_standardisation.json"
   gis_geocode_field: "name1"
   gis_field_to_clean: "name1"
   cleaned_field_suffix: "_alt"

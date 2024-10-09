@@ -15,7 +15,7 @@ census:
     usecols: ["RecID", "Address","ParID", "subset_id"]
 
   field_to_clean: "Address"
-  standardisation_file: "../inputs/icem_street_standardisation.json" # regex replacement file
+  standardisation_file: "../configuration/standardisation_files/icem_street_standardisation.json" # regex replacement file
   min_len: 5
   cleaned_field_suffix: "_alt"
 
