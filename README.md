@@ -180,10 +180,15 @@ Add details here on how to access the data outputs.
     - [GB1900 Gazetteer](#gb1900-gazetteer)
     - [OS Open Roads](#os-open-roads)
 
-## [Outputs](#data-output)
+#### String comparisons
 - [String Comparison Parameters](#string-comparison-parameters)
-- [Credit, re-use terms, and how to cite](#credit-re-use-terms-and-how-to-cite)
-- [Acknowledgements](#acknowledgements)
+
+## [Outputs](#data-output)
+  - [Boundary files](#boundary-files)
+  - [Target Geometry files](#target-geometry-files)
+  - [Census files](#census-files)
+
+## [Citation/acknowledgements](#citation-and-acknowledgements)
 
 
 ## Pre-installation
@@ -271,6 +276,7 @@ The directory structure of `data/output/` is created automatically by `CensusGeo
     ├── scot_1881_config.yaml
     ├── scot_1891_config.yaml
     ├── scot_1901_config.yaml
+    ├── targetgeom_config.yaml
     ├── gen_config.yaml
     └── standardisation_files
         ├── gb1900_standardisation.json
@@ -862,192 +868,171 @@ target_geom2:
                 └── rsd
                     └── EW_1851_rsd_processed.tsv
 ```
-Output files for each target geometry dataset and census year/country are written to separate directories. For each partition of the census (e.g. a county), 3 types of delimited text files are output to the corresponding directories `linked`, `linked duplicates`, `lookup`.
+Output files for each target geometry dataset and census year/country are written to separate directories. Output files for the target geometry datasets and processed boundary files are saved in the relevant directory.
+
+---
+
+#### Boundary files
+
+Use these with the target geometry datasets to identify how addresses/streets have been allocated to geo-blocking units (e.g. looking for why a street has not been geo-coded, to check if it's been allocated to the wrong boundary).
+
+Boundary files contain the processed boundary data used for geo-blocking (containing added lookup fields and dissolved boundaries for the specified census year). The name of the boundary files will have been specified in the census configuration file, e.g. [EW_1851_config.yaml](configuration/EW_1851_config.yaml). Boundaries created by merging 2 or more boundary datasets will have the names of the constituent boundaries separated by underscores.
+
+---
+
+#### Target Geometry files
+
+Three types of geometry files are output as standard: `processed`, `slim`, `standardised`.
+
+`standardised`
+
+Contains original address columns and standardised address columns for all entries in the target geometry dataset:
+
+pin_id|final_text|geometry|final_text_alt
+---|---|---|---|
+586a2ff42c66dc10b8076415|trelawney road|POINT (164560.647654986 40496.6175227088)|TRELAWNEY ROAD
+586a300c2c66dc10b8076425|WELLINGTON RD.|POINT (164540.692460445 40236.7617294074)|WELLINGTON ROAD
+586a30212c66dc9c5600002c|church street|POINT (164508.522704515 40064.6088547844)|CHURCH STREET
+586a36332c66dc10b80766ad|moor street|POINT (164990.066736796 40012.6921442041)|MOOR STREET
+586a36792c66dc10b80766ed|victoria st.|POINT (164740.779401679 39924.319212947)|VICTORIA STREET
+
+`processed`
+
+Same as `standardised` but blank addresses (after the standardisation) are dropped.
+
+`slim`
+
+Contains only information necessary for geo-coding process (lowers memory requirements).
+
+conparid_51-91|CEN_1851|final_text_alt|street_uid
+---|---|---|---|
+5265|3100004|TRELAWNEY ROAD|333584
+5265|3100004|WELLINGTON ROAD|333608
+5265|3100004|CHURCH STREET|333401
+
+If `dedup` parameter in [targetgeom_config.yaml](configuration/targetgeom_config.yaml) is 'True', then the following files are also output, so that the dedup calculations (including distance between entities) can be inspected.
+
+`distcount`
+
+pin_id|geometry|final_text|final_text_alt|conparid_51-91|CEN_1851|street_uid|count|dist_calc|pin_id_removed
+---|---|---|---|---|---|---|---|---|---|
+586a2ff42c66dc10b8076415|POINT (164560.647654986 40496.6175227088)|trelawney road|TRELAWNEY ROAD|5265|3100004|333584|1||
+586a300c2c66dc10b8076425|POINT (164540.692460445 40236.7617294074)|WELLINGTON RD.|WELLINGTON ROAD|5265|3100004|333608|1||
+586a30212c66dc9c5600002c|POINT (164508.522704515 40064.6088547844)|church street|CHURCH STREET|5265|3100004|333401|1
+
+
+`distcount2`
+
+Same as `distcount` but with entries dropped that don't meet `dedup_max_points` and `dedup_max_distance_between_points` thresholds/criteria in [targetgeom_config.yaml](configuration/targetgeom_config.yaml).
+
+
+If `dedup` parameter in [targetgeom_config.yaml](configuration/targetgeom_config.yaml) is 'False', then instead there will be a `_nodistcalc` file. This contains the same information as the `distcount/discount2` files, except it doesn't include the columns 'count', 'dist_calc', and 'pin_id_removed'.
+
+Use either the `discount2` or `nodistcalc`files as the final versions of the target geometry datasets (they're what's used to create the geometry files for AddressGB (add_link)).
+
+---
+
+#### Census files
+
+The following types of delimited text files are output for the census: `address_uid`, `census_for_linking`, `cleaned`, `matches`, `competing_matches`, and `matches_lq`. If a partition is specified, then the census outputs are written to a sub-directory for each partition, so will be in `data/output/EW/1851/0/`
 
 Filenames are structured as follows:
-`{census_country}_{census_year}_{target_geometry_name}_{partition_value}`
 
-with `link`, `linkdup`, or `lkup` appended to the end as appropriate, e.g.
+country_year_filetype_partition, e.g. `EW_1851_address_uid_0`
 
-e.g. `EW_1851_gb1900_Durham_lkup`.
+
+`cleaned`
+
+Contains original and cleaned census address data for each person.
+
+ParID|subset_id|RecID|Address|Address_alt
+---|---|---|---|---|
+16367|0|17543269|PENY CROESLON|PENY CROESLON
+16367|0|17543290|SCWBOR ONW|SCWBOR ONW
+16367|0|17543291|SCWBOR ONW|SCWBOR ONW
+16367|0|17543317|CUTMOOM|CUTMOOM
+
+`address_uid`
+
+Same as `cleaned` but with addition of added fields via lookups, e.g. 'CEN_1851'. Also contains assigned uid for each address, e.g. note that two of the individuals below have the same 'address_uid' of 65827.
+
+ParID|subset_id|RecID|Address|Address_alt|CEN_1851|ConParID|address_uid
+---|---|---|---|---|---|---|---|
+16367|0|17543269|PENY CROESLON|PENY CROESLON|6230003|12729|65810
+16367|0|17543290|SCWBOR ONW|SCWBOR ONW|6230003|12729|65827
+16367|0|17543291|SCWBOR ONW|SCWBOR ONW|6230003|12729|65827
+16367|0|17543317|CUTMOOM|CUTMOOM|6230003|12729|65755
+
+`census_for_linking`
+
+Same as `cleaned` but keeps only one copy of each unique address (dropping the individual RecIDs) - this version is used for the geo-coding process because it contains only the information necessary (lowers memory requirements).
+
+address_uid|Address_alt|ConParID|CEN_1851|subset_id
+---|---|---|---|---|
+65810|PENY CROESLON|12729|6230003|0
+65827|SCWBOR ONW|12729|6230003|0
+65755|CUTMOOM|12729|6230003|0
+
+`matches`
+
+Contains best matches between census and target geometry dataset. These matches meet or exceed all thresholds and are the highest scoring match. These form the basis of AddressGB.(add link)
+
+address_uid|street_uid|rapidfuzzy_wratio_s|align|Address_alt|final_text_alt|fs
+---|---|---|---|---|---|---|
+484058|950445|1.0|7.0|BODWENA|BODWENA|7.0
+484063|950453|0.9090909090909091|11.0|ERDDRAENIOG|ERDDREINIOG|10.0
+484070|950458|0.9411764705882352|8.0|MAENERYR|MAEN ERYR|7.529411764705881
+484071|950461|1.0|9.0|MINFFORDD|MINFFORDD|9.0
+
+`competing_matches`
+
+Contains competing best matches between census and target geometry dataset. These matches meet or exceed all thresholds but there are 2 or more matches for each address that have the same highest scoring match. E.g. note below how a match is made to the 'Spite Inn' and the place 'Gwalchmai'.
+
+address_uid|street_uid|rapidfuzzy_wratio_s|align|Address_alt|final_text_alt|fs
+---|---|---|---|---|---|---|
+485346|951693|0.9|9.0|SPITE INN VILLAGE OF GWALCHMAI|GWALCHMAI|8.1
+485346|951725|0.9|9.0|SPITE INN VILLAGE OF GWALCHMAI|SPITE INN|8.1
+485880|952231|0.9|7.0|BODAFON|BODAFON GLYN|6.3
+485880|952232|0.9|7.0|BODAFON|BODAFON WYNN|6.3
+ 
+`matches_lq`
+
+Contains lower quality matches that meet the thresholds specified in configuration files but are not the highest matches available for each 'address_uid'.
+
+address_uid|street_uid|rapidfuzzy_wratio_s|align|Address_alt|final_text_alt|fs
+---|---|---|---|---|---|---|
+484071|950462|0.9|9.0|MINFFORDD|MINFFORDD COVERT|8.1
+484351|950741|0.9523809523809522|10.0|BRYN TIRION|BRYNTIRION|9.523809523809522
+484414|950769|0.9|7.0|HENBLAS|COED HENBLAS|6.3
+484437|950818|0.9|8.0|PARADWYS BACH|PARADWYS|7.2
 
 ---
 
-#### Linked
-
-Census addresses considered a match to an address in the target geometry dataset.
-
-fields|
--|
-target geometry address|
-census address unique id|
-target geometry address unique id|
-census address|
-tfidf weighting|
-fuzzy string comparison score|
-weighted fuzzy string comparison score|
-
-*Sample output*
-
-final_text|unique_add_id|gb1900_1851|address_anonymised|tfidf_w|rapidfuzzy_wratio_s|rapidfuzzy_wratio_ws|
---|--|--|--|--|--|--|
-SOUTH HILL PARK|BAGSHOT ROAD AND SOUTH HILL PARK_1452.0_1300001.0|5815d6182c66dc3849011ef2_1452.0_1300001|BAGSHOT ROAD AND SOUTH HILL PARK|0.0743637355789496|0.9|0.06692736202105463|
-BARTHOLOMEW STREET|BARTHOLOMEW STREET  SHAWS COURT_1260.0_1200002.0|5848759c2c66dcdcda000168_1260.0_1200002|BARTHOLOMEW STREET  SHAWS COURT|0.06117412360590356|0.9|0.05505671124531321|
-BARTHOLOMEW STREET|BARTHOLOMEW STREET  STILLMANS COTTAGES_1260.0_1200002.0|5848759c2c66dcdcda000168_1260.0_1200002|BARTHOLOMEW STREET  STILLMANS COTTAGES|0.05017107492325159|0.9|0.04515396743092643|
-
----
-
-#### Linked duplicates
-
-Census addresses with > 1 match to an address in the target geometry dataset.
-
-The fields are the same as the `Linked` output:
-
-fields|
--|
-target geometry address|
-census address unique id|
-target geometry address unique id|
-census address|
-tfidf weighting|
-fuzzy string comparison score|
-weighted fuzzy string comparison score|
-
-*Sample output*
-
-name1|unique_add_id|os_open_roads_1851|address_anonymised|tfidf_w|rapidfuzzy_wratio_s|rapidfuzzy_wratio_ws|
---|--|--|--|--|--|--|
-OLD BRACKNELL LANE EAST|BRACKNELL_1452.0_1300001.0|osgb4000000023476747_1452.0_1300001|BRACKNELL|0.1111111111111111|0.9|0.09999999999999999
-BRACKNELL ROAD|BRACKNELL_1452.0_1300001.0|osgb4000000023487824_1452.0_1300001|BRACKNELL|0.1111111111111111|0.9|0.09999999999999999
-OLD BRACKNELL LANE WEST|BRACKNELL_1452.0_1300001.0|osgb4000000023488088_1452.0_1300001|BRACKNELL|0.1111111111111111|0.9|0.09999999999999999
-
----
-
-#### Lookup
-
-Unique ids for individuals from the census for each census address and target geometry in [Linked](#linked).
-
-*Sample output*
-
-unique census id (e.g. RecID)|unique geometry id (e.g. gb1900_EW_1851)
---|--
-20|52f1d84fd9dbf10005000574_12709.0_6230001
-40|5360c84879ff6e000d001256_12753.0_6230006
-41|52cd3f9cba830e0005003ba1_12737.0_6230004
-
----
-
-#### New geometry file
-
-For each target geometry dataset, an output file is written containing the geometry data with added historic administrative unit ids for that census country and year. Additionally, linestring geometries are split or combined depending on whether they run across multiple administrative boundaries.
-
-*Sample output for OS Open Roads, England and Wales 1901*
-
-field|description
---|--
-new unique id (e.g. `os_open_roads_EW_1901`)|new unique id for street constructed from target geometry unique id field and historic administrative unit id(s); e.g. `osgb4000000006295134` (OS Open Roads ID) + `109960.0` (conparid_01-11 - Consistent Parish ID for 1901) + `5610001` (CEN_1901 - RSD Unique ID for 1901) = `osgb4000000006295134_109960.0_5610001`
-target geometry unique id (e.g. `nameTOID`)|original unique id from target geometry dataset; e.g. `osgb4000000006295134`
-target geometry address field (e.g. `name1`)|e.g. `FOREST DRIVE`
-consistent parish id (e.g. `conparid_01-11`)|consistent parish ID for 1901, e.g. `109960.0`
-registration sub-district id (e.g. `CEN_1901`)|registration sub-district id for 1901, e.g. `561001.0`
-geometry|Linestring geometry data
-
-
-```json
-{
-"type": "FeatureCollection",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::27700" } },
-"features": [
-{ "type": "Feature", "properties": { "os_open_roads_EW_1901": "osgb4000000006295134_109960.0_5610001", "nameTOID": "osgb4000000006295134", "name1": "FOREST DRIVE", "conparid_01-11": 109960.0, "CEN_1901": 5610001.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 373661.0, 599187.0, 0.0 ], [ 373630.13, 599178.060000000055879, 0.0 ], [ 373599.270000000018626, 599169.12, 0.0 ] ] } },
-{ "type": "Feature", "properties": { "os_open_roads_EW_1901": "osgb4000000006295135_109958.0_5610001", "nameTOID": "osgb4000000006295135", "name1": "COTTONSHOPE ROAD", "conparid_01-11": 109958.0, "CEN_1901": 5610001.0 }, "geometry": { "type": "LineString", "coordinates": [ [ 378191.35999999998603, 603573.690000000060536, 0.0 ], [ 378226.19, 603658.060000000055879, 0.0 ], [ 378317.0, 603878.0, 0.0 ], [ 378433.169999999983702, 604220.520000000018626, 0.0 ], [ 378646.0, 604848.0, 0.0 ], [ 378665.0, 604869.0, 0.0 ] ] } }]
-}
-```
-
-By default, the files are output as `.geojson` files in the same projection as the historic boundary datasets and OS Open Roads and GB1900, which is `EPSG:27700`. Users can change these settings in [input_config.yaml](inputs/input_config.yaml). These parameters are passed to geopandas [GeoDataFrame.to_file](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.to_file.html). Currently, you can change the projection of the output geometries to either `EPSG:3857` or `EPSG:4326` (northings, easting will be converted to longlat).
-
-```yaml
-output_params:
-  file_type: ".geojson"
-  crs: "EPSG:27700"
-  driver: "GeoJSON"
-```
----
-
-#### Summary
-
-Delimited text file containing summary statistics on the proportions of people linked according to each census partition.
-
-Fields|Description|
---|--|
-partition|Census partition, e.g. a county|
-inds_link|Number of individuals linked to a target geometry|
-adds_link|Number (unique count) of addresses linked to target geometry|
-adds_linkdup_count|Number (unique count) of addresses with > 1 match to target geometry|
-inds_all|Number of all individuals in census partition|
-adds_all|Number (unique count) of all addresses in census partition|
-inds_link_perc|Percentage of all individuals linked to target geometry|
-adds_link_perc|Percentage of all addresses linked to target geometry|
-adds_linkdup_perc|Percentage of all addresses with > 1 match to target geometry|
-
-*Sample output*
-
-RegCnty|inds_linked|adds_linked|adds_duplink_count|inds_all|adds_all|inds_linked_perc|adds_linked_perc|adds_duplink_perc
---|--|--|--|--|--|--|--|--|
-Anglesey|261|43|1|4257|2176|6.13107822410148|1.9761029411764706|0.04595588235294117
-Bedfordshire|1875|192|3|12827|1668|14.617603492632728|11.510791366906476|0.1798561151079137
-Berkshire|1984|244|12|19583|3184|10.13123627636215|7.663316582914573|0.37688442211055273
-Brecknockshire|332|32|2|5978|2531|5.553696888591502|1.264322402212564|0.07902015013828526
 
 ## String Comparison Parameters
 
-There are lots of different algorithms for comparing the similarity of two text strings. `CensusGeocoder` allows you to choose from a variety of fuzzy string comparison algorithms.
+There are lots of different algorithms for comparing the similarity of two text strings. `CensusGeocoder` allows you to choose from a variety of fuzzy string comparison algorithms, which are specifed in each census configuration file.
 
-The default string comparison is an implementation of `partial_ratio` from the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library.
-
-Alternatively, you can use `WRatio`, also from the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library.
-
-Other string comparison algorithms are made available via the [recordlinkage](https://recordlinkage.readthedocs.io/en/latest/index.html) library, which uses the [jellyfish](https://github.com/jamesturk/jellyfish) library for its string algorithms. You can view the list of algorithms accepted by `recordlinkage` [here](https://recordlinkage.readthedocs.io/en/latest/ref-compare.html#module-recordlinkage.compare).
-
-As of August 2022, these are: 
-> "jaro", "jarowinkler", "levenshtein", "damerau_levenshtein", "qgram" or "cosine"
-
-Each algorithm computes a similarity score of two text strings between 0 and 1. The closer to 1, the more similar the two strings are.
-
-For a discussion of the implications for using these algorithms, see #21.
-
-<!-- NB algorithms like `Wratio` also look for shorter strings in longer strings, e.g. comparing 'PARK ROAD' would result in a score of 1 when compared to 'HYDE PARK ROAD' because the input shorter string matches exactly to a portion of the longer string. This needs to be treated with caution but is often useful for linking descriptions of addresses that would otherwise result in a low similarity score e.g. 'BACK NEW ROAD' or 'FRONT NEW ROAD' score 1 against 'NEW ROAD' using `Wratio` but lower using `levenshtein` for example. -->
-
-You can set the minimum similarity threshold for two candidates to be considered a match using `sim_thresh`.
+For example, [EW_1851_config.yaml](configuration/EW_1851_config.yaml):
 
 
 ```yaml
-comparison_params:
-  sim_thresh: 0.85 # similarity threshold for string comparison
-  string_comp_alg: "rapidfuzzy_wratio" # default
-```
+census:
+  comparers: # used to specify type of comparison algorithm to use and name of the pd.Series storing the results of this algorithm
+    rapidfuzzy_wratio: "rapidfuzzy_wratio_s" 
+    rapidfuzzy_partial_ratio_alignment: "align"
+  sim_comp_thresh: 0.9 # matches must be equal to or greater than this threshold
+  align_thresh: 7 # matches of strings of different lengths must have equal to or greater than this number of aligned characters
+  final_score_field: "fs" # name of pd.Series to store final comparison scores
+  ```
 
-## Credit, re-use terms, and how to cite
+A range of string comparison algorithms are made available via the [recordlinkage](https://recordlinkage.readthedocs.io/en/latest/index.html) library, which uses the [jellyfish](https://github.com/jamesturk/jellyfish) library for its string algorithms. You can view the list of algorithms accepted by `recordlinkage` [here](https://recordlinkage.readthedocs.io/en/latest/ref-compare.html#module-recordlinkage.compare).
+
+`CensusGeocoder` instead uses the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library. These are set in [utils.py](censusgeocoder/utils.py), in the class `rapidfuzzy_wratio_comparer(BaseCompareFeature)`. These include 'rapidfuzzy_wratio', 'rapidfuzzy_partialratio', 'rapidfuzzy_partial_ratio_alignment', and 'rapidfuzzy_get_src_start_pos'. For information see the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) documentation.
+
+## Citation and Acknowledgements
 `CensusGeocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-input)
-
-## Acknowledgements
 
 This work was supported by Living with Machines (AHRC grant AH/S01179X/1) and The Alan Turing Institute (EPSRC grant EP/N510129/1). Living with Machines, funded by the UK Research and Innovation (UKRI) Strategic Priority Fund, is a multidisciplinary collaboration delivered by the Arts and Humanities Research Council (AHRC), with The Alan Turing Institute, the British Library and the Universities of Cambridge, East Anglia, Exeter, and Queen Mary University of London.
 
-Thanks to Joe Day and Alice Reid for supplying RSD Boundary data and lookups prior to their deposit with the UK Data Service.
-
-
-
-<!-- Optionally, set `standardisation_file` to the path to a json standardisation file containing regex replacements to apply to the address field of the target geometry data.
-
-For example:
-
-```json
-{
-	"\\sST\\.$|\\sST$":" STREET",
-	"\\sRD\\.$|\\sRD$":" ROAD",
-	"\\sPL\\.$|\\sPL$":" PLACE"
-}
-``` -->
-
-The `comparison_params` allow you to adjust the string comparison parameters when comparing address fields between the census and a target geometry dataset. See [String Comparison Parameters](#string-comparison-parameters) for more information.
-
+Thanks to Joe Day and Alice Reid for supplying RSD Boundary data and lookups prior to their deposit with the UK Data Service. Thanks also to Hanna Jaadla for supplying RecID lookups for the Scottish ConRD Urban subdivision datasets.
