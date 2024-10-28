@@ -830,6 +830,27 @@ target_geom2:
     index: False
 ```
 
+## String Comparison Parameters
+
+There are lots of different algorithms for comparing the similarity of two text strings. `CensusGeocoder` allows you to choose from a variety of fuzzy string comparison algorithms, which are specifed in each census configuration file.
+
+For example, [EW_1851_config.yaml](configuration/EW_1851_config.yaml):
+
+
+```yaml
+census:
+  comparers: # used to specify type of comparison algorithm to use and name of the pd.Series storing the results of this algorithm
+    rapidfuzzy_wratio: "rapidfuzzy_wratio_s" 
+    rapidfuzzy_partial_ratio_alignment: "align"
+  sim_comp_thresh: 0.9 # matches must be equal to or greater than this threshold
+  align_thresh: 7 # matches of strings of different lengths must have equal to or greater than this number of aligned characters
+  final_score_field: "fs" # name of pd.Series to store final comparison scores
+  ```
+
+A range of string comparison algorithms are made available via the [recordlinkage](https://recordlinkage.readthedocs.io/en/latest/index.html) library, which uses the [jellyfish](https://github.com/jamesturk/jellyfish) library for its string algorithms. You can view the list of algorithms accepted by `recordlinkage` [here](https://recordlinkage.readthedocs.io/en/latest/ref-compare.html#module-recordlinkage.compare).
+
+`CensusGeocoder` instead uses the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library. These are set in [utils.py](censusgeocoder/utils.py), in the class `rapidfuzzy_wratio_comparer(BaseCompareFeature)`. These include 'rapidfuzzy_wratio', 'rapidfuzzy_partialratio', 'rapidfuzzy_partial_ratio_alignment', and 'rapidfuzzy_get_src_start_pos'. For information see the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) documentation.
+
 ### Data Output
 
 ```bash
@@ -1007,28 +1028,6 @@ address_uid|street_uid|rapidfuzzy_wratio_s|align|Address_alt|final_text_alt|fs
 484437|950818|0.9|8.0|PARADWYS BACH|PARADWYS|7.2
 
 ---
-
-
-## String Comparison Parameters
-
-There are lots of different algorithms for comparing the similarity of two text strings. `CensusGeocoder` allows you to choose from a variety of fuzzy string comparison algorithms, which are specifed in each census configuration file.
-
-For example, [EW_1851_config.yaml](configuration/EW_1851_config.yaml):
-
-
-```yaml
-census:
-  comparers: # used to specify type of comparison algorithm to use and name of the pd.Series storing the results of this algorithm
-    rapidfuzzy_wratio: "rapidfuzzy_wratio_s" 
-    rapidfuzzy_partial_ratio_alignment: "align"
-  sim_comp_thresh: 0.9 # matches must be equal to or greater than this threshold
-  align_thresh: 7 # matches of strings of different lengths must have equal to or greater than this number of aligned characters
-  final_score_field: "fs" # name of pd.Series to store final comparison scores
-  ```
-
-A range of string comparison algorithms are made available via the [recordlinkage](https://recordlinkage.readthedocs.io/en/latest/index.html) library, which uses the [jellyfish](https://github.com/jamesturk/jellyfish) library for its string algorithms. You can view the list of algorithms accepted by `recordlinkage` [here](https://recordlinkage.readthedocs.io/en/latest/ref-compare.html#module-recordlinkage.compare).
-
-`CensusGeocoder` instead uses the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) library. These are set in [utils.py](censusgeocoder/utils.py), in the class `rapidfuzzy_wratio_comparer(BaseCompareFeature)`. These include 'rapidfuzzy_wratio', 'rapidfuzzy_partialratio', 'rapidfuzzy_partial_ratio_alignment', and 'rapidfuzzy_get_src_start_pos'. For information see the [rapidfuzz](https://github.com/maxbachmann/RapidFuzz) documentation.
 
 ## Citation and Acknowledgements
 `CensusGeocoder` relies on several datasets that require you to have an account with the UK Data Service (UKDS) to sign their standard end user licence. Please see individual datasets listed under [Data Inputs](#data-input)
