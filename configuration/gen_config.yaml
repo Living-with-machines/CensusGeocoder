@@ -1,10 +1,10 @@
 census_years:
-  # EW: [1851, 1861, 1881, 1891, 1901, 1911]
+  EW: [1851, 1861, 1881, 1891, 1901, 1911]
   scot: [1851, 1861, 1871, 1881, 1891, 1901]
   # scot: [1851]
   # EW: [1851]
   # EW: [1851]
 
 
-output_path: "../data/output_test_of_opconfig"
+output_path: "../data/output_final"
 output_filetype: ".tsv"
