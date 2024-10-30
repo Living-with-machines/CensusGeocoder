@@ -2,6 +2,48 @@
 
 ![overview](documentation/overview_large_new.png)
 
+# Contents
+- [What is CensusGeocoder?](#What-is-CensusGeocoder?)
+- [How does it work](#how-does-it-work)
+- [I just want the data!](#i-just-want-the-data)
+- [Pre-installation](#pre-installation)
+- [Installation and setup](#installation)
+  - [Set up a conda environment](#set-up-a-conda-environment)
+  - [Method 1:](#method-1)
+  - [Set Parameters](#set-parameters)
+  - [Folder Structure and Data](#folder-structure-and-data)
+<!-- - [Overview](#overview) -->
+## [Inputs](#data-input)
+
+#### Census
+  - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
+
+#### England and Wales Boundaries
+  - [Parish Boundary Data](#parish-boundary-data-england-and-wales-only)
+  - [Parish Boundary Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
+  - [Registration Sub-District (RSD) Boundary Data](#registration-sub-district-rsd-boundary-data-england-and-wales-only)
+  - [Registration Sub-District (RSD) Lookup Table](#registration-sub-district-rsd-lookup-table-england-and-wales-only)
+
+#### Scotland Boundaries
+  - [Historic Scottish Parishes GIS](#historic-scottish-parishes-gis-scotland-only)
+  - [Historic Scottish Parishes Lookup Table](#historic-scottish-parishes-lookup-table-scotland-only)
+  - [Urban Subdivisions](#urban-subdivisions-scotland-only)
+
+#### Target Geometries
+  - [Target Geometry Data](#target-geometry-data)
+    - [GB1900 Gazetteer](#gb1900-gazetteer)
+    - [OS Open Roads](#os-open-roads)
+
+#### String comparisons
+- [String Comparison Parameters](#string-comparison-parameters)
+
+## [Outputs](#data-output)
+  - [Boundary files](#boundary-files)
+  - [Target Geometry files](#target-geometry-files)
+  - [Census files](#census-files)
+
+## [Citation/acknowledgements](#citation-and-acknowledgements)
+
 ## What is CensusGecooder?
 
 **CensusGeocoder** links addresses in [digitised historic census data for Great Britain 1851-1911](#integrated-census-microdata-i-cem) to their 'real-world' geographic location. For example, it takes the text 'Ruby Street' from the census and links it to a geometry dataset of your choice. We link to [OS Open Roads](#os-open-roads) and [GB1900](#gb1900-gazetteer) as our target geometry datasets as the best alternatives until a full vector dataset of nineteenth/early twentieth century streets is created (we'd love if this was available someday!)
@@ -147,49 +189,6 @@ We start with parishes in 1851. I-CeM provides a lookup table that links each pa
 ## I just want the data!
 
 Add details here on how to access the data outputs.
-
-# Contents
-- [What is CensusGeocoder?](#What-is-CensusGeocoder?)
-- [How does it work](#how-does-it-work)
-- [I just want the data!](#i-just-want-the-data)
-- [Pre-installation](#pre-installation)
-- [Installation and setup](#installation)
-  - [Set up a conda environment](#set-up-a-conda-environment)
-  - [Method 1:](#method-1)
-  - [Set Parameters](#set-parameters)
-  - [Folder Structure and Data](#folder-structure-and-data)
-<!-- - [Overview](#overview) -->
-## [Inputs](#data-input)
-
-#### Census
-  - [Integrated Census Microdata (I-CeM)](#integrated-census-microdata-i-cem)
-
-#### England and Wales Boundaries
-  - [Parish Boundary Data](#parish-boundary-data-england-and-wales-only)
-  - [Parish Boundary Lookup Table](#1851engwalesparishandplace-i-cem-lookup-table-england-and-wales-only)
-  - [Registration Sub-District (RSD) Boundary Data](#registration-sub-district-rsd-boundary-data-england-and-wales-only)
-  - [Registration Sub-District (RSD) Lookup Table](#registration-sub-district-rsd-lookup-table-england-and-wales-only)
-
-#### Scotland Boundaries
-  - [Historic Scottish Parishes GIS](#historic-scottish-parishes-gis-scotland-only)
-  - [Historic Scottish Parishes Lookup Table](#historic-scottish-parishes-lookup-table-scotland-only)
-  - [Urban Subdivisions](#urban-subdivisions-scotland-only)
-
-#### Target Geometries
-  - [Target Geometry Data](#target-geometry-data)
-    - [GB1900 Gazetteer](#gb1900-gazetteer)
-    - [OS Open Roads](#os-open-roads)
-
-#### String comparisons
-- [String Comparison Parameters](#string-comparison-parameters)
-
-## [Outputs](#data-output)
-  - [Boundary files](#boundary-files)
-  - [Target Geometry files](#target-geometry-files)
-  - [Census files](#census-files)
-
-## [Citation/acknowledgements](#citation-and-acknowledgements)
-
 
 ## Pre-installation
 
