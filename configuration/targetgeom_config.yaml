@@ -11,7 +11,7 @@ target_geom1:
     encoding: "utf-16"
     sep: ","
     usecols: ["pin_id", "final_text", "osgb_east", "osgb_north", ]
-    nrows: 20000
+    # nrows: 20000
 
   gis_field_to_clean: "final_text"
   gis_convert_non_ascii: True
@@ -44,7 +44,7 @@ target_geom2:
   gis_read_params:
     engine: "pyogrio"
     columns: ["nameTOID", "name1", ]
-    max_features: 10000
+    # max_features: 10000
 
   item_per_unit_uid: "street_uid"
 
