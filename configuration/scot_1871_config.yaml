@@ -11,7 +11,7 @@ census:
     encoding: "latin-1" # passed to 'encoding' parameter of pandas read_csv
     quoting: 3 # must be int 0,1,2, or 3. Passed to 'quoting' parameter of pandas read_csv
     na_values: [".", " ", " - "] # Passed to 'na_values' parameter of pandas read_csv
-    nrows: 100000
+    # nrows: 100000
     usecols: ["RecID", "Address","ParID", "subset_id"]
 
   field_to_clean: "Address"
