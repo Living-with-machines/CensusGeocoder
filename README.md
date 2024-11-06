@@ -188,7 +188,9 @@ We start with parishes in 1851. I-CeM provides a lookup table that links each pa
 -->
 ## I just want the data!
 
-Add details here on how to access the data outputs.
+> Rhodes, J. (2024). AddressGB: Geo-coded British Census Addresses, 1851-1911 (1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.10473597
+
+> Rhodes, J. (2024). AddressGB Manual Evaluation Sample (1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.13770048
 
 ## Pre-installation
 
@@ -447,7 +449,7 @@ Location: `data/input/ew/icem_parish_lkup`
 
 
 
-A lookup table that links I-CeM to the [above](#parish-boundary-data-england-and-wales-only) GIS of parish boundaries. This table enables us to dissolve the parish GIS to create 'consistent parishes' that can be linked to I-CeM. Download the lookup table here [add new link here to zenodo]()
+A lookup table that links I-CeM to the [above](#parish-boundary-data-england-and-wales-only) GIS of parish boundaries. This table enables us to dissolve the parish GIS to create 'consistent parishes' that can be linked to I-CeM. Download the lookup table [here](https://doi.org/10.5281/zenodo.10473644).
 
 `CensusGeocoder` only uses three fields from the lookup table, which are:
 
@@ -605,8 +607,6 @@ pre-1891|post-1891
 ![Pre-1891 Scottish Parish Boundaries](documentation/pre-1891_scottish_parish.png "Pre-1891 Scottish Parish Boundaries")|![Post-1891 Scottish Parish Boundaries](documentation/post-1891_scottish_parish.png "Post-1891 Scottish Parish Boundaries")|
 
 
->add citation
-
 #### Parameters of Historic Scottish Parishes GIS in [scot_1851_config.yaml](configuration/scot_1851_config.yaml)
 ```yaml
 boundaries:
@@ -658,7 +658,7 @@ DAILLY | 100572 |
 SMALL ISLES | 100119 |
 
 #### Citation
-> [Add full reference] 10.5281/zenodo.10473644
+> Rhodes, J. (2024). I-CeM Scotland Parish GIS Lookup Tables, 1851-1901 (1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.10473644
 
 #### Parameters of Historic Scottish Parishes Lookup Table in [scot_1851_config.yaml](configuration/scot_1851_config.yaml)
 ```yaml
@@ -792,7 +792,7 @@ Location: `data/input/osopenroads`
 
 Shapefiles and documentation from the Ordnance Survey's Open access modern road vector data. Available here to download: https://www.ordnancesurvey.co.uk/business-government/products/open-map-roads.
 
-The original download `oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. CensusGeocoder only requires the `RoadLink` files. For ease, these have been combined into a single shapefile when being read into `CensusGeocoder`. <!-- Potentially add link to code that does this -->
+The original download `oproad_essh_gb-2` contains a `data` folder, which stores `RoadLink` and `RoadNode` files. CensusGeocoder only requires the `RoadLink` files. For ease, these have been combined into a single shapefile when being read into `CensusGeocoder`. Script that does this is [here](openroads/create_one_shapefile.py).
 
 ##### Citation
 
@@ -995,7 +995,7 @@ address_uid|Address_alt|ConParID|CEN_1851|subset_id
 
 `matches`
 
-Contains best matches between census and target geometry dataset. These matches meet or exceed all thresholds and are the highest scoring match. These form the basis of AddressGB.(add link)
+Contains best matches between census and target geometry dataset. These matches meet or exceed all thresholds and are the highest scoring match. These form the basis of [AddressGB](https://doi.org/10.5281/zenodo.10473597).
 
 address_uid|street_uid|rapidfuzzy_wratio_s|align|Address_alt|final_text_alt|fs
 ---|---|---|---|---|---|---|
